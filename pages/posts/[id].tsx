@@ -2,7 +2,15 @@ import Head from 'next/head'
 import Layout from "../../components/Layout";
 import {getAllPostIds, getPostData, PostData, PostIdParam} from "../../lib/posts";
 import utilStyles from '../../styles/utils.module.css'
-import {GetStaticPaths} from "next";
+import {
+    GetStaticPaths,
+    GetStaticPathsResult,
+    GetStaticProps,
+    GetStaticPropsContext,
+    GetStaticPropsResult,
+    PreviewData
+} from "next";
+import {ParsedUrlQuery} from "querystring";
 
 type Props = {
     postData: PostData
@@ -23,16 +31,13 @@ export default function Post(props: Props) {
     )
 }
 
-export async function getStaticPaths() {
-    const ids = getAllPostIds()
-    return {
-        paths: ids,
-        fallback: false
-    }
-}
+export const getStaticPaths: GetStaticPaths = async () => ({
+    paths: getAllPostIds(),
+    fallback: false
+})
 
-export async function getStaticProps({params}) {
-    const postData = await getPostData(params.id)
+export const getStaticProps: GetStaticProps = async (context: GetStaticPropsContext) => {
+    const postData = await getPostData(context.params.id as string)
     return {
         props: {
             postData

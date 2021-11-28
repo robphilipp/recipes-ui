@@ -4,52 +4,75 @@ import utilStyles from '../styles/utils.module.css'
 import {getSortedPostsData, PostData} from '../lib/posts'
 import Link from 'next/link'
 import Date from '../components/Date'
-import { GetStaticProps } from 'next'
+import {GetServerSideProps, GetStaticProps} from 'next'
+import {allRecipes, Recipe, recipeSummaries, RecipeSummary} from "../lib/recipes";
 
 type Props = {
-    allPostsData: Array<PostData>
+    // allPostsData: Array<PostData>
+    recipes: Array<RecipeSummary>
+    // recipes: Array<Recipe>
 }
 
 export default function Home(props: Props): JSX.Element {
-    const {allPostsData} = props
+    const {
+        // allPostsData,
+        recipes
+    } = props
 
     return (
         <Layout home>
             <Head>
-                <title>{siteTitle}</title>
+                <title>{process.env.siteName}</title>
             </Head>
-            <section className={utilStyles.headingMd}>
-                <p>[Your Self Introduction]</p>
-                <p>
-                    (This is a sample website - you’ll be building a site like this in{' '}
-                    <a href="https://nextjs.org/learn">our Next.js tutorial</a>.)
-                </p>
-            </section>
             <section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>
-                <h2 className={utilStyles.headingLg}>Blog</h2>
                 <ul className={utilStyles.list}>
-                    {allPostsData.map(({ id, date, title }) => (
-                        <li className={utilStyles.listItem} key={id}>
-                            <Link href={`/posts/${id}`}>
-                                <a>{title}</a>
-                            </Link>
-                            <br />
+                    {recipes.map(recipe => (
+                        <li className={utilStyles.listItem} key={recipe.name}>
+                            <Link href={`/recipes/${recipe.name}`}><a>{recipe.name}</a></Link>
+                            <br/>
                             <small className={utilStyles.lightText}>
-                                <Date dateString={date} />
+                                <Date epochMillis={recipe.createdOn}/>
                             </small>
                         </li>
                     ))}
                 </ul>
             </section>
+            {/*<section className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}>*/}
+            {/*    <h2 className={utilStyles.headingLg}>Blog</h2>*/}
+            {/*    <ul className={utilStyles.list}>*/}
+            {/*        {allPostsData.map(({ id, date, title }) => (*/}
+            {/*            <li className={utilStyles.listItem} key={id}>*/}
+            {/*                <Link href={`/posts/${id}`}>*/}
+            {/*                    <a>{title}</a>*/}
+            {/*                </Link>*/}
+            {/*                <br />*/}
+            {/*                <small className={utilStyles.lightText}>*/}
+            {/*                    <Date dateString={date} />*/}
+            {/*                </small>*/}
+            {/*            </li>*/}
+            {/*        ))}*/}
+            {/*    </ul>*/}
+            {/*</section>*/}
         </Layout>
     )
 }
 
-export const getStaticProps: GetStaticProps = async () => {
-    const allPostsData = getSortedPostsData()
+// export const getStaticProps: GetStaticProps = async () => {
+//     const allPostsData = getSortedPostsData()
+//     const recipes = await allRecipes()
+//     return {
+//         props: {
+//             allPostsData,
+//             recipes
+//         }
+//     }
+// }
+
+export const getServerSideProps: GetServerSideProps = async context => {
+    const recipes = await recipeSummaries()
     return {
         props: {
-            allPostsData
+            recipes
         }
     }
 }

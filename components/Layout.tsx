@@ -6,8 +6,9 @@ import styles from './layout.module.css'
 import utilStyles from '../styles/utils.module.css'
 import React from "react";
 
-const name = 'Shitty Year'
-export const siteTitle = 'My first post'
+// const name = 'Shitty Year'
+const name = process.env.bookTitle
+export const siteTitle = process.env.siteName
 
 type Props = {
     children: React.ReactNode
@@ -24,13 +25,7 @@ export default function Layout(props: Props): JSX.Element {
                 <link rel="icon" href="/favicon.ico"/>
                 <meta
                     name="description"
-                    content="Learn how to build a personal website using Next.js"
-                />
-                <meta
-                    property="og:image"
-                    content={`https://og-image.vercel.app/${encodeURI(
-                        siteTitle
-                    )}.png?theme=light&md=0&fontSize=75px&images=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Ffront%2Fassets%2Fdesign%2Fnextjs-black-logo.svg`}
+                    content="Recipe book"
                 />
                 <meta name="og:title" content={siteTitle} />
                 <meta name="twitter:card" content="summary_large_image" />
@@ -38,6 +33,7 @@ export default function Layout(props: Props): JSX.Element {
             <header className={styles.header}>
                 {home ? (
                     <>
+                        <h1 className={utilStyles.heading2Xl}>Shitty Year</h1>
                         <Image
                             priority
                             src="/images/2020.jpg"
