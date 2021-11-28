@@ -4,11 +4,19 @@ import Link from 'next/link'
 
 import styles from './layout.module.css'
 import utilStyles from '../styles/utils.module.css'
+import React from "react";
 
 const name = 'Shitty Year'
 export const siteTitle = 'My first post'
 
-export default function Layout({children, home}) {
+type Props = {
+    children: React.ReactNode
+    home?: boolean
+}
+
+export default function Layout(props: Props): JSX.Element {
+    const {children, home} = props
+
     return (
         <div className={styles.container}>
             <Head>
