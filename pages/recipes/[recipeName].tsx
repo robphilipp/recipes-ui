@@ -12,9 +12,6 @@ type Props = {
 export default function RecipeView(props: Props): JSX.Element {
     const {recipe} = props
 
-    // const router = useRouter()
-    // const recipeName = router.query.recipeName as string
-
     return (
         <Layout>
             <Head><title>{recipe.name}</title></Head>

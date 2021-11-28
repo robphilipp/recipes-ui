@@ -5,6 +5,7 @@ import Link from 'next/link'
 import styles from './layout.module.css'
 import utilStyles from '../styles/utils.module.css'
 import React from "react";
+import {Input} from "@mui/material";
 
 // const name = 'Shitty Year'
 const name = process.env.bookTitle
@@ -33,16 +34,17 @@ export default function Layout(props: Props): JSX.Element {
             <header className={styles.header}>
                 {home ? (
                     <>
-                        <h1 className={utilStyles.heading2Xl}>Shitty Year</h1>
-                        <Image
-                            priority
-                            src="/images/2020.jpg"
-                            className={utilStyles.borderCircle}
-                            height={144}
-                            width={144}
-                            alt={name}
-                        />
-                        <h1 className={utilStyles.heading2Xl}>{name}</h1>
+                        {/*<Input>Test</Input>*/}
+                        {/*<h1 className={utilStyles.heading2Xl}>Shitty Year</h1>*/}
+                        {/*<Image*/}
+                        {/*    priority*/}
+                        {/*    src="/images/2020.jpg"*/}
+                        {/*    className={utilStyles.borderCircle}*/}
+                        {/*    height={144}*/}
+                        {/*    width={144}*/}
+                        {/*    alt={name}*/}
+                        {/*/>*/}
+                        {/*<h1 className={utilStyles.heading2Xl}>{name}</h1>*/}
                     </>
                 ) : (
                     <>

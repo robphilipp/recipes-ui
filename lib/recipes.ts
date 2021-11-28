@@ -90,14 +90,9 @@ export type RecipeSummary = {
 }
 
 export type Recipe = RecipeSummary & {
-    // name: string
-    // createdOn: number
-    // modifiedOn: number
     ingredients: Array<Ingredient>
     steps: Array<Step>
 }
-
-// const fetcher = (url: string) => axios.get(url).then(response => response.data.json)
 
 export async function allRecipes(): Promise<Array<Recipe>> {
     return axios.get(process.env.recipesApi).then(response => response.data)
@@ -110,5 +105,5 @@ export async function recipeSummaries(): Promise<Array<Recipe>> {
 export async function allRecipePaths(): Promise<Array<string>> {
     return axios
         .get(process.env.recipesApi)
-        .then(response => response.data.map(recipe => recipe.name.replace(/\s/, '_')))
+        .then(response => response.data.map(recipe => recipe.name.replace(/ /, '_')))
 }
