@@ -72,6 +72,7 @@ export default function Home(props: Props): JSX.Element {
 
 export const getServerSideProps: GetServerSideProps = async context => {
     const recipes = await recipeSummaries()
+    console.log(recipes)
     return {
         props: {
             recipes
