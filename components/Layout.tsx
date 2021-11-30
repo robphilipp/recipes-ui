@@ -48,23 +48,23 @@ export default function Layout(props: Props): JSX.Element {
                     </>
                 ) : (
                     <>
-                        <Link href="/">
-                            <a>
-                                <Image
-                                    priority
-                                    src="/images/2020.jpg"
-                                    className={utilStyles.borderCircle}
-                                    height={108}
-                                    width={108}
-                                    alt={name}
-                                />
-                            </a>
-                        </Link>
-                        <h2 className={utilStyles.headingLg}>
-                            <Link href="/">
-                                <a className={utilStyles.colorInherit}>{name}</a>
-                            </Link>
-                        </h2>
+                        {/*<Link href="/">*/}
+                        {/*    <a>*/}
+                        {/*        <Image*/}
+                        {/*            priority*/}
+                        {/*            src="/images/2020.jpg"*/}
+                        {/*            className={utilStyles.borderCircle}*/}
+                        {/*            height={108}*/}
+                        {/*            width={108}*/}
+                        {/*            alt={name}*/}
+                        {/*        />*/}
+                        {/*    </a>*/}
+                        {/*</Link>*/}
+                        {/*<h2 className={utilStyles.headingLg}>*/}
+                        {/*    <Link href="/">*/}
+                        {/*        <a className={utilStyles.colorInherit}>{name}</a>*/}
+                        {/*    </Link>*/}
+                        {/*</h2>*/}
                     </>
                 )}
             </header>

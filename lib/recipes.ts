@@ -92,7 +92,7 @@ export type RecipeSummary = {
 }
 
 export type Recipe = RecipeSummary & {
-    _id: ObjectId
+    _id: string
     ingredients: Array<Ingredient>
     steps: Array<Step>
 }
@@ -105,6 +105,7 @@ export async function allRecipes(): Promise<Array<Recipe>> {
     const client = await clientPromise
     return await recipeCollection(client).find()
         .map(doc => ({
+            _id: doc._id.toString(),
             name: doc.name,
             createdOn: doc.createdOn,
             modifiedOn: doc.modifiedOn,
