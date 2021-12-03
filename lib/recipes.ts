@@ -1,6 +1,6 @@
 import axios from "axios";
 import clientPromise from "./mongodb";
-import {Collection, MongoClient, ObjectId} from "mongodb";
+import {Collection, MongoClient, ObjectId, WithId} from "mongodb";
 
 const recipe = {
     "name": "basic pancakes",
@@ -57,11 +57,6 @@ const recipe = {
     ]
 }
 
-/*
-"mg", "g", "kg", "oz", "ozs", "lb", "lbs",
-"ml", "l", "tsp", "tsps", "tbsp", "tbsps", "fl oz", "fl ozs",
-"cup", "cups", "pt", "pts", "qt", "qts", "gal", "gals", ""
- */
 export enum Units {
     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
     OUNCE = 'oz', POUND = 'lb',
@@ -101,29 +96,50 @@ const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
 const recipeCollection = (client: MongoClient): Collection<Recipe> => client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
 
+const asRecipe = (doc: WithId<Recipe>): Recipe => ({
+    _id: doc._id.toString(),
+    name: doc.name,
+    createdOn: doc.createdOn,
+    modifiedOn: doc.modifiedOn,
+    ingredients: doc.ingredients,
+    steps: doc.steps
+})
+
+const asRecipeSummary = (doc: WithId<Recipe>): RecipeSummary => ({
+    name: doc.name,
+    createdOn: doc.createdOn,
+    modifiedOn: doc.modifiedOn
+})
+
 export async function allRecipes(): Promise<Array<Recipe>> {
     const client = await clientPromise
-    return await recipeCollection(client).find()
-        .map(doc => ({
-            _id: doc._id.toString(),
-            name: doc.name,
-            createdOn: doc.createdOn,
-            modifiedOn: doc.modifiedOn,
-            ingredients: doc.ingredients,
-            steps: doc.steps
-        } as Recipe))
+    return await recipeCollection(client)
+        .find()
+        .map(doc => asRecipe(doc))
         .toArray()
     // return axios.get(process.env.recipesApi).then(response => response.data)
 }
 
 export async function recipeSummaries(): Promise<Array<RecipeSummary>> {
     const client = await clientPromise
-    return await recipeCollection(client).find().map(doc => ({
-        name: doc.name,
-        createdOn: doc.createdOn,
-        modifiedOn: doc.modifiedOn
-    })).toArray()
+    return await recipeCollection(client).find().map(doc => asRecipeSummary(doc)).toArray()
     // return axios.get(process.env.recipesApi).then(response => response.data)
+}
+
+export async function recipesByName(words: Array<string>): Promise<Array<Recipe>> {
+    const client = await clientPromise
+    return await recipeCollection(client)
+        .find({name: {$regex: new RegExp(`(${words.join(')|(')})`)}})
+        .map(doc => asRecipe(doc))
+        .toArray()
+}
+
+export async function recipeSummariesByName(words: Array<string>): Promise<Array<RecipeSummary>> {
+    const client = await clientPromise
+    return await recipeCollection(client)
+        .find({name: {$regex: new RegExp(`(${words.join(')|(')})`)}})
+        .map(doc => asRecipeSummary(doc))
+        .toArray()
 }
 
 export async function allRecipePaths(): Promise<Array<string>> {

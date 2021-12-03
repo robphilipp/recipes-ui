@@ -1,18 +1,7 @@
 import '../styles/global.css'
 import {AppProps} from 'next/app'
 import Link from 'next/link'
-import {
-    alpha,
-    AppBar,
-    Box,
-    Button,
-    InputAdornment,
-    InputBase,
-    styled,
-    TextField,
-    Toolbar,
-    Typography
-} from "@mui/material";
+import {alpha, AppBar, Box, InputBase, styled, Toolbar, Typography} from "@mui/material";
 import Image from "next/image";
 import utilStyles from "../styles/utils.module.css";
 import React, {useState} from "react";
@@ -67,19 +56,23 @@ export default function App(props: AppProps) {
 
     const [search, setSearch] = useState<string>()
 
-    function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void {
+    async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
         switch(event.key) {
             case 'Enter':
-                // this needs to show the search results as a list of links
-                const path = "/recipes/" + search
+                await router.push(`/?name=${search}`)
                 setSearch('')
-                router.push(path)
                 break
             case 'Escape':
                 setSearch('')
                 break
             default:
         }
+    }
+
+    async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+        const searchValue = event.currentTarget.value
+        setSearch(searchValue)
+        await router.push(`/?name=${searchValue}`)
     }
 
     return (
@@ -112,7 +105,7 @@ export default function App(props: AppProps) {
                                 placeholder="Search…"
                                 value={search}
                                 inputProps={{'aria-label': 'search'}}
-                                onChange={event => setSearch(event.currentTarget.value)}
+                                onChange={handleChange}
                                 onKeyDown={handleKeyPress}
                             />
                         </Search>
@@ -120,7 +113,6 @@ export default function App(props: AppProps) {
                 </AppBar>
             </Box>
             <Component {...pageProps} />
-
         </>
     )
 }

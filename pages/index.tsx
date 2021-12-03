@@ -1,12 +1,10 @@
 import Head from 'next/head'
-import Layout, { siteTitle } from '../components/Layout'
+import Layout from '../components/Layout'
 import utilStyles from '../styles/utils.module.css'
-import {getSortedPostsData, PostData} from '../lib/posts'
 import Link from 'next/link'
 import Date from '../components/Date'
-import {GetServerSideProps, GetStaticProps} from 'next'
-import {allRecipes, Recipe, recipeSummaries, RecipeSummary} from "../lib/recipes";
-import {Button, InputAdornment, TextField} from "@mui/material";
+import {GetServerSideProps} from 'next'
+import {recipeSummaries, recipeSummariesByName, RecipeSummary} from "../lib/recipes";
 import React from "react";
 
 type Props = {
@@ -71,7 +69,9 @@ export default function Home(props: Props): JSX.Element {
 // }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-    const recipes = await recipeSummaries()
+    console.log(context)
+    const {name} = context.query
+    const recipes = await recipeSummariesByName([name as string])
     console.log(recipes)
     return {
         props: {
