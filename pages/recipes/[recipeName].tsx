@@ -19,7 +19,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 <h1 className={utilStyles.headingXl}>{recipe.name}</h1>
                 <div className={utilStyles.objectId}>{recipe._id}</div>
                 <div className={utilStyles.lightText}>Created On: <Date epochMillis={recipe.createdOn}/></div>
-                <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn}/></div>
+                {recipe.modifiedOn != null ? <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn}/></div> : <span/>}
                 <h2 className={utilStyles.headingMd}>Ingredients</h2>
                 <div>
                     <ul className={utilStyles.list}>

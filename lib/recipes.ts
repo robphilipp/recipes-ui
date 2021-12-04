@@ -72,22 +72,25 @@ export type Amount = {
 
 export type Ingredient = {
     name: string
-    brand?: string
+    brand: string | null
     amount: Amount
 }
 
 export type Step = {
+    title: string | null
     text: string
 }
 
 export type RecipeSummary = {
     name: string
+    tags: Array<string>
     createdOn: number
-    modifiedOn: number
+    modifiedOn: number | null
 }
 
 export type Recipe = RecipeSummary & {
     _id: string
+    servings: number
     ingredients: Array<Ingredient>
     steps: Array<Step>
 }
@@ -99,6 +102,8 @@ const recipeCollection = (client: MongoClient): Collection<Recipe> => client.db(
 const asRecipe = (doc: WithId<Recipe>): Recipe => ({
     _id: doc._id.toString(),
     name: doc.name,
+    tags: doc.tags,
+    servings: doc.servings,
     createdOn: doc.createdOn,
     modifiedOn: doc.modifiedOn,
     ingredients: doc.ingredients,
@@ -107,6 +112,7 @@ const asRecipe = (doc: WithId<Recipe>): Recipe => ({
 
 const asRecipeSummary = (doc: WithId<Recipe>): RecipeSummary => ({
     name: doc.name,
+    tags: doc.tags,
     createdOn: doc.createdOn,
     modifiedOn: doc.modifiedOn
 })

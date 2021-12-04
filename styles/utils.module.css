@@ -37,6 +37,10 @@
     padding-top: 1px;
 }
 
+.recipePadding {
+    padding-top: 10px;
+}
+
 .list {
     list-style: none;
     padding: 0;
@@ -45,6 +49,15 @@
 
 .listItem {
     margin: 0 0 1.25rem;
+}
+
+.recipeListItem {
+    margin: 0 0 1rem;
+}
+
+.recipeListItemDate {
+    color: #666;
+    font-size: 0.6rem;
 }
 
 .lightText {
