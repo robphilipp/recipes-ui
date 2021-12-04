@@ -31,14 +31,14 @@ export default function Home(props: Props): JSX.Element {
                 <div>{search}</div>
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
-                        <li className={utilStyles.recipeListItem} key={recipe.name}>
+                        <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
                             <Link href={`/recipes/${recipe.name}`}><a>{recipe.name}</a></Link>
                             {recipe.tags.map(tag => (
-                                <span style={{paddingLeft: 7}}>
+                                <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
                             ))}
-                            <div className={utilStyles.recipeListItemDate}>
+                            <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
                                 <Date epochMillis={recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn}/>
                             </div>
                         </li>
