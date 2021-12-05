@@ -1,60 +1,9 @@
-import axios from "axios";
 import clientPromise from "./mongodb";
-import {Collection, MongoClient, ObjectId, WithId} from "mongodb";
+import {Collection, MongoClient, WithId} from "mongodb";
 
-const recipe = {
-    "name": "basic pancakes",
-    "ingredients": [
-        {
-            "name": "flour",
-            "brand": "King Arthur",
-            "amount": {
-                "value": 1,
-                "unit": "cup"
-            }
-        },
-        {
-            "name": "baking powder",
-            "brand": "King Arthur",
-            "amount": {
-                "value": 1,
-                "unit": "tsp"
-            }
-        },
-        {
-            "name": "baking soda",
-            "amount": {
-                "value": 0.5,
-                "unit": "tsp"
-            }
-        },
-        {
-            "name": "milk",
-            "amount": {
-                "value": 0.5,
-                "unit": "cup"
-            }
-        },
-        {
-            "name": "oil",
-            "amount": {
-                "value": 1,
-                "unit": "tbsp"
-            }
-        },
-        {
-            "name": "egg",
-            "amount": {
-                "value": 1,
-                "unit": "piece"
-            }
-        }
-    ],
-    "steps": [
-        {"text": "mix dry ingredients"},
-        {"text": "add wet ingredients"},
-        {"text": "cook on griddle"}
-    ]
+export type Yield = {
+    value: number
+    unit: string
 }
 
 export enum Units {
@@ -90,9 +39,10 @@ export type RecipeSummary = {
 
 export type Recipe = RecipeSummary & {
     _id: string
-    servings: number
+    yield: Yield
     ingredients: Array<Ingredient>
     steps: Array<Step>
+    notes: string
 }
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
@@ -103,11 +53,12 @@ const asRecipe = (doc: WithId<Recipe>): Recipe => ({
     _id: doc._id.toString(),
     name: doc.name,
     tags: doc.tags,
-    servings: doc.servings,
+    yield: doc.yield,
     createdOn: doc.createdOn,
     modifiedOn: doc.modifiedOn,
     ingredients: doc.ingredients,
-    steps: doc.steps
+    steps: doc.steps,
+    notes: doc.notes
 })
 
 const asRecipeSummary = (doc: WithId<Recipe>): RecipeSummary => ({
