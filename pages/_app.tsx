@@ -1,12 +1,26 @@
 import '../styles/global.css'
 import {AppProps} from 'next/app'
 import Link from 'next/link'
-import {alpha, AppBar, Box, InputBase, styled, Toolbar, Typography} from "@mui/material";
+import {
+    alpha,
+    AppBar,
+    BottomNavigation,
+    BottomNavigationAction,
+    Box,
+    InputBase,
+    Paper,
+    styled,
+    Toolbar,
+    Typography
+} from "@mui/material";
 import Image from "next/image";
 import utilStyles from "../styles/utils.module.css";
 import React, {useState} from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import {useRouter} from "next/router";
+import HomeIcon from '@mui/icons-material/Home';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import ArchiveIcon from '@mui/icons-material/Archive';
 
 const Search = styled('div')(({theme}) => ({
     position: 'relative',
@@ -55,9 +69,10 @@ export default function App(props: AppProps) {
     const router = useRouter()
 
     const [search, setSearch] = useState<string>()
+    const [navItem, setNavItem] = useState<number>(0)
 
     async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
-        switch(event.key) {
+        switch (event.key) {
             case 'Enter':
                 await router.push(`/?name=${search}`)
                 setSearch('')
@@ -73,6 +88,13 @@ export default function App(props: AppProps) {
         const searchValue = event.currentTarget.value
         setSearch(searchValue)
         await router.push(`/?name=${searchValue}`)
+    }
+
+    function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
+        switch (newNavItem) {
+            case 0:
+                router.push("/")
+        }
     }
 
     return (
@@ -97,7 +119,7 @@ export default function App(props: AppProps) {
                             noWrap
                             component="div"
                             style={{paddingLeft: 10}}
-                            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+                            sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
                         >{process.env.bookTitle}</Typography>
                         <Search>
                             <SearchIconWrapper><SearchIcon/></SearchIconWrapper>
@@ -110,7 +132,17 @@ export default function App(props: AppProps) {
                             />
                         </Search>
                     </Toolbar>
-                </AppBar>
+                    <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
+                        <BottomNavigation
+                            showLabels
+                            value={navItem}
+                            onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                        >
+                            <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+                            <BottomNavigationAction label="Favorites" icon={<FavoriteIcon/>}/>
+                            <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                        </BottomNavigation>
+                    </Paper> </AppBar>
             </Box>
             <Component {...pageProps} />
         </>
