@@ -1,4 +1,4 @@
-import {allRecipes, Ingredient, Recipe, Step} from "../../lib/recipes";
+import {Ingredient, Recipe, recipesById, Step, Units} from "../../lib/recipes";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
@@ -33,6 +33,13 @@ export default function RecipeView(props: Props): JSX.Element {
         });
     }
 
+    function formatIngredient(ingredient: Ingredient): string {
+        if (ingredient.amount.unit.toString() === 'piece') {
+            return `${ingredient.amount.value} ${ingredient.name}`
+        }
+        return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
+    }
+
     return (
         <Layout>
             <Head><title>{recipe.name}</title></Head>
@@ -42,7 +49,8 @@ export default function RecipeView(props: Props): JSX.Element {
                 <div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn}/></div>
                 {recipe.modifiedOn != null ?
                     <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn}/></div> :
-                    <span/>}
+                    <span/>
+                }
                 <div className={utilStyles.recipeYield}>{recipe.yield.value} {recipe.yield.unit}</div>
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
                 <div>
@@ -68,7 +76,7 @@ export default function RecipeView(props: Props): JSX.Element {
                                         </ListItemIcon>
                                         <ListItemText
                                             id={labelId}
-                                            primary={`${ingredient.amount.value} ${ingredient.amount.unit}   ${ingredient.name}`}
+                                            primary={formatIngredient(ingredient)}
                                         />
                                     </ListItemButton>
                                 </ListItem>
@@ -113,15 +121,23 @@ export default function RecipeView(props: Props): JSX.Element {
             </article>
         </Layout>
     )
-
 }
 
 export const getServerSideProps: GetServerSideProps = async context => {
-    const name = (context.params.recipeName as string).replace(/_/, ' ')
-    const recipes = await allRecipes().then(response => response.filter(recipe => recipe.name === name))
+    console.log("context", context)
+    const id = decodeURIComponent(context.params.id as string)
+    const recipe = await recipesById(id)
     return {
         props: {
-            recipe: recipes[0]
+            recipe
         }
     }
+    // const name = decodeURIComponent((context.params.recipeName as string).replace(/_/, ' '))
+    // const recipes = await recipesByName([name])
+    //     .then(response => response.filter(recipe => recipe.name === name))
+    // return {
+    //     props: {
+    //         recipe: recipes[0]
+    //     }
+    // }
 }

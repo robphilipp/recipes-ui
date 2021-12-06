@@ -1,5 +1,6 @@
 import clientPromise from "./mongodb";
-import {Collection, MongoClient, WithId} from "mongodb";
+import {Collection, MongoClient, ObjectId, WithId} from "mongodb";
+import mongodb from "./mongodb";
 
 export type Yield = {
     value: number
@@ -13,6 +14,11 @@ export enum Units {
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
     PIECE = ''
 }
+
+// export function unitsAsLabel(units: Units): Units {
+//     // return units === Units.PIECE || units.toString() === 'piece' ? '' : units
+//     return units
+// }
 
 export type Amount = {
     value: number
@@ -31,6 +37,7 @@ export type Step = {
 }
 
 export type RecipeSummary = {
+    _id: string
     name: string
     tags: Array<string>
     createdOn: number
@@ -38,7 +45,6 @@ export type RecipeSummary = {
 }
 
 export type Recipe = RecipeSummary & {
-    _id: string
     yield: Yield
     ingredients: Array<Ingredient>
     steps: Array<Step>
@@ -62,6 +68,7 @@ const asRecipe = (doc: WithId<Recipe>): Recipe => ({
 })
 
 const asRecipeSummary = (doc: WithId<Recipe>): RecipeSummary => ({
+    _id: doc._id.toString(),
     name: doc.name,
     tags: doc.tags,
     createdOn: doc.createdOn,
@@ -74,13 +81,11 @@ export async function allRecipes(): Promise<Array<Recipe>> {
         .find()
         .map(doc => asRecipe(doc))
         .toArray()
-    // return axios.get(process.env.recipesApi).then(response => response.data)
 }
 
 export async function recipeSummaries(): Promise<Array<RecipeSummary>> {
     const client = await clientPromise
     return await recipeCollection(client).find().map(doc => asRecipeSummary(doc)).toArray()
-    // return axios.get(process.env.recipesApi).then(response => response.data)
 }
 
 export async function recipesByName(words: Array<string>): Promise<Array<Recipe>> {
@@ -89,6 +94,17 @@ export async function recipesByName(words: Array<string>): Promise<Array<Recipe>
         .find({name: {$regex: new RegExp(`(${words.join(')|(')})`)}})
         .map(doc => asRecipe(doc))
         .toArray()
+}
+
+export async function recipesById(id: string): Promise<Recipe> {
+    const client = await clientPromise
+    console.log("recipe id", id)
+    return await recipeCollection(client)
+        .findOne({_id: new ObjectId(id)})
+        .then(doc => {
+            console.log("doc for id", id, doc)
+            return asRecipe(doc)
+        })
 }
 
 export async function recipeSummariesByName(words: Array<string>): Promise<Array<RecipeSummary>> {
@@ -101,8 +117,5 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
 
 export async function allRecipePaths(): Promise<Array<string>> {
     return recipeSummaries()
-        .then(recipes => recipes.map(recipe => recipe.name.replace(/ /, '_')))
-    // return axios
-    //     .get(process.env.recipesApi)
-    //     .then(response => response.data.map(recipe => recipe.name.replace(/ /, '_')))
+        .then(recipes => recipes.map(recipe => encodeURIComponent(recipe.name.replace(/ /, '_'))))
 }

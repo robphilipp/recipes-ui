@@ -19,8 +19,8 @@ import React, {useState} from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import {useRouter} from "next/router";
 import HomeIcon from '@mui/icons-material/Home';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import ArchiveIcon from '@mui/icons-material/Archive';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 const Search = styled('div')(({theme}) => ({
     position: 'relative',
@@ -94,6 +94,12 @@ export default function App(props: AppProps) {
         switch (newNavItem) {
             case 0:
                 router.push("/")
+                setNavItem(newNavItem)
+                break
+            case 1:
+                router.push("/recipes/new")
+                setNavItem(newNavItem)
+                break
         }
     }
 
@@ -139,10 +145,11 @@ export default function App(props: AppProps) {
                             onChange={(event, newValue) => handleBottomNav(event, newValue)}
                         >
                             <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-                            <BottomNavigationAction label="Favorites" icon={<FavoriteIcon/>}/>
+                            <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
                             <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
                         </BottomNavigation>
-                    </Paper> </AppBar>
+                    </Paper>
+                </AppBar>
             </Box>
             <Component {...pageProps} />
         </>

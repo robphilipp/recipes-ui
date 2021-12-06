@@ -32,7 +32,7 @@ export default function Home(props: Props): JSX.Element {
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
-                            <Link href={`/recipes/${recipe.name}`}><a>{recipe.name}</a></Link>
+                            <Link href={`/recipes/${recipe._id}`}><a>{recipe.name}</a></Link>
                             {recipe.tags.map(tag => (
                                 <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
