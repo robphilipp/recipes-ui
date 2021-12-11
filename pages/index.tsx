@@ -3,8 +3,7 @@ import Layout from '../components/Layout'
 import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
-import {GetStaticProps} from 'next'
-import {recipeSummaries, RecipeSummary} from "../lib/recipes";
+import {RecipeSummary} from "../lib/recipes";
 import React, {useEffect, useState} from "react";
 import {Chip} from "@mui/material";
 import {useSearch} from "../lib/useSearch";

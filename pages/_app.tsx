@@ -12,6 +12,7 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SearchProvider from "../lib/useSearch";
 import RecipeSearch from "../components/RecipeSearch";
+import StatusProvider from "../lib/useStatus";
 
 // const Search = styled('div')(({theme}) => ({
 //     position: 'relative',
@@ -101,54 +102,56 @@ export default function App(props: AppProps) {
 
     return (
         <SearchProvider>
-            <Box sx={{flexGrow: 1}}>
-                <AppBar
-                    color="default"
-                    position="fixed"
-                    elevation={0}
-                >
-                    <Toolbar>
-                        <Link href={"/"}><a style={{marginTop: 7}}><Image
-                            priority
-                            src="/images/2020.jpg"
-                            className={utilStyles.borderCircle}
-                            height={50}
-                            width={50}
-                            alt="Shitty Year"
-                        /></a></Link>
-                        <Typography
-                            variant="h6"
-                            noWrap
-                            component="div"
-                            style={{paddingLeft: 10}}
-                            sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-                        >{process.env.bookTitle}</Typography>
-                        {/*<Search>*/}
-                        {/*    <SearchIconWrapper><SearchIcon/></SearchIconWrapper>*/}
-                        {/*    <StyledInputBase*/}
-                        {/*        placeholder="Search…"*/}
-                        {/*        value={search}*/}
-                        {/*        inputProps={{'aria-label': 'search'}}*/}
-                        {/*        onChange={handleChange}*/}
-                        {/*        onKeyDown={handleKeyPress}*/}
-                        {/*    />*/}
-                        {/*</Search>*/}
-                        <RecipeSearch/>
-                    </Toolbar>
-                    <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
-                        <BottomNavigation
-                            showLabels
-                            value={navItem}
-                            onChange={(event, newValue) => handleBottomNav(event, newValue)}
-                        >
-                            <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-                            <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
-                            <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
-                        </BottomNavigation>
-                    </Paper>
-                </AppBar>
-            </Box>
-            <Component {...pageProps} />
+            <StatusProvider>
+                <Box sx={{flexGrow: 1}}>
+                    <AppBar
+                        color="default"
+                        position="fixed"
+                        elevation={0}
+                    >
+                        <Toolbar>
+                            <Link href={"/"}><a style={{marginTop: 7}}><Image
+                                priority
+                                src="/images/2020.jpg"
+                                className={utilStyles.borderCircle}
+                                height={50}
+                                width={50}
+                                alt="Shitty Year"
+                            /></a></Link>
+                            <Typography
+                                variant="h6"
+                                noWrap
+                                component="div"
+                                style={{paddingLeft: 10}}
+                                sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
+                            >{process.env.bookTitle}</Typography>
+                            {/*<Search>*/}
+                            {/*    <SearchIconWrapper><SearchIcon/></SearchIconWrapper>*/}
+                            {/*    <StyledInputBase*/}
+                            {/*        placeholder="Search…"*/}
+                            {/*        value={search}*/}
+                            {/*        inputProps={{'aria-label': 'search'}}*/}
+                            {/*        onChange={handleChange}*/}
+                            {/*        onKeyDown={handleKeyPress}*/}
+                            {/*    />*/}
+                            {/*</Search>*/}
+                            <RecipeSearch/>
+                        </Toolbar>
+                        <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
+                            <BottomNavigation
+                                showLabels
+                                value={navItem}
+                                onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                            >
+                                <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+                                <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
+                                <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                            </BottomNavigation>
+                        </Paper>
+                    </AppBar>
+                </Box>
+                <Component {...pageProps} />
+            </StatusProvider>
         </SearchProvider>
     )
 }

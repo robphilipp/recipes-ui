@@ -2,8 +2,8 @@ import * as React from 'react';
 import {createContext, useContext, useState} from 'react';
 
 interface UseSearchValues {
-    current?: string
-    accumulated: Array<string>
+    readonly current?: string
+    readonly accumulated: Array<string>
     updateCurrent: (value: string) => void
     appendCurrent: (value: string) => void
     clearCurrent: () => void
@@ -32,7 +32,7 @@ interface Props {
 }
 
 /**
- * Manages the loading state for the children
+ * Manages the search state for the children
  * @param props The properties holding the children
  * @constructor
  */
@@ -76,9 +76,8 @@ export default function SearchProvider(props: Props): JSX.Element {
 }
 
 /**
- * React hook for managing the loading state
- * @return An object that specifies whether a child is loading, the loading message,
- * and the function used by children to update the loading state
+ * React hook for managing the search state
+ * @return An object that specifies the search state
  */
 export function useSearch(): UseSearchValues {
     const context = useContext<UseSearchValues>(SearchContext)
@@ -93,5 +92,5 @@ export function useSearch(): UseSearchValues {
     ) {
         throw new Error("useSearch hook can only be used when the component is a child of <SearchProvider/>")
     }
-    return context;
+    return context
 }

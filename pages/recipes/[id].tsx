@@ -7,6 +7,7 @@ import Date from '../../components/Date'
 import {useEffect, useState} from "react";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
 import axios from "axios";
+import {useStatus} from "../../lib/useStatus";
 
 type Props = {
     recipeId: string
@@ -15,9 +16,14 @@ type Props = {
 export default function RecipeView(props: Props): JSX.Element {
     const {recipeId} = props
 
+    const {
+        ingredientsStatus, isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
+        stepsStatus, isStepSelected, selectStep, unselectStep, clearSteps
+    } = useStatus()
+
     const [recipe, setRecipe] = useState<Recipe>()
-    const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => [])
-    const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => [])
+    // const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => [])
+    // const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => [])
 
     useEffect(
         () => {
@@ -26,28 +32,33 @@ export default function RecipeView(props: Props): JSX.Element {
                 .then(response => {
                     const recipe = response.data as Recipe
                     setRecipe(recipe)
-                    setIngredientStatus(recipe.ingredients.map(() => false))
-                    setStepStatus(recipe.steps.map(() => false))
+                    // setIngredientStatus(recipe.ingredients.map(() => false))
+                    // setStepStatus(recipe.steps.map(() => false))
                 })
         },
         [recipeId]
     )
 
-    function handleToggleIngredientStatus(index: number) {
-        setIngredientStatus(ingredientStatus => {
-            const status = [...ingredientStatus]
-            status[index] = !status[index]
-            return status
-        });
+    // function handleToggleIngredientStatus(index: number) {
+    function handleToggleIngredientStatus(ingredient: string) {
+        // setIngredientStatus(ingredientStatus => {
+        //     const status = [...ingredientStatus]
+        //     status[index] = !status[index]
+        //     return status
+        // });
+        selectIngredient(recipeId, ingredient)
     }
 
-    function handleToggleStepStatus(index: number) {
-        setStepStatus(stepStatus => {
-            const status = [...stepStatus]
-            status[index] = !status[index]
-            return status
-        });
+    function handleToggleStepStatus(step: string) {
+        selectStep(recipeId, step)
     }
+    // function handleToggleStepStatus(index: number) {
+    //     setStepStatus(stepStatus => {
+    //         const status = [...stepStatus]
+    //         status[index] = !status[index]
+    //         return status
+    //     });
+    // }
 
     function formatIngredient(ingredient: Ingredient): string {
         if (ingredient.amount.unit.toString() === 'piece') {
@@ -81,13 +92,15 @@ export default function RecipeView(props: Props): JSX.Element {
                                 <ListItem key={labelId} disablePadding>
                                     <ListItemButton
                                         role={undefined}
-                                        onClick={() => handleToggleIngredientStatus(index)}
+                                        onClick={() => handleToggleIngredientStatus(ingredient.name)}
+                                        // onClick={() => handleToggleIngredientStatus(index)}
                                         dense
                                     >
                                         <ListItemIcon>
                                             <Checkbox
                                                 edge="start"
-                                                checked={ingredientStatus[index]}
+                                                checked={isIngredientSelected(recipeId, ingredient.name)}
+                                                // checked={ingredientStatus[index]}
                                                 tabIndex={-1}
                                                 disableRipple
                                                 size="small"
@@ -113,13 +126,15 @@ export default function RecipeView(props: Props): JSX.Element {
                                 <ListItem key={labelId} disablePadding>
                                     <ListItemButton
                                         role={undefined}
-                                        onClick={() => handleToggleStepStatus(index)}
+                                        onClick={() => handleToggleStepStatus(step.text)}
+                                        // onClick={() => handleToggleStepStatus(index)}
                                         dense
                                     >
                                         <ListItemIcon>
                                             <Checkbox
                                                 edge="start"
-                                                checked={stepStatus[index]}
+                                                checked={isStepSelected(recipeId, step.text)}
+                                                // checked={stepStatus[index]}
                                                 tabIndex={-1}
                                                 disableRipple
                                                 size="small"
