@@ -1,6 +1,7 @@
 import clientPromise from "./mongodb";
 import {Collection, MongoClient, ObjectId, WithId} from "mongodb";
 import mongodb from "./mongodb";
+import axios from "axios";
 
 export type Yield = {
     value: number
@@ -96,15 +97,17 @@ export async function recipesByName(words: Array<string>): Promise<Array<Recipe>
         .toArray()
 }
 
+/**
+ * Attempts to retrieve the recipe based on its object ID
+ * @param id The object ID associated with the document
+ * @return The recipe associated with the object ID
+ */
 export async function recipesById(id: string): Promise<Recipe> {
     const client = await clientPromise
     console.log("recipe id", id)
     return await recipeCollection(client)
         .findOne({_id: new ObjectId(id)})
-        .then(doc => {
-            console.log("doc for id", id, doc)
-            return asRecipe(doc)
-        })
+        .then(doc => asRecipe(doc))
 }
 
 export async function recipeSummariesByName(words: Array<string>): Promise<Array<RecipeSummary>> {
@@ -116,6 +119,10 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
 }
 
 export async function allRecipePaths(): Promise<Array<string>> {
-    return recipeSummaries()
-        .then(recipes => recipes.map(recipe => encodeURIComponent(recipe.name.replace(/ /, '_'))))
+    // return await axios
+    //     .get('/api/recipes/summaries')
+    //     .then(recipes => recipes.data.map(recipe => encodeURIComponent(recipe.name.replace(/ /, '_'))))
+    return await recipeSummaries()
+        // .then(recipes => recipes.map(recipe => encodeURIComponent(recipe._id.replace(/ /, '_'))))
+        .then(recipes => recipes.map(recipe => recipe._id))
 }

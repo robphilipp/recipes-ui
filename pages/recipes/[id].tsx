@@ -1,8 +1,8 @@
-import {Ingredient, Recipe, recipesById, Step, Units} from "../../lib/recipes";
+import {allRecipePaths, Ingredient, Recipe, recipesById, recipeSummariesByName, Step} from "../../lib/recipes";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
-import {GetServerSideProps} from "next";
+import {GetServerSideProps, GetStaticPaths, GetStaticProps} from "next";
 import Date from '../../components/Date'
 import {useState} from "react";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
@@ -123,21 +123,29 @@ export default function RecipeView(props: Props): JSX.Element {
     )
 }
 
-export const getServerSideProps: GetServerSideProps = async context => {
-    console.log("context", context)
-    const id = decodeURIComponent(context.params.id as string)
-    const recipe = await recipesById(id)
+// export const getServerSideProps: GetServerSideProps = async context => {
+//     const id = decodeURIComponent(context.params.id as string)
+//     const recipe = await recipesById(id)
+//     return {
+//         props: {
+//             recipe
+//         }
+//     }
+// }
+export const getStaticPaths: GetStaticPaths = async () => {
+    console.log("[id] get static paths")
+    const paths = await allRecipePaths()
     return {
-        props: {
-            recipe
-        }
+        paths: paths.map(summary => ({params: {id: summary}})),
+        fallback: false
     }
-    // const name = decodeURIComponent((context.params.recipeName as string).replace(/_/, ' '))
-    // const recipes = await recipesByName([name])
-    //     .then(response => response.filter(recipe => recipe.name === name))
-    // return {
-    //     props: {
-    //         recipe: recipes[0]
-    //     }
-    // }
+}
+
+export const getStaticProps: GetStaticProps = async (context) => {
+    console.log("[id] get static props")
+    const recipe = await recipesById(context.params.id as string)
+    return {
+        props: {recipe},
+        // revalidate: 1
+    }
 }

@@ -3,8 +3,8 @@ import Layout from '../components/Layout'
 import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
-import {GetServerSideProps, GetServerSidePropsContext} from 'next'
-import {recipeSummaries, recipeSummariesByName, RecipeSummary} from "../lib/recipes";
+import {GetServerSideProps, GetServerSidePropsContext, GetStaticPaths, GetStaticProps} from 'next'
+import {allRecipePaths, allRecipes, recipeSummaries, recipeSummariesByName, RecipeSummary} from "../lib/recipes";
 import React from "react";
 import {ParsedUrlQuery} from "querystring";
 import {Chip} from "@mui/material";
@@ -12,15 +12,16 @@ import {Chip} from "@mui/material";
 type Props = {
     // allPostsData: Array<PostData>
     recipes: Array<RecipeSummary>
-    search: string | null
+    // search: string | null
     // recipes: Array<Recipe>
 }
 
 export default function Home(props: Props): JSX.Element {
     const {
         recipes,
-        search
+        // search
     } = props
+
 
     return (
         <Layout home>
@@ -28,7 +29,8 @@ export default function Home(props: Props): JSX.Element {
                 <title>{process.env.siteName}</title>
             </Head>
             <section className={`${utilStyles.headingMd} ${utilStyles.recipePadding}`}>
-                <div>{search}</div>
+                {/*<div>{search}</div>*/}
+                {/*<Chip label={search} variant='outlined' size='small'/>*/}
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
@@ -49,26 +51,25 @@ export default function Home(props: Props): JSX.Element {
     )
 }
 
-// export const getStaticProps: GetStaticProps = async () => {
-//     const allPostsData = getSortedPostsData()
-//     const recipes = await allRecipes()
+// export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {
+//     const {name} = context.query
+//     const recipes = await recipeSummariesByName([name as string])
 //     return {
 //         props: {
-//             allPostsData,
-//             recipes
+//             recipes,
+//             search: name || null
 //         }
 //     }
 // }
 
-export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {
-    console.log(context)
-    const {name} = context.query
-    const recipes = await recipeSummariesByName([name as string])
-    console.log(recipes)
+export const getStaticProps: GetStaticProps = async () => {
+    // const {name} = context.query
+    const recipes = await recipeSummaries()
     return {
         props: {
             recipes,
-            search: name || null
+            // search: name || null
         }
     }
 }
+

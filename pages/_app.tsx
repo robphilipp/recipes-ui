@@ -21,6 +21,8 @@ import {useRouter} from "next/router";
 import HomeIcon from '@mui/icons-material/Home';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import axios from "axios";
+import SearchProvider from "../lib/useSearch";
 
 const Search = styled('div')(({theme}) => ({
     position: 'relative',
@@ -69,12 +71,16 @@ export default function App(props: AppProps) {
     const router = useRouter()
 
     const [search, setSearch] = useState<string>()
+    const [searchTokens, setSearchTokens] = useState<Array<string>>([])
     const [navItem, setNavItem] = useState<number>(0)
 
     async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
         switch (event.key) {
             case 'Enter':
-                await router.push(`/?name=${search}`)
+                // await axios.get(`/api/recipes/summaries/${search}`)
+                // await router.push(`/api/recipes/summaries/${search}`)
+                // await router.push(`/?name=${search}`)
+                setSearchTokens(tokens => [...tokens, search])
                 setSearch('')
                 break
             case 'Escape':
@@ -87,7 +93,8 @@ export default function App(props: AppProps) {
     async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         const searchValue = event.currentTarget.value
         setSearch(searchValue)
-        await router.push(`/?name=${searchValue}`)
+        // await axios.get(`/api/recipes/summaries/${search}`)
+        // await router.push(`/?name=${searchValue}`)
     }
 
     function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
@@ -151,7 +158,9 @@ export default function App(props: AppProps) {
                     </Paper>
                 </AppBar>
             </Box>
-            <Component {...pageProps} />
+            <SearchProvider>
+                <Component {...pageProps} />
+            </SearchProvider>
         </>
     )
 }

@@ -1,0 +1,89 @@
+import * as React from 'react';
+import {createContext, useContext, useState} from 'react';
+
+interface UseSearchValues {
+    current?: string
+    accumulated: Array<string>
+    appendCurrent: (value: string) => void
+    clearCurrent: () => void
+    addAccumulated: (value: string) => void
+    deleteAccumulated: (value: string) => void
+    clearAccumulated: () => void
+}
+
+const initialSearchValues: UseSearchValues = {
+    accumulated: [],
+    appendCurrent: noop,
+    clearCurrent: noop,
+    addAccumulated: noop,
+    deleteAccumulated: noop,
+    clearAccumulated: noop
+}
+
+function noop() {
+    /* empty */
+}
+const SearchContext = createContext<UseSearchValues>(initialSearchValues);
+
+interface Props {
+    children: JSX.Element | Array<JSX.Element>;
+}
+
+/**
+ * Manages the loading state for the children
+ * @param props The properties holding the children
+ * @constructor
+ */
+export default function SearchProvider(props: Props): JSX.Element {
+    const [current, setCurrent] = useState<string | undefined>()
+    const [accumulated, setAccumulated] = useState<Array<string>>(() => [])
+
+    function appendCurrent(value: string): void {
+        setCurrent(cur => cur !== undefined ? cur.concat(value) : value)
+    }
+
+    function clearCurrent(): void {
+        setCurrent(undefined)
+    }
+
+    function addAccumulated(value: string): void {
+        setAccumulated(acc => [...acc, value])
+    }
+
+    function deleteAccumulated(value: string): void {
+        setAccumulated(acc => acc.filter(search => search !== value))
+    }
+
+    function clearAccumulated(): void {
+        setAccumulated([])
+    }
+
+    const {children} = props;
+    return <SearchContext.Provider value={{
+        current, appendCurrent, clearCurrent,
+        accumulated, addAccumulated, deleteAccumulated, clearAccumulated
+    }}>
+        {children}
+    </SearchContext.Provider>
+}
+
+/**
+ * React hook for managing the loading state
+ * @return An object that specifies whether a child is loading, the loading message,
+ * and the function used by children to update the loading state
+ */
+export function useSearch(): UseSearchValues {
+    const context = useContext<UseSearchValues>(SearchContext)
+    const {
+        appendCurrent, clearCurrent,
+        accumulated, addAccumulated, deleteAccumulated, clearAccumulated
+    } = context
+    if (
+        appendCurrent === undefined || clearCurrent === undefined ||
+        accumulated === undefined || addAccumulated === undefined || deleteAccumulated === undefined ||
+        clearAccumulated === undefined
+    ) {
+        throw new Error("useSearch hook can only be used when the component is a child of <SearchProvider/>")
+    }
+    return context;
+}
