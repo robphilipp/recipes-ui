@@ -3,25 +3,43 @@ import Layout from '../components/Layout'
 import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
-import {GetServerSideProps, GetServerSidePropsContext, GetStaticPaths, GetStaticProps} from 'next'
-import {allRecipePaths, allRecipes, recipeSummaries, recipeSummariesByName, RecipeSummary} from "../lib/recipes";
-import React from "react";
-import {ParsedUrlQuery} from "querystring";
+import {GetStaticProps} from 'next'
+import {recipeSummaries, RecipeSummary} from "../lib/recipes";
+import React, {useEffect, useState} from "react";
 import {Chip} from "@mui/material";
+import {useSearch} from "../lib/useSearch";
+import axios from 'axios'
 
 type Props = {
     // allPostsData: Array<PostData>
-    recipes: Array<RecipeSummary>
+    // recipes: Array<RecipeSummary>
     // search: string | null
     // recipes: Array<Recipe>
 }
 
 export default function Home(props: Props): JSX.Element {
     const {
-        recipes,
+        // recipes,
         // search
     } = props
 
+    const {accumulated} = useSearch()
+
+    const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
+
+    useEffect(
+        () => {
+            if (accumulated.length > 0) {
+                const queries = accumulated.map(acc => `name=${acc}`).join("&")
+                axios
+                    .get(`/api/recipes/summaries?${queries}`)
+                    .then(response => setRecipes(response.data))
+            }
+        },
+        [accumulated]
+    )
+
+    console.log("recipe summaries", recipes)
 
     return (
         <Layout home>
@@ -29,8 +47,9 @@ export default function Home(props: Props): JSX.Element {
                 <title>{process.env.siteName}</title>
             </Head>
             <section className={`${utilStyles.headingMd} ${utilStyles.recipePadding}`}>
-                {/*<div>{search}</div>*/}
-                {/*<Chip label={search} variant='outlined' size='small'/>*/}
+                {accumulated.map(search => (
+                    <Chip key={search} label={search} variant='outlined' size='small' style={{marginRight: 5}}/>
+                ))}
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
@@ -62,14 +81,14 @@ export default function Home(props: Props): JSX.Element {
 //     }
 // }
 
-export const getStaticProps: GetStaticProps = async () => {
-    // const {name} = context.query
-    const recipes = await recipeSummaries()
-    return {
-        props: {
-            recipes,
-            // search: name || null
-        }
-    }
-}
+// export const getStaticProps: GetStaticProps = async () => {
+//     // const {name} = context.query
+//     const recipes = await recipeSummaries()
+//     return {
+//         props: {
+//             recipes,
+//             // search: name || null
+//         }
+//     }
+// }
 

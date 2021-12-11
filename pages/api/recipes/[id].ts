@@ -6,6 +6,6 @@ export default async function handler(
     response: NextApiResponse<Recipe>
 ): Promise<void> {
     console.log("request", request)
-    recipesById(request.query.id as string)
+    return recipesById(request.query.id as string)
         .then(summaries => response.status(200).json(summaries))
 }

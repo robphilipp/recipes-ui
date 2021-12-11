@@ -4,6 +4,7 @@ import {createContext, useContext, useState} from 'react';
 interface UseSearchValues {
     current?: string
     accumulated: Array<string>
+    updateCurrent: (value: string) => void
     appendCurrent: (value: string) => void
     clearCurrent: () => void
     addAccumulated: (value: string) => void
@@ -13,6 +14,7 @@ interface UseSearchValues {
 
 const initialSearchValues: UseSearchValues = {
     accumulated: [],
+    updateCurrent: noop,
     appendCurrent: noop,
     clearCurrent: noop,
     addAccumulated: noop,
@@ -38,6 +40,10 @@ export default function SearchProvider(props: Props): JSX.Element {
     const [current, setCurrent] = useState<string | undefined>()
     const [accumulated, setAccumulated] = useState<Array<string>>(() => [])
 
+    function updateCurrent(value: string): void {
+        setCurrent(value)
+    }
+
     function appendCurrent(value: string): void {
         setCurrent(cur => cur !== undefined ? cur.concat(value) : value)
     }
@@ -47,7 +53,9 @@ export default function SearchProvider(props: Props): JSX.Element {
     }
 
     function addAccumulated(value: string): void {
-        setAccumulated(acc => [...acc, value])
+        if (value !== undefined && value !== '') {
+            setAccumulated(acc => [...acc, value])
+        }
     }
 
     function deleteAccumulated(value: string): void {
@@ -60,7 +68,7 @@ export default function SearchProvider(props: Props): JSX.Element {
 
     const {children} = props;
     return <SearchContext.Provider value={{
-        current, appendCurrent, clearCurrent,
+        current, updateCurrent, appendCurrent, clearCurrent,
         accumulated, addAccumulated, deleteAccumulated, clearAccumulated
     }}>
         {children}
@@ -75,11 +83,11 @@ export default function SearchProvider(props: Props): JSX.Element {
 export function useSearch(): UseSearchValues {
     const context = useContext<UseSearchValues>(SearchContext)
     const {
-        appendCurrent, clearCurrent,
+        updateCurrent, appendCurrent, clearCurrent,
         accumulated, addAccumulated, deleteAccumulated, clearAccumulated
     } = context
     if (
-        appendCurrent === undefined || clearCurrent === undefined ||
+        updateCurrent === undefined || appendCurrent === undefined || clearCurrent === undefined ||
         accumulated === undefined || addAccumulated === undefined || deleteAccumulated === undefined ||
         clearAccumulated === undefined
     ) {
