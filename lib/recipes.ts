@@ -119,10 +119,6 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
 }
 
 export async function allRecipePaths(): Promise<Array<string>> {
-    // return await axios
-    //     .get('/api/recipes/summaries')
-    //     .then(recipes => recipes.data.map(recipe => encodeURIComponent(recipe.name.replace(/ /, '_'))))
     return await recipeSummaries()
-        // .then(recipes => recipes.map(recipe => encodeURIComponent(recipe._id.replace(/ /, '_'))))
         .then(recipes => recipes.map(recipe => recipe._id))
 }

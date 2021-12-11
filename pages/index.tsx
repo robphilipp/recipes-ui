@@ -24,7 +24,7 @@ export default function Home(props: Props): JSX.Element {
         // search
     } = props
 
-    const {accumulated} = useSearch()
+    const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
     const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
@@ -36,12 +36,12 @@ export default function Home(props: Props): JSX.Element {
                 axios
                     .get(`/api/recipes/summaries?${queries}`)
                     .then(response => setRecipes(response.data))
+            } else {
+                setRecipes([])
             }
         },
         [accumulated]
     )
-
-    console.log("recipe summaries", recipes)
 
     return (
         <Layout home>
@@ -49,9 +49,11 @@ export default function Home(props: Props): JSX.Element {
                 <title>{process.env.siteName}</title>
             </Head>
             <section className={`${utilStyles.headingMd} ${utilStyles.recipePadding}`}>
+                <div style={{marginBottom: 15}}>
                 {accumulated.map(search => (
-                    <Chip key={search} label={search} variant='outlined' size='small' style={{marginRight: 5}}/>
+                    <Chip key={search} label={search} size='small' style={{marginRight: 7}} onDelete={() => deleteAccumulated(search)}/>
                 ))}
+                </div>
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>

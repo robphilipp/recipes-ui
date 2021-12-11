@@ -2,6 +2,7 @@ import {alpha, InputBase, styled} from "@mui/material";
 import React from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import {useSearch} from "../lib/useSearch";
+import {useRouter} from "next/router";
 
 const Search = styled('div')(({theme}) => ({
     position: 'relative',
@@ -51,20 +52,16 @@ export default function RecipeSearch(): JSX.Element {
         accumulated, addAccumulated
     } = useSearch()
 
-    // const [search, setSearch] = useState<string>()
-    // const [searchTokens, setSearchTokens] = useState<Array<string>>([])
+    const router = useRouter()
 
     async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
         switch (event.key) {
             case 'Enter':
-                // setSearchTokens(tokens => [...tokens, search])
-                // setSearch('')
                 addAccumulated(current)
                 clearCurrent()
-                console.log("recipe search; current", current, "accumulated", accumulated)
+                router.push("/")
                 break
             case 'Escape':
-                // setSearch('')
                 clearCurrent()
                 break
             default:
@@ -73,19 +70,17 @@ export default function RecipeSearch(): JSX.Element {
 
     async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         const searchValue = event.currentTarget.value
-        // setSearch(searchValue)
-        console.log("recipe search", searchValue)
         updateCurrent(searchValue)
     }
 
-    console.log("recipe summaries (render); current", current, "accumulated", accumulated)
     return (
         <Search>
-            <SearchIconWrapper><SearchIcon/></SearchIconWrapper>
+            <SearchIconWrapper>
+                <SearchIcon/>
+            </SearchIconWrapper>
             <StyledInputBase
                 placeholder="Search…"
                 value={current || ''}
-                // value={search}
                 inputProps={{'aria-label': 'search'}}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
