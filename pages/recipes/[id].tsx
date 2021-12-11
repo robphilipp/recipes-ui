@@ -17,13 +17,11 @@ export default function RecipeView(props: Props): JSX.Element {
     const {recipeId} = props
 
     const {
-        ingredientsStatus, isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
-        stepsStatus, isStepSelected, selectStep, unselectStep, clearSteps
+        isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
+        isStepSelected, selectStep, unselectStep, clearSteps
     } = useStatus()
 
     const [recipe, setRecipe] = useState<Recipe>()
-    // const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => [])
-    // const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => [])
 
     useEffect(
         () => {
@@ -32,33 +30,26 @@ export default function RecipeView(props: Props): JSX.Element {
                 .then(response => {
                     const recipe = response.data as Recipe
                     setRecipe(recipe)
-                    // setIngredientStatus(recipe.ingredients.map(() => false))
-                    // setStepStatus(recipe.steps.map(() => false))
                 })
         },
         [recipeId]
     )
 
-    // function handleToggleIngredientStatus(index: number) {
     function handleToggleIngredientStatus(ingredient: string) {
-        // setIngredientStatus(ingredientStatus => {
-        //     const status = [...ingredientStatus]
-        //     status[index] = !status[index]
-        //     return status
-        // });
-        selectIngredient(recipeId, ingredient)
+        if (isIngredientSelected(recipeId, ingredient)) {
+            unselectIngredient(recipeId, ingredient)
+        } else {
+            selectIngredient(recipeId, ingredient)
+        }
     }
 
     function handleToggleStepStatus(step: string) {
-        selectStep(recipeId, step)
+        if (isStepSelected(recipeId, step)) {
+            unselectStep(recipeId, step)
+        } else {
+            selectStep(recipeId, step)
+        }
     }
-    // function handleToggleStepStatus(index: number) {
-    //     setStepStatus(stepStatus => {
-    //         const status = [...stepStatus]
-    //         status[index] = !status[index]
-    //         return status
-    //     });
-    // }
 
     function formatIngredient(ingredient: Ingredient): string {
         if (ingredient.amount.unit.toString() === 'piece') {
@@ -86,21 +77,19 @@ export default function RecipeView(props: Props): JSX.Element {
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
                 <div>
                     <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
-                        {recipe.ingredients.map((ingredient: Ingredient, index: number) => {
+                        {recipe.ingredients.map((ingredient: Ingredient) => {
                             const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}`
                             return (
                                 <ListItem key={labelId} disablePadding>
                                     <ListItemButton
                                         role={undefined}
                                         onClick={() => handleToggleIngredientStatus(ingredient.name)}
-                                        // onClick={() => handleToggleIngredientStatus(index)}
                                         dense
                                     >
                                         <ListItemIcon>
                                             <Checkbox
                                                 edge="start"
                                                 checked={isIngredientSelected(recipeId, ingredient.name)}
-                                                // checked={ingredientStatus[index]}
                                                 tabIndex={-1}
                                                 disableRipple
                                                 size="small"
@@ -120,21 +109,19 @@ export default function RecipeView(props: Props): JSX.Element {
                 <h2 className={utilStyles.headingMd}>Steps</h2>
                 <div>
                     <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
-                        {recipe.steps.map((step: Step, index: number) => {
+                        {recipe.steps.map((step: Step) => {
                             const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
                             return (
                                 <ListItem key={labelId} disablePadding>
                                     <ListItemButton
                                         role={undefined}
                                         onClick={() => handleToggleStepStatus(step.text)}
-                                        // onClick={() => handleToggleStepStatus(index)}
                                         dense
                                     >
                                         <ListItemIcon>
                                             <Checkbox
                                                 edge="start"
                                                 checked={isStepSelected(recipeId, step.text)}
-                                                // checked={stepStatus[index]}
                                                 tabIndex={-1}
                                                 disableRipple
                                                 size="small"
