@@ -1,21 +1,37 @@
-import {allRecipePaths, Ingredient, Recipe, recipesById, recipeSummariesByName, Step} from "../../lib/recipes";
+import {Ingredient, Recipe, Step} from "../../lib/recipes";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
-import {GetServerSideProps, GetStaticPaths, GetStaticProps} from "next";
+import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
+import axios from "axios";
 
 type Props = {
-    recipe: Recipe
+    recipeId: string
 }
 
 export default function RecipeView(props: Props): JSX.Element {
-    const {recipe} = props
+    const {recipeId} = props
 
-    const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => recipe.ingredients.map(() => false))
-    const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => recipe.steps.map(() => false))
+    const [recipe, setRecipe] = useState<Recipe>()
+    const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => [])
+    const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => [])
+
+    useEffect(
+        () => {
+            axios
+                .get(`/api/recipes/${recipeId}`)
+                .then(response => {
+                    const recipe = response.data as Recipe
+                    setRecipe(recipe)
+                    setIngredientStatus(recipe.ingredients.map(() => false))
+                    setStepStatus(recipe.steps.map(() => false))
+                })
+        },
+        [recipeId]
+    )
 
     function handleToggleIngredientStatus(index: number) {
         setIngredientStatus(ingredientStatus => {
@@ -38,6 +54,10 @@ export default function RecipeView(props: Props): JSX.Element {
             return `${ingredient.amount.value} ${ingredient.name}`
         }
         return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
+    }
+
+    if (recipe === undefined) {
+        return <div>Loading...</div>
     }
 
     return (
@@ -123,29 +143,30 @@ export default function RecipeView(props: Props): JSX.Element {
     )
 }
 
-// export const getServerSideProps: GetServerSideProps = async context => {
-//     const id = decodeURIComponent(context.params.id as string)
-//     const recipe = await recipesById(id)
+export const getServerSideProps: GetServerSideProps = async context => {
+    return {
+        props: {
+            recipeId: context.params.id as string
+        }
+    }
+}
+// export const getStaticPaths: GetStaticPaths = async () => {
+//     console.log("[id] get static paths")
+//     const paths = await allRecipePaths()
 //     return {
-//         props: {
-//             recipe
-//         }
+//         paths: paths.map(summary => ({params: {id: summary}})),
+//         fallback: false
 //     }
 // }
-export const getStaticPaths: GetStaticPaths = async () => {
-    console.log("[id] get static paths")
-    const paths = await allRecipePaths()
-    return {
-        paths: paths.map(summary => ({params: {id: summary}})),
-        fallback: false
-    }
-}
-
-export const getStaticProps: GetStaticProps = async (context) => {
-    console.log("[id] get static props")
-    const recipe = await recipesById(context.params.id as string)
-    return {
-        props: {recipe},
-        // revalidate: 1
-    }
-}
+//
+// export const getStaticProps: GetStaticProps = async (context) => {
+//     console.log("[id] get static props")
+//     // const recipe = await recipesById(context.params.id as string)
+//     // return {
+//     //     props: {recipe},
+//     //     // revalidate: 1
+//     // }
+//     return {
+//         props: {recipeId: context.params.id as string}
+//     }
+// }
