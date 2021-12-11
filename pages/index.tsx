@@ -8,6 +8,7 @@ import React, {useEffect, useState} from "react";
 import {Chip} from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
+import {useStatus} from "../lib/useStatus";
 
 type Props = {
     // allPostsData: Array<PostData>
@@ -23,6 +24,7 @@ export default function Home(props: Props): JSX.Element {
     } = props
 
     const {accumulated} = useSearch()
+    const {inProgress} = useStatus()
 
     const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
 
@@ -58,6 +60,7 @@ export default function Home(props: Props): JSX.Element {
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
                             ))}
+                            {inProgress(recipe._id) ? <span>*</span> : <span/>}
                             <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
                                 <Date epochMillis={recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn}/>
                             </div>

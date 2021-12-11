@@ -7,6 +7,8 @@ interface UseStatusValues {
     // map(recipe_id -> set(checked_steps))
     readonly stepsStatus: Map<string, Set<string>>
 
+    inProgress: (recipeId: string) => boolean
+
     isIngredientSelected: (recipeId: string, ingredient: string) => boolean
     selectIngredient: (recipeId: string, ingredient: string) => void
     unselectIngredient: (recipeId: string, ingredient: string) => void
@@ -21,6 +23,8 @@ interface UseStatusValues {
 const initialStatusValues: UseStatusValues = {
     ingredientsStatus: new Map<string, Set<string>>(),
     stepsStatus: new Map<string, Set<string>>(),
+
+    inProgress: () => false,
     
     isIngredientSelected: () => false,
     selectIngredient: noop,
@@ -46,9 +50,13 @@ interface Props {
 export default function StatusProvider(props: Props): JSX.Element {
     const [ingredientsStatus, setIngredientsStatus] = useState<Map<string, Set<string>>>(() => new Map())
     const [stepsStatus, setStepsStatus] = useState<Map<string, Set<string>>>(() => new Map())
+
+    function inProgress(recipeId: string): boolean {
+        return ingredientsStatus.get(recipeId)?.size > 0 || stepsStatus.get(recipeId)?.size > 0
+    }
     
     function isIngredientSelected(recipeId: string, ingredient: string): boolean {
-        return ingredientsStatus.get(recipeId)?.has(ingredient)
+        return ingredientsStatus.get(recipeId)?.has(ingredient) || false
     }
     
     function selectIngredient(recipeId: string, ingredient: string): void {
@@ -62,6 +70,9 @@ export default function StatusProvider(props: Props): JSX.Element {
     
     function unselectIngredient(recipeId: string, ingredient: string): void {
         if (ingredientsStatus.has(recipeId) && ingredientsStatus.get(recipeId).delete(ingredient)) {
+            if (ingredientsStatus.get(recipeId).size === 0) {
+                ingredientsStatus.delete(recipeId)
+            }
             setIngredientsStatus(status => new Map(status))
         }
     }
@@ -73,7 +84,7 @@ export default function StatusProvider(props: Props): JSX.Element {
     }
     
     function isStepSelected(recipeId: string, step: string): boolean {
-        return stepsStatus.get(recipeId)?.has(step)
+        return stepsStatus.get(recipeId)?.has(step) || false
     }
     
     function selectStep(recipeId: string, step: string): void {
@@ -87,6 +98,9 @@ export default function StatusProvider(props: Props): JSX.Element {
     
     function unselectStep(recipeId: string, step: string): void {
         if (stepsStatus.has(step) && stepsStatus.get(recipeId).delete(step)) {
+            if (stepsStatus.get(recipeId).size === 0) {
+                stepsStatus.delete(recipeId)
+            }
             setStepsStatus(status => new Map(status))
         }
     }
@@ -99,6 +113,7 @@ export default function StatusProvider(props: Props): JSX.Element {
     
     const {children} = props
     return <StatusContext.Provider value={{
+        inProgress,
         ingredientsStatus, isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
         stepsStatus, isStepSelected, selectStep, unselectStep, clearSteps
     }}>
