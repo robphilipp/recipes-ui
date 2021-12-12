@@ -67,7 +67,11 @@ export default function RecipeView(): JSX.Element {
             <Head><title>New Recipe</title></Head>
             <Box
                 component="form"
-                sx={{'& .MuiTextField-root': {m: 1, width: '25ch'}}}
+                // sx={{'& .MuiTextField-root': {m: 1.1, width: '25ch'}}}
+                sx={{
+                    '& .MuiTextField-root': {mt: 1.2, mr: 0.5},
+                    // '& .MuiSelect-outlined': {mt: 1.2, minWidth: 100},
+                }}
                 noValidate
                 autoComplete="off"
             >
@@ -88,6 +92,7 @@ export default function RecipeView(): JSX.Element {
                         value={`${yieldValue}${recipe.yield.unit}`}
                         onChange={handleYieldValueChange}
                         InputLabelProps={{shrink: true}}
+                        sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
                     />
                 </div>
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
@@ -98,18 +103,32 @@ export default function RecipeView(): JSX.Element {
                         size='small'
                         type="number"
                         value={ingredient.amount.value}
+                        sx={{"& .MuiOutlinedInput-root": {width: 120}}}
                     />
                     <Select
                         id="recipe-ingredient-amount-unit"
-                        label="Units"
+                        // label="Units"
                         size='small'
                         value={ingredient.amount.unit}
                         onChange={handleIngredientUnitSelect}
+                        sx={{mt: 1.2, mr: 0.5, minWidth: 100}}
                     >
                         {Object.entries(Units).map(([label, unit]) => (
-                            <MenuItem key={unit} value={unit}>{unit} ({label})</MenuItem>
+                            <MenuItem key={unit} value={unit}>{label.toLowerCase()}</MenuItem>
                         ))}
                     </Select>
+                    <TextField
+                        id="recipe-ingredient-name"
+                        label="Ingredient"
+                        size='small'
+                        value={ingredient.name}
+                    />
+                    <TextField
+                        id="recipe-ingredient-brand"
+                        label="Brand"
+                        size='small'
+                        value={ingredient.brand}
+                    />
                 </div>
                 <h2 className={utilStyles.headingMd}>Steps</h2>
                 <div>
