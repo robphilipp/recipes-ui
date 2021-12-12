@@ -87,7 +87,20 @@ export function emptyIngredient(): Ingredient {
     return {
         amount: {value: NaN, unit: Units.PIECE},
         name: '',
-            brand: null
+        brand: null
+    }
+}
+
+export function isEmptyIngredient(ingredient: Ingredient): boolean {
+    return isNaN(ingredient.amount.value) && ingredient.amount.unit === Units.PIECE &&
+        ingredient.name === '' && ingredient.brand === null
+}
+
+export function copyIngredient(ingredient: Ingredient): Ingredient {
+    return {
+        amount: {...ingredient.amount},
+        name: ingredient.name,
+        brand: ingredient.brand
     }
 }
 

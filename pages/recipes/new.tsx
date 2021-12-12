@@ -2,18 +2,11 @@ import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
 import {ChangeEvent, useState} from "react";
-import {Box, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
-import {getMilliseconds} from "date-fns/fp";
-import {
-    Amount,
-    emptyIngredient,
-    emptyRecipe,
-    Ingredient,
-    Recipe,
-    Units,
-    unitsFrom,
-    Yield
-} from "../../components/Recipe";
+import {Box, IconButton, TextField} from "@mui/material";
+import {emptyIngredient, emptyRecipe, Recipe, Yield} from "../../components/Recipe";
+import {IngredientForm} from "../../components/IngredientForm";
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+
 
 const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
@@ -26,7 +19,8 @@ export default function RecipeView(): JSX.Element {
     // of yield.value as a string
     const [yieldValue, setYieldValue] = useState<string>('')
 
-    const [ingredient, setIngredient] = useState<Ingredient>(() => emptyIngredient())
+    const [adding, setAdding] = useState<boolean>(false)
+    const [editing, setEditing] = useState<boolean>(false)
 
     function handleNameChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
         setRecipe(rec => ({...rec, name: event.target.value}))
@@ -55,11 +49,6 @@ export default function RecipeView(): JSX.Element {
             setRecipe(rec => ({...rec, yield: recipeYield}))
             return
         }
-    }
-
-    function handleIngredientUnitSelect(event: SelectChangeEvent): void {
-        const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
-        setIngredient(ing => ({...ing, amount}))
     }
 
     return (
@@ -95,44 +84,21 @@ export default function RecipeView(): JSX.Element {
                         sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
                     />
                 </div>
+
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
-                <div>
-                    <TextField
-                        id="recipe-ingredient-amount-value"
-                        label="Amount"
-                        size='small'
-                        type="number"
-                        value={ingredient.amount.value}
-                        sx={{"& .MuiOutlinedInput-root": {width: 120}}}
-                    />
-                    <Select
-                        id="recipe-ingredient-amount-unit"
-                        // label="Units"
-                        size='small'
-                        value={ingredient.amount.unit}
-                        onChange={handleIngredientUnitSelect}
-                        sx={{mt: 1.2, mr: 0.5, minWidth: 100}}
-                    >
-                        {Object.entries(Units).map(([label, unit]) => (
-                            <MenuItem key={unit} value={unit}>{label.toLowerCase()}</MenuItem>
-                        ))}
-                    </Select>
-                    <TextField
-                        id="recipe-ingredient-name"
-                        label="Ingredient"
-                        size='small'
-                        value={ingredient.name}
-                    />
-                    <TextField
-                        id="recipe-ingredient-brand"
-                        label="Brand"
-                        size='small'
-                        value={ingredient.brand}
-                    />
-                </div>
+                {adding ? <IngredientForm ingredient={emptyIngredient()} onUpdate={() => {}} onCancel={() => {}}/> : <span/>}
+                {!adding && !editing ? <IconButton
+                    onClick={() => setAdding(true)}
+                    disabled={adding || editing}
+                >
+                    <AddCircleIcon/>
+                </IconButton> : <span/>
+                }
+
                 <h2 className={utilStyles.headingMd}>Steps</h2>
                 <div>
                 </div>
+
                 <h2 className={utilStyles.headingMd}>Notes</h2>
             </Box>
         </Layout>
