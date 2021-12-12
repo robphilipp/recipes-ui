@@ -1,123 +1,122 @@
-import {Ingredient, Recipe, recipesByName, Step} from "../../lib/recipes";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
-import {GetServerSideProps} from "next";
-import Date from '../../components/Date'
-import {useState} from "react";
-import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
+import {ChangeEvent, useState} from "react";
+import {Box, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
+import {getMilliseconds} from "date-fns/fp";
+import {
+    Amount,
+    emptyIngredient,
+    emptyRecipe,
+    Ingredient,
+    Recipe,
+    Units,
+    unitsFrom,
+    Yield
+} from "../../components/Recipe";
+
+const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
+const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
 
 export default function RecipeView(): JSX.Element {
-    // const {recipe} = props
 
-    // const [ingredientStatus, setIngredientStatus] = useState<Array<boolean>>(() => recipe.ingredients.map(() => false))
-    // const [stepStatus, setStepStatus] = useState<Array<boolean>>(() => recipe.steps.map(() => false))
-    //
-    // function handleToggleIngredientStatus(index: number) {
-    //     setIngredientStatus(ingredientStatus => {
-    //         const status = [...ingredientStatus]
-    //         status[index] = !status[index]
-    //         return status
-    //     });
-    // }
-    //
-    // function handleToggleStepStatus(index: number) {
-    //     setStepStatus(stepStatus => {
-    //         const status = [...stepStatus]
-    //         status[index] = !status[index]
-    //         return status
-    //     });
-    // }
+    const [recipe, setRecipe] = useState<Recipe>(() => emptyRecipe())
+    // because yield has a value and unit, and because in the recipe the value is a number
+    // and because numbers and text are hard to mix in an input field, we store the value
+    // of yield.value as a string
+    const [yieldValue, setYieldValue] = useState<string>('')
+
+    const [ingredient, setIngredient] = useState<Ingredient>(() => emptyIngredient())
+
+    function handleNameChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
+        setRecipe(rec => ({...rec, name: event.target.value}))
+    }
+
+    function handleYieldValueChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
+        const fullMatch = event.target.value.match(YIELD_REGEX)
+        if (fullMatch) {
+            fullMatch.shift()
+            const value = fullMatch.shift()
+            const unit = fullMatch.shift() || ''
+            setYieldValue(value)
+            // update the recipe
+            const recipeYield: Yield = {value: parseFloat(value), unit}
+            setRecipe(rec => ({...rec, yield: recipeYield}))
+            return
+        }
+
+        const unitMatch = event.target.value.match(YIELD_UNIT_REGEX)
+        if (unitMatch) {
+            unitMatch.shift()
+            const unit = unitMatch.shift() || ''
+            setYieldValue('')
+            // update the recipe
+            const recipeYield: Yield = {value: NaN, unit}
+            setRecipe(rec => ({...rec, yield: recipeYield}))
+            return
+        }
+    }
+
+    function handleIngredientUnitSelect(event: SelectChangeEvent): void {
+        const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
+        setIngredient(ing => ({...ing, amount}))
+    }
 
     return (
         <Layout>
             <Head><title>New Recipe</title></Head>
-            <article>
-                <h1 className={utilStyles.recipeName}>New Recipe</h1>
-                {/*<div className={utilStyles.recipeObjectId}>{recipe._id}</div>*/}
-                {/*<div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn}/></div>*/}
-                {/*{recipe.modifiedOn != null ?*/}
-                {/*    <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn}/></div> :*/}
-                {/*    <span/>}*/}
-                <div className={utilStyles.recipeYield}>Yield</div>
+            <Box
+                component="form"
+                sx={{'& .MuiTextField-root': {m: 1, width: '25ch'}}}
+                noValidate
+                autoComplete="off"
+            >
+                <div>
+                    <TextField
+                        id="recipe-name"
+                        label="Recipe Name"
+                        size='small'
+                        value={recipe.name}
+                        onChange={handleNameChange}
+                    />
+                </div>
+                <div>
+                    <TextField
+                        id="recipe-yield-amount"
+                        label="Yield"
+                        size='small'
+                        value={`${yieldValue}${recipe.yield.unit}`}
+                        onChange={handleYieldValueChange}
+                        InputLabelProps={{shrink: true}}
+                    />
+                </div>
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
                 <div>
-                    {/*<List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>*/}
-                    {/*    {recipe.ingredients.map((ingredient: Ingredient, index: number) => {*/}
-                    {/*        const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}`*/}
-                    {/*        return (*/}
-                    {/*            <ListItem key={labelId} disablePadding>*/}
-                    {/*                <ListItemButton*/}
-                    {/*                    role={undefined}*/}
-                    {/*                    onClick={() => handleToggleIngredientStatus(index)}*/}
-                    {/*                    dense*/}
-                    {/*                >*/}
-                    {/*                    <ListItemIcon>*/}
-                    {/*                        <Checkbox*/}
-                    {/*                            edge="start"*/}
-                    {/*                            checked={ingredientStatus[index]}*/}
-                    {/*                            tabIndex={-1}*/}
-                    {/*                            disableRipple*/}
-                    {/*                            size="small"*/}
-                    {/*                            inputProps={{'aria-labelledby': labelId}}*/}
-                    {/*                        />*/}
-                    {/*                    </ListItemIcon>*/}
-                    {/*                    <ListItemText*/}
-                    {/*                        id={labelId}*/}
-                    {/*                        primary={`${ingredient.amount.value} ${ingredient.amount.unit}   ${ingredient.name}`}*/}
-                    {/*                    />*/}
-                    {/*                </ListItemButton>*/}
-                    {/*            </ListItem>*/}
-                    {/*        )*/}
-                    {/*    })}*/}
-                    {/*</List>*/}
+                    <TextField
+                        id="recipe-ingredient-amount-value"
+                        label="Amount"
+                        size='small'
+                        type="number"
+                        value={ingredient.amount.value}
+                    />
+                    <Select
+                        id="recipe-ingredient-amount-unit"
+                        label="Units"
+                        size='small'
+                        value={ingredient.amount.unit}
+                        onChange={handleIngredientUnitSelect}
+                    >
+                        {Object.entries(Units).map(([label, unit]) => (
+                            <MenuItem key={unit} value={unit}>{unit} ({label})</MenuItem>
+                        ))}
+                    </Select>
                 </div>
                 <h2 className={utilStyles.headingMd}>Steps</h2>
                 <div>
-                    {/*<List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>*/}
-                    {/*    {recipe.steps.map((step: Step, index: number) => {*/}
-                    {/*        const labelId = `${recipe.name}-ingredient-list-item-${step.text}`*/}
-                    {/*        return (*/}
-                    {/*            <ListItem key={labelId} disablePadding>*/}
-                    {/*                <ListItemButton*/}
-                    {/*                    role={undefined}*/}
-                    {/*                    onClick={() => handleToggleStepStatus(index)}*/}
-                    {/*                    dense*/}
-                    {/*                >*/}
-                    {/*                    <ListItemIcon>*/}
-                    {/*                        <Checkbox*/}
-                    {/*                            edge="start"*/}
-                    {/*                            checked={stepStatus[index]}*/}
-                    {/*                            tabIndex={-1}*/}
-                    {/*                            disableRipple*/}
-                    {/*                            size="small"*/}
-                    {/*                            inputProps={{'aria-labelledby': labelId}}*/}
-                    {/*                        />*/}
-                    {/*                    </ListItemIcon>*/}
-                    {/*                    <ListItemText*/}
-                    {/*                        id={labelId}*/}
-                    {/*                        primary={step.text}*/}
-                    {/*                    />*/}
-                    {/*                </ListItemButton>*/}
-                    {/*            </ListItem>*/}
-                    {/*        )*/}
-                    {/*    })}*/}
-                    {/*</List>*/}
                 </div>
                 <h2 className={utilStyles.headingMd}>Notes</h2>
-                {/*<div>{recipe.notes}</div>*/}
-            </article>
+            </Box>
         </Layout>
     )
 }
 
-// export const getServerSideProps: GetServerSideProps = async context => {
-//     const name = decodeURIComponent((context.params.recipeName as string).replace(/_/, ' '))
-//     const recipes = await recipesByName([name])
-//         .then(response => response.filter(recipe => recipe.name === name))
-//     return {
-//         props: {
-//             recipe: recipes[0]
-//         }
-//     }
-// }

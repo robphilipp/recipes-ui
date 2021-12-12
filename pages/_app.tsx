@@ -1,5 +1,5 @@
 import '../styles/global.css'
-import {AppProps} from 'next/app'
+import {AppContext, AppProps} from 'next/app'
 import Link from 'next/link'
 import {AppBar, BottomNavigation, BottomNavigationAction, Box, Paper, Toolbar, Typography} from "@mui/material";
 import Image from "next/image";
@@ -155,3 +155,13 @@ export default function App(props: AppProps) {
         </SearchProvider>
     )
 }
+
+// App.getInitialProps = async (appContext: AppContext) => {
+//     const {router} = appContext
+//     const locale = router.locale
+//     const appProps = await App.getInitialProps(appContext)
+//
+//     global.__localeId__ = locale
+//
+//     return {...appProps}
+// }
