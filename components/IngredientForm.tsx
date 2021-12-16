@@ -1,29 +1,47 @@
 import React, {ChangeEvent, useRef, useState} from 'react'
-import {Button, ButtonGroup, IconButton, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
+import {IconButton, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
 import {
     Amount,
     copyIngredient,
     emptyIngredient,
     Ingredient,
+    ingredientAsText,
     isEmptyIngredient,
-    Units,
-    unitsFrom,
-    Yield
+    UnitCategories,
+    unitsByCategory,
+    unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ModeEditIcon from '@mui/icons-material/ModeEdit';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+function noop() {
+}
+
+export enum IngredientMode {VIEW, EDIT}
 
 type Props = {
     ingredient: Ingredient
-    onUpdate: (ingredient: Ingredient) => void
-    onCancel: () => void
+    initialMode?: IngredientMode
+    onSubmit?: (ingredient: Ingredient, andAgain: boolean) => void
+    onCancel?: () => void
+    onDelete?: (id: string) => void
 }
 
 export function IngredientForm(props: Props): JSX.Element {
+    const {
+        initialMode = IngredientMode.VIEW,
+        onSubmit = noop,
+        onCancel = noop,
+        onDelete = noop
+    } = props
 
     const [ingredient, setIngredient] = useState<Ingredient>(() => copyIngredient(props.ingredient))
     const newItemRef = useRef<boolean>(isEmptyIngredient(props.ingredient))
+
+    const [mode, setMode] = useState<IngredientMode>(initialMode)
 
     function handleIngredientUnitSelect(event: SelectChangeEvent): void {
         const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
@@ -40,16 +58,46 @@ export function IngredientForm(props: Props): JSX.Element {
             ingredient.name !== '' && ingredient.name !== null && ingredient.name !== undefined
     }
 
-    function handleSubmit(): void {
-
+    function handleSubmit(andAgain: boolean): void {
+        if (andAgain) {
+            onSubmit(ingredient, andAgain)
+            setIngredient(emptyIngredient())
+        } else {
+            setMode(IngredientMode.VIEW)
+            onSubmit(ingredient, andAgain)
+        }
     }
 
     function handleCancel(): void {
+        setMode(IngredientMode.VIEW)
+        setIngredient(props.ingredient)
+        onCancel()
+    }
 
+    if (mode === IngredientMode.VIEW) {
+        return (
+            <>
+                <IconButton
+                    onClick={() => setMode(IngredientMode.EDIT)}
+                    color='secondary'
+                    size='small'
+                >
+                    <ModeEditIcon/>
+                </IconButton>
+                <IconButton
+                    onClick={() => onDelete(ingredient._id)}
+                    color='secondary'
+                    size='small'
+                >
+                    <DeleteIcon/>
+                </IconButton>
+                {ingredientAsText(ingredient)}
+            </>
+        )
     }
 
     return (
-        <div>
+        <>
             <TextField
                 id="recipe-ingredient-amount-value"
                 label="Amount"
@@ -59,6 +107,13 @@ export function IngredientForm(props: Props): JSX.Element {
                 sx={{"& .MuiOutlinedInput-root": {width: 120}}}
                 onChange={handleIngredientAmountChange}
             />
+            {/*todo replace select with autocomplete*/}
+            {/*<Autocomplete*/}
+            {/*    renderInput={(params) => <TextField {...params} label="units" />}*/}
+            {/*    options={Object.entries(Units).map(([label, unit]) => ({label, id: unit}))}*/}
+            {/*    sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}*/}
+            {/*    size='small'*/}
+            {/*/>*/}
             <Select
                 id="recipe-ingredient-amount-unit"
                 // label="Units"
@@ -67,8 +122,21 @@ export function IngredientForm(props: Props): JSX.Element {
                 onChange={handleIngredientUnitSelect}
                 sx={{mt: 1.2, mr: 0.5, minWidth: 100}}
             >
-                {Object.entries(Units).map(([label, unit]) => (
-                    <MenuItem key={unit} value={unit}>{label.toLowerCase()}</MenuItem>
+                <ListSubheader>Mass</ListSubheader>
+                {unitsByCategory.get(UnitCategories.MASS).map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                ))}
+                <ListSubheader>Weight</ListSubheader>
+                {unitsByCategory.get(UnitCategories.WEIGHT).map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                ))}
+                <ListSubheader>Volume</ListSubheader>
+                {unitsByCategory.get(UnitCategories.VOLUME).map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                ))}
+                <ListSubheader>Piece</ListSubheader>
+                {unitsByCategory.get(UnitCategories.PIECE).map((unit) => (
+                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
                 ))}
             </Select>
             <TextField
@@ -85,29 +153,18 @@ export function IngredientForm(props: Props): JSX.Element {
                 value={ingredient.brand}
                 onChange={event => setIngredient(ing => ({...ing, brand: event.target.value}))}
             />
-            {/*<ButtonGroup variant='text'>*/}
-            {/*    {newItemRef.current ?*/}
-            {/*        <Button onClick={handleSubmit} color='primary' disabled={!canSubmit()} startIcon={<AddCircleIcon/>}>*/}
-            {/*        </Button> :*/}
-            {/*        <span/>*/}
-            {/*    }*/}
-            {/*    <Button onClick={handleSubmit} color='primary' disabled={!canSubmit()} startIcon={<CheckBoxIcon/>}>*/}
-
-            {/*    </Button>*/}
-            {/*    <Button onClick={handleCancel} color='secondary' startIcon={<CancelIcon/>}>*/}
-
-            {/*    </Button>*/}
-                {newItemRef.current ? <IconButton onClick={handleSubmit} color='primary' disabled={!canSubmit()}>
+            <IconButton onClick={() => handleSubmit(false)} color='primary' disabled={!canSubmit()}>
+                <CheckBoxIcon/>
+            </IconButton>
+            <IconButton onClick={handleCancel} color='secondary'>
+                <CancelIcon/>
+            </IconButton>
+            {newItemRef.current ?
+                <IconButton onClick={() => handleSubmit(true)} color='primary' disabled={!canSubmit()}>
                     <AddCircleIcon/>
-                </IconButton> : <span/>
-                }
-                <IconButton onClick={handleSubmit} color='primary' disabled={!canSubmit()}>
-                    <CheckBoxIcon/>
-                </IconButton>
-                <IconButton onClick={handleCancel} color='secondary'>
-                    <CancelIcon/>
-                </IconButton>
-            {/*</ButtonGroup>*/}
-        </div>
+                </IconButton> :
+                <span/>
+            }
+        </>
     )
 }

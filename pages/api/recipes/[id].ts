@@ -1,5 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {Recipe, recipesById} from "../../../lib/recipes";
+import {recipesById} from "../../../lib/recipes";
+import {Recipe} from "../../../components/Recipe";
 
 export default async function handler(
     request: NextApiRequest,

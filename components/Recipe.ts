@@ -1,5 +1,6 @@
 import {WithId} from "mongodb";
 import {getMilliseconds} from "date-fns/fp";
+import {UUID} from "bson";
 
 export type Yield = {
     value: number
@@ -11,8 +12,51 @@ export enum Units {
     OUNCE = 'oz', POUND = 'lb',
     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = ''
+    PIECE = ' '
 }
+
+export enum UnitCategories {
+    MASS = 'Mass', 
+    WEIGHT = 'Weight',
+    VOLUME = 'Volume',
+    PIECE = 'Piece'
+}
+
+export type Unit = {
+    value: string
+    label: string
+}
+
+export type UnitCategory = {
+    category: UnitCategories
+    units: Array<Unit>
+}
+const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
+
+// export const unitsByCategory: Array<UnitCategory> = [
+//     {
+//         category: UnitCategories.MASS,
+//         units: [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]
+//     },
+//     {
+//         category: UnitCategories.WEIGHT,
+//         units: [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]
+//     },
+//     {
+//         category: UnitCategories.VOLUME,
+//         units: [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]
+//     },
+//     {
+//         category: UnitCategories.PIECE,
+//         units: [unitFrom(Units.PIECE, 'piece')]
+//     }
+// ]
+export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
+    [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
+    [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
+    [UnitCategories.VOLUME, [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]],
+    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece')]]
+])
 
 export type Amount = {
     value: number
@@ -20,12 +64,14 @@ export type Amount = {
 }
 
 export type Ingredient = {
+    _id: string
     name: string
     brand: string | null
     amount: Amount
 }
 
 export type Step = {
+    _id: string
     title: string | null
     text: string
 }
@@ -48,7 +94,7 @@ export type Recipe = RecipeSummary & {
 export function asRecipe(doc: WithId<Recipe>): Recipe {
     return {
         _id: doc._id.toString(),
-            name: doc.name,
+        name: doc.name,
         tags: doc.tags,
         yield: doc.yield,
         createdOn: doc.createdOn,
@@ -62,7 +108,7 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
 export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
     return {
         _id: doc._id.toString(),
-            name: doc.name,
+        name: doc.name,
         tags: doc.tags,
         createdOn: doc.createdOn,
         modifiedOn: doc.modifiedOn
@@ -72,19 +118,20 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
 export function emptyRecipe(): Recipe {
     return {
         _id: '',
-            name: '',
+        name: '',
         tags: [],
         createdOn: getMilliseconds(new Date()),
         modifiedOn: null,
         yield: {value: 0, unit: ''},
         ingredients: [],
-            steps: [],
+        steps: [],
         notes: ''
     }
 }
 
 export function emptyIngredient(): Ingredient {
     return {
+        _id: `(new)${(new UUID()).toString('hex')}`,
         amount: {value: NaN, unit: Units.PIECE},
         name: '',
         brand: null
@@ -98,6 +145,7 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
 
 export function copyIngredient(ingredient: Ingredient): Ingredient {
     return {
+        _id: ingredient._id,
         amount: {...ingredient.amount},
         name: ingredient.name,
         brand: ingredient.brand
@@ -107,4 +155,27 @@ export function copyIngredient(ingredient: Ingredient): Ingredient {
 export function unitsFrom(unit: string): Units {
     const [, key] = Object.entries(Units).find(([, value]) => value === unit)
     return key
+}
+
+export function ingredientAsText(ingredient: Ingredient): string {
+    if (ingredient.amount.unit.toString() === 'piece') {
+        return `${ingredient.amount.value} ${ingredient.name}`
+    }
+    return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
+}
+
+export function emptyStep(): Step {
+    return {
+        _id: `(new)${(new UUID()).toString('hex')}`,
+        title: null,
+        text: ''
+    }
+}
+
+export function isEmptyStep(step: Step): boolean {
+    return step.title === null && step.text === ''
+}
+
+export function copyStep(step: Step): Step {
+    return {...step}
 }

@@ -1,4 +1,3 @@
-import {Ingredient, Recipe, Step} from "../../lib/recipes";
 import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
@@ -8,6 +7,7 @@ import {useEffect, useState} from "react";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
+import {Ingredient, ingredientAsText, Recipe, Step} from "../../components/Recipe";
 
 type Props = {
     recipeId: string
@@ -51,12 +51,12 @@ export default function RecipeView(props: Props): JSX.Element {
         }
     }
 
-    function formatIngredient(ingredient: Ingredient): string {
-        if (ingredient.amount.unit.toString() === 'piece') {
-            return `${ingredient.amount.value} ${ingredient.name}`
-        }
-        return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
-    }
+    // function formatIngredient(ingredient: Ingredient): string {
+    //     if (ingredient.amount.unit.toString() === 'piece') {
+    //         return `${ingredient.amount.value} ${ingredient.name}`
+    //     }
+    //     return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
+    // }
 
     if (recipe === undefined) {
         return <div>Loading...</div>
@@ -98,7 +98,7 @@ export default function RecipeView(props: Props): JSX.Element {
                                         </ListItemIcon>
                                         <ListItemText
                                             id={labelId}
-                                            primary={formatIngredient(ingredient)}
+                                            primary={ingredientAsText(ingredient)}
                                         />
                                     </ListItemButton>
                                 </ListItem>
