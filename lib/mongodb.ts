@@ -1,4 +1,4 @@
-import {MongoClient, MongoClientOptions, ObjectId} from 'mongodb'
+import {MongoClient, MongoClientOptions} from 'mongodb'
 
 const uri = process.env.MONGODB_URI
 const options: MongoClientOptions = {

@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {recipesById} from "../../../lib/recipes";
+import {addRecipe, recipeById} from "../../../lib/recipes";
 import {Recipe} from "../../../components/Recipe";
 
 export default async function handler(
@@ -7,6 +7,12 @@ export default async function handler(
     response: NextApiResponse<Recipe>
 ): Promise<void> {
     console.log("request", request)
-    return recipesById(request.query.id as string)
-        .then(summaries => response.status(200).json(summaries))
+    if (request.method === "GET") {
+        return recipeById(request.query.id as string)
+            .then(summaries => response.status(200).json(summaries))
+    }
+    if (request.method === "PUT") {
+        return addRecipe(request.body as Recipe)
+            .then(recipe => response.status(200).json(recipe))
+    }
 }

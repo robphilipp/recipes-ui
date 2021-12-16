@@ -1,16 +1,6 @@
-import React, {ChangeEvent, useRef, useState} from 'react'
-import {IconButton, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
-import {
-    Amount,
-    copyIngredient, copyStep,
-    emptyIngredient, emptyStep,
-    Ingredient,
-    ingredientAsText,
-    isEmptyIngredient, isEmptyStep, Step,
-    UnitCategories,
-    unitsByCategory,
-    unitsFrom
-} from "./Recipe";
+import React, {useRef, useState} from 'react'
+import {IconButton, TextField} from "@mui/material";
+import {copyStep, emptyStep, isEmptyStep, Step} from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -68,17 +58,17 @@ export function StepForm(props: Props): JSX.Element {
             <>
                 <IconButton
                     onClick={() => setMode(StepMode.EDIT)}
-                    color='secondary'
+                    color='primary'
                     size='small'
                 >
-                    <ModeEditIcon/>
+                    <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 <IconButton
                     onClick={() => onDelete(step._id)}
-                    color='secondary'
+                    color='primary'
                     size='small'
                 >
-                    <DeleteIcon/>
+                    <DeleteIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 {step.text}
             </>

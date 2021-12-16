@@ -1,5 +1,5 @@
-import {WithId} from "mongodb";
-import {getMilliseconds} from "date-fns/fp";
+import {Long, ObjectId, WithId} from "mongodb";
+import {getMilliseconds, getTime} from "date-fns/fp";
 import {UUID} from "bson";
 
 export type Yield = {
@@ -12,7 +12,7 @@ export enum Units {
     OUNCE = 'oz', POUND = 'lb',
     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = ' '
+    PIECE = 'piece'
 }
 
 export enum UnitCategories {
@@ -64,24 +64,25 @@ export type Amount = {
 }
 
 export type Ingredient = {
-    _id: string
+    _id?: string
     name: string
     brand: string | null
     amount: Amount
 }
 
 export type Step = {
-    _id: string
+    _id?: string
     title: string | null
     text: string
 }
 
 export type RecipeSummary = {
-    _id: string
+    _id?: ObjectId
+    // _id?: string
     name: string
     tags: Array<string>
-    createdOn: number
-    modifiedOn: number | null
+    createdOn: number | Long
+    modifiedOn: number | null | Long
 }
 
 export type Recipe = RecipeSummary & {
@@ -92,8 +93,10 @@ export type Recipe = RecipeSummary & {
 }
 
 export function asRecipe(doc: WithId<Recipe>): Recipe {
+// export function asRecipe(doc: Recipe): Recipe {
     return {
-        _id: doc._id.toString(),
+        _id: doc._id,
+        // _id: doc._id.toString(),
         name: doc.name,
         tags: doc.tags,
         yield: doc.yield,
@@ -106,8 +109,10 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
 }
 
 export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
+// export function asRecipeSummary(doc: Recipe): RecipeSummary {
     return {
-        _id: doc._id.toString(),
+        _id: doc._id,
+        // _id: doc._id.toString(),
         name: doc.name,
         tags: doc.tags,
         createdOn: doc.createdOn,
@@ -117,10 +122,10 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
 
 export function emptyRecipe(): Recipe {
     return {
-        _id: '',
+        _id: null,
         name: '',
         tags: [],
-        createdOn: getMilliseconds(new Date()),
+        createdOn: getTime(new Date()),
         modifiedOn: null,
         yield: {value: 0, unit: ''},
         ingredients: [],
@@ -129,6 +134,14 @@ export function emptyRecipe(): Recipe {
     }
 }
 
+export function isValidRecipe(recipe: Recipe): boolean {
+    return recipe.name !== '' && recipe.yield.value > 0 &&
+        recipe.ingredients.length > 0 && recipe.steps.length > 0
+}
+
+/*
+ | INGREDIENTS
+ */
 export function emptyIngredient(): Ingredient {
     return {
         _id: `(new)${(new UUID()).toString('hex')}`,
@@ -164,6 +177,9 @@ export function ingredientAsText(ingredient: Ingredient): string {
     return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
 }
 
+/*
+ | STEPS
+ */
 export function emptyStep(): Step {
     return {
         _id: `(new)${(new UUID()).toString('hex')}`,

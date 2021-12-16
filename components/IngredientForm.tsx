@@ -79,17 +79,17 @@ export function IngredientForm(props: Props): JSX.Element {
             <>
                 <IconButton
                     onClick={() => setMode(IngredientMode.EDIT)}
-                    color='secondary'
+                    color='primary'
                     size='small'
                 >
-                    <ModeEditIcon/>
+                    <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 <IconButton
                     onClick={() => onDelete(ingredient._id)}
-                    color='secondary'
+                    color='primary'
                     size='small'
                 >
-                    <DeleteIcon/>
+                    <DeleteIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 {ingredientAsText(ingredient)}
             </>

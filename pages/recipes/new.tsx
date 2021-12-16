@@ -2,13 +2,23 @@ import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
 import React, {ChangeEvent, useState} from "react";
-import {Box, IconButton, List, ListItem, ListItemButton, TextField} from "@mui/material";
-import {emptyIngredient, emptyRecipe, emptyStep, Ingredient, Recipe, Step, Yield} from "../../components/Recipe";
+import {Box, Button, ButtonGroup, IconButton, List, ListItem, TextField} from "@mui/material";
+import {
+    emptyIngredient,
+    emptyRecipe,
+    emptyStep,
+    Ingredient,
+    isValidRecipe,
+    Recipe,
+    Step,
+    Yield
+} from "../../components/Recipe";
 import {IngredientForm, IngredientMode} from "../../components/IngredientForm";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {StepForm, StepMode} from "../../components/StepForm";
-
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import axios from "axios";
 
 const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
@@ -19,7 +29,7 @@ export default function RecipeView(): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    const [yieldValue, setYieldValue] = useState<string>('')
+    const [yieldValue, setYieldValue] = useState<string>()
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
@@ -112,6 +122,11 @@ export default function RecipeView(): JSX.Element {
         setAddingStep(false)
     }
 
+    function handleSubmitRecipe(): void {
+        axios.put('/api/recipes/new', recipe)
+            .then(response => console.log("response", response))
+    }
+
     return (
         <Layout>
             <Head><title>New Recipe</title></Head>
@@ -135,24 +150,24 @@ export default function RecipeView(): JSX.Element {
                         id="recipe-yield-amount"
                         label="Yield"
                         size='small'
-                        value={`${yieldValue}${recipe.yield.unit}`}
+                        value={yieldValue ? `${yieldValue}${recipe.yield.unit}` : recipe.yield.unit}
                         onChange={handleYieldValueChange}
-                        InputLabelProps={{shrink: true}}
+                        // InputLabelProps={{shrink: true}}
                         sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
                     />
                 </div>
 
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
-                <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
-                {recipe.ingredients.map(ingredient => (
-                    <ListItem key={ingredient.name} disablePadding>
-                        <IngredientForm
-                            ingredient={ingredient}
-                            onSubmit={handleUpdatedIngredient}
-                            onCancel={handleCancelIngredient}
-                            onDelete={handleDeleteIngredient}
-                        />
-                    </ListItem>))}
+                <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
+                    {recipe.ingredients.map(ingredient => (
+                        <ListItem key={ingredient.name} disablePadding>
+                            <IngredientForm
+                                ingredient={ingredient}
+                                onSubmit={handleUpdatedIngredient}
+                                onCancel={handleCancelIngredient}
+                                onDelete={handleDeleteIngredient}
+                            />
+                        </ListItem>))}
                 </List>
                 {addingIngredient ?
                     <IngredientForm
@@ -163,12 +178,16 @@ export default function RecipeView(): JSX.Element {
                     /> :
                     <span/>}
                 {!addingIngredient && !editing ?
-                    <IconButton
+                    <Button
                         onClick={handleAddingIngredient}
                         disabled={addingIngredient || editing}
+                        startIcon={<AddCircleIcon/>}
+                        variant='outlined'
+                        size='small'
+                        sx={{textTransform: 'none'}}
                     >
-                        <AddCircleIcon/>
-                    </IconButton> :
+                        Add Ingredient
+                    </Button> :
                     <span/>
                 }
 
@@ -193,16 +212,53 @@ export default function RecipeView(): JSX.Element {
                     /> :
                     <span/>}
                 {!addingStep && !editing ?
-                    <IconButton
+                    <Button
                         onClick={handleAddingStep}
                         disabled={addingStep || editing}
+                        startIcon={<AddCircleIcon/>}
+                        variant='outlined'
+                        size='small'
+                        sx={{textTransform: 'none'}}
                     >
-                        <AddCircleIcon/>
-                    </IconButton> :
+                        Add Step
+                    </Button> :
                     <span/>
                 }
 
                 <h2 className={utilStyles.headingMd}>Notes</h2>
+                <TextField
+                    id="recipe-step-text"
+                    label="Instruction"
+                    multiline
+                    maxRows={10}
+                    size='small'
+                    value={recipe.notes}
+                    sx={{"& .MuiOutlinedInput-root": {minWidth: 500, maxWidth: 800}}}
+                    onChange={event => setRecipe(current => ({...current, notes: event.target.value}))}
+                />
+                <ButtonGroup sx={{marginTop: 5}}>
+                    <Button
+                        startIcon={<SaveIcon/>}
+                        sx={{textTransform: 'none'}}
+                        disabled={!isValidRecipe(recipe)}
+                        onClick={handleSubmitRecipe}
+                    >
+                        Save
+                    </Button>
+                    <Button
+                        startIcon={<AddCircleIcon/>}
+                        sx={{textTransform: 'none'}}
+                        disabled={!isValidRecipe(recipe)}
+                    >
+                        Save And Add Another
+                    </Button>
+                    <Button
+                        startIcon={<CancelIcon/>}
+                        sx={{textTransform: 'none'}}
+                    >
+                        Cancel
+                    </Button>
+                </ButtonGroup>
             </Box>
         </Layout>
     )
