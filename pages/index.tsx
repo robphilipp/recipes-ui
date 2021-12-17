@@ -3,13 +3,13 @@ import Layout from '../components/Layout'
 import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
-import {RecipeSummary} from "../lib/recipes";
 import React, {useEffect, useState} from "react";
 import {Chip} from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
 import {MenuBook} from "@mui/icons-material";
+import {RecipeSummary} from "../components/Recipe";
 
 type Props = {
     // allPostsData: Array<PostData>
@@ -58,14 +58,14 @@ export default function Home(props: Props): JSX.Element {
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
                             <Link href={`/recipes/${recipe._id}`}><a>{recipe.name}</a></Link>
-                            {inProgress(recipe._id) ? <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
+                            {inProgress(recipe._id.toString()) ? <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
                             {recipe.tags.map(tag => (
                                 <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
                             ))}
                             <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
-                                <Date epochMillis={recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn}/>
+                                <Date epochMillis={(recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number}/>
                             </div>
                         </li>
                     ))}

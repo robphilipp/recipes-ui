@@ -9,7 +9,8 @@ import {
     emptyStep,
     Ingredient,
     isValidRecipe,
-    Recipe, RequiredTime,
+    Recipe,
+    RequiredTime,
     Step,
     Yield
 } from "../../components/Recipe";
@@ -22,6 +23,7 @@ import axios from "axios";
 import {useRouter} from "next/router";
 import {RequiredTimeForm} from "../../components/RequiredTimeForm";
 import {DisplayMode} from "../../components/FormMode";
+import {TagsForm} from "../../components/TagsForm";
 
 const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
@@ -41,6 +43,16 @@ export default function RecipeView(): JSX.Element {
 
     function handleNameChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
         setRecipe(rec => ({...rec, name: event.target.value}))
+    }
+
+    function handleAddTag(tag: string): void {
+        if (recipe.tags.findIndex(t => t === tag) < 0) {
+            setRecipe(current => ({...current, tags: [...current.tags, tag]}))
+        }
+    }
+
+    function handleRemoveTag(tag: string): void {
+        setRecipe(current => ({...current, tags: current.tags.filter(t => t !== tag)}))
     }
 
     function handleYieldValueChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
@@ -154,6 +166,14 @@ export default function RecipeView(): JSX.Element {
                         size='small'
                         value={recipe.name}
                         onChange={handleNameChange}
+                    />
+                </div>
+                <div>
+                    <TagsForm
+                        tags={recipe.tags}
+                        displayMode={DisplayMode.EDIT}
+                        onAdd={handleAddTag}
+                        onRemove={handleRemoveTag}
                     />
                 </div>
                 <div>
@@ -279,7 +299,7 @@ export default function RecipeView(): JSX.Element {
                         sx={{textTransform: 'none'}}
                         disabled={!isValidRecipe(recipe)}
                     >
-                        Save And Add Another
+                        Save And Add
                     </Button>
                     <Button
                         startIcon={<CancelIcon/>}
