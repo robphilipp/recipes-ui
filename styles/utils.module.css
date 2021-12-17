@@ -97,6 +97,20 @@
     /*line-height: 1.5;*/
 }
 
+.recipeTimes {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #5e5e77;
+    line-height: 1;
+}
+
+.recipeStory {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #202020;
+}
+
 .recipeIngredientsHeader {
     font-size: 1.2rem;
     line-height: 1;

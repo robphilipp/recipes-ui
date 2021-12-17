@@ -1,5 +1,5 @@
 import clientPromise from "./mongodb";
-import {Collection, Long, MongoClient, ObjectId, WithId} from "mongodb";
+import {Collection, Long, MongoClient, ObjectId} from "mongodb";
 import {asRecipe, asRecipeSummary, Ingredient, Recipe, RecipeSummary} from "../components/Recipe";
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
@@ -53,11 +53,12 @@ export async function allRecipePaths(): Promise<Array<string>> {
         .then(recipes => recipes.map(recipe => recipe._id.toString()))
 }
 
-function convertRecipe(recipe: Recipe): Recipe {
+function removeIds(recipe: Recipe): Recipe {
     return {
-        // _id: null,
+        story: recipe.story,
         name: recipe.name,
         yield: recipe.yield,
+        requiredTime: recipe.requiredTime,
         createdOn: Long.fromNumber(recipe.createdOn as number),
         modifiedOn: recipe.modifiedOn ? new Long(recipe.createdOn as number) : null,
         tags: recipe.tags,
@@ -69,15 +70,6 @@ function convertRecipe(recipe: Recipe): Recipe {
 
 export async function addRecipe(recipe: Recipe): Promise<Recipe> {
     const client = await clientPromise
-    // const cleaned: Recipe = {
-    //     ...recipe,
-    //     createdOn: Long.fromNumber(recipe.createdOn as number),
-    //     modifiedOn: recipe.modifiedOn ? new Long(recipe.createdOn as number) : null
-    // }
-    const cleaned = convertRecipe(recipe)
-    const id = await recipeCollection(client)
-        .insertOne(cleaned)
-        // .insertOne(recipe, {forceServerObjectId: true})
-        // .map(result => result.insertedId)
+    const id = await recipeCollection(client).insertOne(removeIds(recipe))
     return await recipeById(id.insertedId?.toString())
 }

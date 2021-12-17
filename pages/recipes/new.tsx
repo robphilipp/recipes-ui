@@ -2,14 +2,14 @@ import Layout from "../../components/Layout";
 import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
 import React, {ChangeEvent, useState} from "react";
-import {Box, Button, ButtonGroup, IconButton, List, ListItem, TextField} from "@mui/material";
+import {Box, Button, ButtonGroup, List, ListItem, TextField} from "@mui/material";
 import {
     emptyIngredient,
     emptyRecipe,
     emptyStep,
     Ingredient,
     isValidRecipe,
-    Recipe,
+    Recipe, RequiredTime,
     Step,
     Yield
 } from "../../components/Recipe";
@@ -19,11 +19,15 @@ import {StepForm, StepMode} from "../../components/StepForm";
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import axios from "axios";
+import {useRouter} from "next/router";
+import {RequiredTimeForm} from "../../components/RequiredTimeForm";
+import {DisplayMode} from "../../components/FormMode";
 
 const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
 
 export default function RecipeView(): JSX.Element {
+    const router = useRouter()
 
     const [recipe, setRecipe] = useState<Recipe>(() => emptyRecipe())
     // because yield has a value and unit, and because in the recipe the value is a number
@@ -62,6 +66,13 @@ export default function RecipeView(): JSX.Element {
             setRecipe(rec => ({...rec, yield: recipeYield}))
             return
         }
+    }
+
+    function handleUpdateRequiredTime(requiredTime: RequiredTime): void {
+        setRecipe(current => ({
+            ...current,
+            requiredTime: {...requiredTime}
+        }))
     }
 
     function handleAddingIngredient(): void {
@@ -124,7 +135,7 @@ export default function RecipeView(): JSX.Element {
 
     function handleSubmitRecipe(): void {
         axios.put('/api/recipes/new', recipe)
-            .then(response => console.log("response", response))
+            .then(response => router.push(`/recipes/${response.data._id.toString()}`))
     }
 
     return (
@@ -147,13 +158,31 @@ export default function RecipeView(): JSX.Element {
                 </div>
                 <div>
                     <TextField
+                        id="recipe-story"
+                        label="Story"
+                        multiline
+                        maxRows={20}
+                        size='small'
+                        value={recipe.story}
+                        sx={{"& .MuiOutlinedInput-root": {minWidth: 500, maxWidth: 800}}}
+                        onChange={event => setRecipe(current => ({...current, story: event.target.value}))}
+                    />
+                </div>
+                <div>
+                    <TextField
                         id="recipe-yield-amount"
                         label="Yield"
                         size='small'
                         value={yieldValue ? `${yieldValue}${recipe.yield.unit}` : recipe.yield.unit}
                         onChange={handleYieldValueChange}
-                        // InputLabelProps={{shrink: true}}
                         sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
+                    />
+                </div>
+                <div>
+                    <RequiredTimeForm
+                        requiredTime={recipe.requiredTime}
+                        initialMode={DisplayMode.EDIT}
+                        onSubmit={handleUpdateRequiredTime}
                     />
                 </div>
 
@@ -227,10 +256,10 @@ export default function RecipeView(): JSX.Element {
 
                 <h2 className={utilStyles.headingMd}>Notes</h2>
                 <TextField
-                    id="recipe-step-text"
-                    label="Instruction"
+                    id="recipe-notes"
+                    label="Notes"
                     multiline
-                    maxRows={10}
+                    maxRows={20}
                     size='small'
                     value={recipe.notes}
                     sx={{"& .MuiOutlinedInput-root": {minWidth: 500, maxWidth: 800}}}
@@ -255,6 +284,7 @@ export default function RecipeView(): JSX.Element {
                     <Button
                         startIcon={<CancelIcon/>}
                         sx={{textTransform: 'none'}}
+                        onClick={() => router.back()}
                     >
                         Cancel
                     </Button>

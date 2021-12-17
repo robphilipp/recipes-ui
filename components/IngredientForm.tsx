@@ -45,12 +45,12 @@ export function IngredientForm(props: Props): JSX.Element {
 
     function handleIngredientUnitSelect(event: SelectChangeEvent): void {
         const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
-        setIngredient(ing => ({...ing, amount}))
+        setIngredient(current => ({...current, amount}))
     }
 
     function handleIngredientAmountChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
         const amount: Amount = {...ingredient.amount, value: Math.max(0, parseFloat(event.target.value))}
-        setIngredient(ing => ({...ing, amount}))
+        setIngredient(current => ({...current, amount}))
     }
 
     function canSubmit(): boolean {

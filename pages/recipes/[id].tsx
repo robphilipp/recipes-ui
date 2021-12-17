@@ -68,12 +68,15 @@ export default function RecipeView(props: Props): JSX.Element {
             <article>
                 <h1 className={utilStyles.recipeName}>{recipe.name}</h1>
                 <div className={utilStyles.recipeObjectId}>{recipe._id}</div>
-                <div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn}/></div>
+                <div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn as number}/></div>
                 {recipe.modifiedOn != null ?
-                    <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn}/></div> :
+                    <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn as number}/></div> :
                     <span/>
                 }
                 <div className={utilStyles.recipeYield}>{recipe.yield.value} {recipe.yield.unit}</div>
+                <div className={utilStyles.recipeTimes}>Total time: {recipe.requiredTime.total.value} {recipe.requiredTime.total.unit}</div>
+                <div className={utilStyles.recipeTimes}>Active time: {recipe.requiredTime.active.value} {recipe.requiredTime.active.unit}</div>
+                <div className={utilStyles.recipeStory}>{recipe.story}</div>
                 <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
                 <div>
                     <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>

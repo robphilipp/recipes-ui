@@ -1,0 +1,1 @@
+export enum DisplayMode {VIEW, EDIT}

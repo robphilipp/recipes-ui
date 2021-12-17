@@ -1,5 +1,5 @@
 import {Long, ObjectId, WithId} from "mongodb";
-import {getMilliseconds, getTime} from "date-fns/fp";
+import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 
 export type Yield = {
@@ -15,6 +15,20 @@ export enum Units {
     PIECE = 'piece'
 }
 
+export enum TimeUnits {
+    MINUTE = 'minute', HOUR = 'hour', DAY = 'day', MONTH = 'month'
+}
+
+export type Time = {
+    value: number
+    unit: TimeUnits
+}
+
+export type RequiredTime = {
+    total: Time
+    active: Time
+}
+
 export enum UnitCategories {
     MASS = 'Mass', 
     WEIGHT = 'Weight',
@@ -26,37 +40,6 @@ export type Unit = {
     value: string
     label: string
 }
-
-export type UnitCategory = {
-    category: UnitCategories
-    units: Array<Unit>
-}
-const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
-
-// export const unitsByCategory: Array<UnitCategory> = [
-//     {
-//         category: UnitCategories.MASS,
-//         units: [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]
-//     },
-//     {
-//         category: UnitCategories.WEIGHT,
-//         units: [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]
-//     },
-//     {
-//         category: UnitCategories.VOLUME,
-//         units: [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]
-//     },
-//     {
-//         category: UnitCategories.PIECE,
-//         units: [unitFrom(Units.PIECE, 'piece')]
-//     }
-// ]
-export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
-    [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
-    [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
-    [UnitCategories.VOLUME, [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]],
-    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece')]]
-])
 
 export type Amount = {
     value: number
@@ -78,7 +61,6 @@ export type Step = {
 
 export type RecipeSummary = {
     _id?: ObjectId
-    // _id?: string
     name: string
     tags: Array<string>
     createdOn: number | Long
@@ -86,20 +68,39 @@ export type RecipeSummary = {
 }
 
 export type Recipe = RecipeSummary & {
+    story: string
     yield: Yield
+    requiredTime: RequiredTime
     ingredients: Array<Ingredient>
     steps: Array<Step>
     notes: string
 }
 
+/*************************************************************************
+|                         HELPER FUNCTIONS
++**************************************************************************/
+
+const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
+
+export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
+    [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
+    [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
+    [UnitCategories.VOLUME, [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]],
+    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece')]]
+])
+
+
+/*
+ | RECIPES
+ */
 export function asRecipe(doc: WithId<Recipe>): Recipe {
-// export function asRecipe(doc: Recipe): Recipe {
     return {
         _id: doc._id,
-        // _id: doc._id.toString(),
+        story: doc.story,
         name: doc.name,
         tags: doc.tags,
         yield: doc.yield,
+        requiredTime: doc.requiredTime,
         createdOn: doc.createdOn,
         modifiedOn: doc.modifiedOn,
         ingredients: doc.ingredients,
@@ -109,10 +110,8 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
 }
 
 export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
-// export function asRecipeSummary(doc: Recipe): RecipeSummary {
     return {
         _id: doc._id,
-        // _id: doc._id.toString(),
         name: doc.name,
         tags: doc.tags,
         createdOn: doc.createdOn,
@@ -123,11 +122,13 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
 export function emptyRecipe(): Recipe {
     return {
         _id: null,
+        story: '',
         name: '',
         tags: [],
         createdOn: getTime(new Date()),
         modifiedOn: null,
         yield: {value: 0, unit: ''},
+        requiredTime: emptyRequiredTime(),
         ingredients: [],
         steps: [],
         notes: ''
@@ -194,4 +195,29 @@ export function isEmptyStep(step: Step): boolean {
 
 export function copyStep(step: Step): Step {
     return {...step}
+}
+
+/*
+ | REQUIRED TIME
+ */
+export function emptyRequiredTime(): RequiredTime {
+    return {
+        total: {value: 0, unit: TimeUnits.MINUTE},
+        active: {value: 0, unit: TimeUnits.MINUTE}
+    }
+}
+
+export function isEmptyRequiredTime(time: RequiredTime): boolean {
+    const {total, active} = time
+    return total.value === 0 && active.value === 0
+}
+
+export function copyRequiredTime(time: RequiredTime): RequiredTime {
+    const {total, active} = time
+    return {total: {...total}, active: {...active}}
+}
+
+export function timeUnitsFrom(unit: string): TimeUnits {
+    const [, key] = Object.entries(TimeUnits).find(([, value]) => value === unit)
+    return key
 }
