@@ -4,12 +4,14 @@ import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
 import React, {useEffect, useState} from "react";
-import {Chip} from "@mui/material";
+import {Button, Chip, IconButton} from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
 import {MenuBook} from "@mui/icons-material";
 import {RecipeSummary} from "../components/Recipe";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 type Props = {
     // allPostsData: Array<PostData>
@@ -28,6 +30,7 @@ export default function Home(props: Props): JSX.Element {
     const {inProgress} = useStatus()
 
     const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
+    const [confirmDelete, setConfirmDelete] = useState(false)
 
     useEffect(
         () => {
@@ -42,6 +45,44 @@ export default function Home(props: Props): JSX.Element {
         },
         [accumulated]
     )
+
+    function handleDeleteRecipe(recipeId: string): void {
+        axios
+            .delete(`/api/recipes/${recipeId}`)
+            .then(response => setRecipes(current => current.filter(recipe => recipe._id !== response.data._id)))
+    }
+
+    function renderDelete(recipeId: string): JSX.Element {
+        if (confirmDelete) {
+            return (
+                <>
+                <Button
+                    startIcon={<DeleteIcon/>}
+                    sx={{textTransform: 'none'}}
+                    onClick={() => handleDeleteRecipe(recipeId)}
+                >
+                    Confirm
+                </Button>
+                <Button
+                    startIcon={<CancelIcon/>}
+                    sx={{textTransform: 'none'}}
+                    onClick={() => setConfirmDelete(false)}
+                >
+                    Cancel
+                </Button>
+                </>
+            )
+        }
+        return (
+            <IconButton
+                onClick={() => setConfirmDelete(true)}
+                color='primary'
+                size='small'
+            >
+                <DeleteIcon sx={{width: 18, height: 18}}/>
+            </IconButton>
+        )
+    }
 
     return (
         <Layout home>
@@ -64,6 +105,7 @@ export default function Home(props: Props): JSX.Element {
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
                             ))}
+                            {renderDelete(recipe._id.toString())}
                             <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
                                 <Date epochMillis={(recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number}/>
                             </div>

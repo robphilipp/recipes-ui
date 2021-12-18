@@ -89,3 +89,21 @@ export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
     }
     return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe._id}; name: ${recipe.name}`)
 }
+
+export async function deleteRecipe(recipeId: string): Promise<Recipe> {
+    const client = await clientPromise
+    const recipe = await recipeById(recipeId)
+    if (recipe === undefined) {
+        return Promise.reject(`Unable to find recipe with ID; _id: ${recipeId}`)
+    }
+
+    const result = await recipeCollection(client)
+        .deleteOne({_id: new ObjectId(recipeId)})
+    if (!result.acknowledged) {
+        return Promise.reject(`Request to delete recipe was not acknowledged; _id: ${recipeId}; name: ${recipe.name}`)
+    }
+    if (result.deletedCount < 1) {
+        return Promise.reject(`Unable to delete recipe; _id: ${recipeId}; name: ${recipe.name}`)
+    }
+    return Promise.resolve(recipe)
+}

@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {addRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
+import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/Recipe";
 
 enum RequestMethod {
@@ -26,7 +26,10 @@ export default async function handler(
             return updateRecipe(request.body as Recipe)
                 .then(recipe => response.status(200).json(recipe))
 
+        // returns the deleted recipe
         case RequestMethod.DELETE:
+            return deleteRecipe(request.query.id as string)
+                .then(recipe => response.status(200).json(recipe))
 
         default:
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
