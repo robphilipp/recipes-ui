@@ -30,7 +30,7 @@ export default function Home(props: Props): JSX.Element {
     const {inProgress} = useStatus()
 
     const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
-    const [confirmDelete, setConfirmDelete] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
 
     useEffect(
         () => {
@@ -49,14 +49,18 @@ export default function Home(props: Props): JSX.Element {
     function handleDeleteRecipe(recipeId: string): void {
         axios
             .delete(`/api/recipes/${recipeId}`)
-            .then(response => setRecipes(current => current.filter(recipe => recipe._id !== response.data._id)))
+            .then(response => {
+                setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
+                setConfirmDelete([])
+            })
     }
 
     function renderDelete(recipeId: string): JSX.Element {
-        if (confirmDelete) {
+        if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
                 <>
                 <Button
+                    key={`${recipeId}-confirm`}
                     startIcon={<DeleteIcon/>}
                     sx={{textTransform: 'none'}}
                     onClick={() => handleDeleteRecipe(recipeId)}
@@ -64,9 +68,10 @@ export default function Home(props: Props): JSX.Element {
                     Confirm
                 </Button>
                 <Button
+                    key={`${recipeId}-cancel`}
                     startIcon={<CancelIcon/>}
                     sx={{textTransform: 'none'}}
-                    onClick={() => setConfirmDelete(false)}
+                    onClick={() => setConfirmDelete(current => current.filter(id => id !== recipeId))}
                 >
                     Cancel
                 </Button>
@@ -75,7 +80,8 @@ export default function Home(props: Props): JSX.Element {
         }
         return (
             <IconButton
-                onClick={() => setConfirmDelete(true)}
+                key={`${recipeId}-delete`}
+                onClick={() => setConfirmDelete(current => [...current, recipeId])}
                 color='primary'
                 size='small'
             >
