@@ -19,7 +19,6 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import {StepForm, StepMode} from "./StepForm";
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import axios from "axios";
 import {useRouter} from "next/router";
 import {RequiredTimeForm} from "./RequiredTimeForm";
 import {DisplayMode} from "./FormMode";
@@ -36,6 +35,8 @@ type Props = {
 }
 
 export function RecipeEditor(props: Props): JSX.Element {
+    const {onSubmit} = props
+
     const router = useRouter()
 
     const editMode = props.recipe ? EditMode.UPDATE : EditMode.ADD
@@ -54,7 +55,9 @@ export function RecipeEditor(props: Props): JSX.Element {
             // todo this works well when the recipe is initially empty, however, when the
             //      recipes has been modified in this editor, and the recipe changes outside,
             //      then the local modifications will be lost.
-            setRecipe(props.recipe)
+            if (props.recipe !== undefined) {
+                setRecipe(props.recipe)
+            }
         },
         [props.recipe]
     )
@@ -164,13 +167,7 @@ export function RecipeEditor(props: Props): JSX.Element {
     }
 
     function handleSubmitRecipe(): void {
-        if (editMode === EditMode.ADD) {
-            axios.put('/api/recipes/new', recipe)
-                .then(response => router.push(`/recipes/${response.data._id.toString()}`))
-        } else {
-            axios.post(`/api/recipes/${recipe._id.toString()}`, recipe)
-                .then(response => router.push(`/recipes/${response.data._id.toString()}`))
-        }
+        onSubmit(recipe)
     }
 
     return (
