@@ -81,9 +81,9 @@ export default function RecipeView(props: Props): JSX.Element {
                     </IconButton>
                 </h1>
                 <div className={utilStyles.recipeObjectId}>{recipe._id}</div>
-                <div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn as number}/></div>
+                <div className={utilStyles.recipeDate}>Created: <Date epochMillis={recipe.createdOn as number}/></div>
                 {recipe.modifiedOn != null ?
-                    <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn as number}/></div> :
+                    <div className={utilStyles.lightText}>Modified: <Date epochMillis={recipe.modifiedOn as number}/></div> :
                     <span/>
                 }
                 {recipe.tags.map(tag => (

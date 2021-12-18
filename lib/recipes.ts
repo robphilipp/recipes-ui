@@ -60,12 +60,10 @@ function removeRecipeId(recipe: Recipe): Recipe {
         yield: recipe.yield,
         requiredTime: recipe.requiredTime,
         createdOn: Long.fromNumber(recipe.createdOn as number),
-        modifiedOn: recipe.modifiedOn ? new Long(recipe.createdOn as number) : null,
+        modifiedOn: recipe.modifiedOn !== null ? Long.fromNumber(recipe.modifiedOn as number) : null,
         tags: recipe.tags,
         ingredients: recipe.ingredients,
         steps: recipe.steps,
-        // ingredients: recipe.ingredients.map(i => ({name: i.name, brand: i.brand, amount: i.amount} as Ingredient)),
-        // steps: recipe.steps.map(s => ({title: s.title, text: s.text})),
         notes: recipe.notes
     }
 }
@@ -78,9 +76,8 @@ export async function addRecipe(recipe: Recipe): Promise<Recipe> {
 
 export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
     const client = await clientPromise
-    const result = await recipeCollection(client).replaceOne({_id: new ObjectId(recipe._id)}, removeRecipeId(recipe))
-    // const result = await recipeCollection(client).replaceOne({_id: new ObjectId(recipe._id)}, recipe)
-    // const result = await recipeCollection(client).updateOne({_id: new ObjectId(recipe._id)}, recipe)
+    const result = await recipeCollection(client)
+        .replaceOne({_id: new ObjectId(recipe._id)}, removeRecipeId(recipe))
     if (result.acknowledged) {
         if (result.matchedCount !== 1) {
             return Promise.reject(`No recipe found for ID; _id: ${recipe._id}; name: ${recipe.name}`)

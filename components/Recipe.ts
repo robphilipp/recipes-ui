@@ -140,6 +140,13 @@ export function isValidRecipe(recipe: Recipe): boolean {
         recipe.ingredients.length > 0 && recipe.steps.length > 0
 }
 
+export function updateModifiedTimestamp(recipe: Recipe): Recipe {
+    return {
+        ...recipe,
+        modifiedOn: getTime(new Date())
+    }
+}
+
 /*
  | INGREDIENTS
  */

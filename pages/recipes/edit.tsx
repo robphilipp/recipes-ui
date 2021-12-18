@@ -2,12 +2,12 @@ import React, {useEffect, useState} from 'react'
 import {RecipeEditor} from "../../components/RecipeEditor";
 import axios from "axios";
 import {useRouter} from "next/router";
-import {emptyRecipe, Recipe} from "../../components/Recipe";
+import {emptyRecipe, Recipe, updateModifiedTimestamp} from "../../components/Recipe";
+import {getTime} from "date-fns/fp";
 
 export default function UpdateRecipe() {
     const router = useRouter()
     const objectId = router.query.id as string
-    console.log("object_id", objectId)
 
     const [recipe, setRecipe] = useState<Recipe>(() => emptyRecipe())
 
@@ -19,7 +19,8 @@ export default function UpdateRecipe() {
     )
 
     function handleSubmitRecipe(recipe: Recipe): void {
-        axios.post(`/api/recipes/${recipe._id.toString()}`, recipe)
+        axios
+            .post(`/api/recipes/${recipe._id.toString()}`, updateModifiedTimestamp(recipe))
             .then(response => router.push(`/recipes/${response.data._id.toString()}`))
     }
 
