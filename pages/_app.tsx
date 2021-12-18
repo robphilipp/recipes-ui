@@ -44,21 +44,27 @@ export default function App(props: AppProps) {
                         elevation={0}
                     >
                         <Toolbar>
-                            <Link href={"/"}><a style={{marginTop: 7}}><Image
-                                priority
-                                src="/images/2020.jpg"
-                                className={utilStyles.borderCircle}
-                                height={50}
-                                width={50}
-                                alt="Shitty Year"
-                            /></a></Link>
+                            <Link href={"/"}>
+                                <a style={{marginTop: 7}}>
+                                    <Image
+                                        priority
+                                        src="/images/2020.jpg"
+                                        className={utilStyles.borderCircle}
+                                        height={50}
+                                        width={50}
+                                        alt="Shitty Year"
+                                    />
+                                </a>
+                            </Link>
                             <Typography
                                 variant="h6"
                                 noWrap
                                 component="div"
                                 style={{paddingLeft: 10}}
                                 sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-                            >{process.env.bookTitle}</Typography>
+                            >
+                                {process.env.bookTitle}
+                            </Typography>
                             <RecipeSearch/>
                         </Toolbar>
                         <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>

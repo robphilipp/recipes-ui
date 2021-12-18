@@ -40,6 +40,7 @@ export function TagsForm(props: Props): JSX.Element {
         return <>
             {tags.map(tag => (
                 <Chip
+                    key={tag}
                     label={tag}
                     variant='outlined'
                     size='small'
@@ -63,6 +64,7 @@ export function TagsForm(props: Props): JSX.Element {
             </IconButton>
             {tags.map(tag => (
                 <Chip
+                    key={tag}
                     label={tag}
                     variant='outlined'
                     size='small'
