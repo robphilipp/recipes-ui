@@ -48,10 +48,12 @@ export function RecipeEditor(props: Props): JSX.Element {
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
-    const [editing, setEditing] = useState<boolean>(false)
 
     useEffect(
         () => {
+            // todo this works well when the recipe is initially empty, however, when the
+            //      recipes has been modified in this editor, and the recipe changes outside,
+            //      then the local modifications will be lost.
             setRecipe(props.recipe)
         },
         [props.recipe]
@@ -247,10 +249,10 @@ export function RecipeEditor(props: Props): JSX.Element {
                         onCancel={handleCancelIngredient}
                     /> :
                     <span/>}
-                {!addingIngredient && !editing ?
+                {!addingIngredient ?
                     <Button
                         onClick={handleAddingIngredient}
-                        disabled={addingIngredient || editing}
+                        disabled={addingIngredient}
                         startIcon={<AddCircleIcon/>}
                         variant='outlined'
                         size='small'
@@ -281,10 +283,10 @@ export function RecipeEditor(props: Props): JSX.Element {
                         onCancel={handleCancelStep}
                     /> :
                     <span/>}
-                {!addingStep && !editing ?
+                {!addingStep ?
                     <Button
                         onClick={handleAddingStep}
-                        disabled={addingStep || editing}
+                        disabled={addingStep}
                         startIcon={<AddCircleIcon/>}
                         variant='outlined'
                         size='small'
