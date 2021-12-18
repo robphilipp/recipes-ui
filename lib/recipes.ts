@@ -1,10 +1,15 @@
 import clientPromise from "./mongodb";
 import {Collection, Long, MongoClient, ObjectId} from "mongodb";
-import {asRecipe, asRecipeSummary, Ingredient, Recipe, RecipeSummary} from "../components/Recipe";
+import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/Recipe";
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
 const recipeCollection = (client: MongoClient): Collection<Recipe> => client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
+
+export async function recipeCount(): Promise<number> {
+    const client = await clientPromise
+    return await recipeCollection(client).countDocuments()
+}
 
 export async function allRecipes(): Promise<Array<Recipe>> {
     const client = await clientPromise

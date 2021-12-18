@@ -60,6 +60,12 @@
     font-size: 0.6rem;
 }
 
+.recipeCount {
+    color: #bbbaba;
+    font-size: 0.6rem;
+    margin-bottom: 15px;
+}
+
 .lightText {
     color: #666;
     font-size: 0.6rem;

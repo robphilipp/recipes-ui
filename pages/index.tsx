@@ -29,8 +29,16 @@ export default function Home(props: Props): JSX.Element {
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
+    const [recipeCount, setRecipeCount] = useState<number>(0)
     const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
+
+    useEffect(
+        () => {
+            axios.get('/api/recipes/count').then(response => setRecipeCount(response.data))
+        },
+        []
+    )
 
     useEffect(
         () => {
@@ -59,22 +67,22 @@ export default function Home(props: Props): JSX.Element {
         if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
                 <>
-                <Button
-                    key={`${recipeId}-confirm`}
-                    startIcon={<DeleteIcon/>}
-                    sx={{textTransform: 'none'}}
-                    onClick={() => handleDeleteRecipe(recipeId)}
-                >
-                    Confirm
-                </Button>
-                <Button
-                    key={`${recipeId}-cancel`}
-                    startIcon={<CancelIcon/>}
-                    sx={{textTransform: 'none'}}
-                    onClick={() => setConfirmDelete(current => current.filter(id => id !== recipeId))}
-                >
-                    Cancel
-                </Button>
+                    <Button
+                        key={`${recipeId}-confirm`}
+                        startIcon={<DeleteIcon/>}
+                        sx={{textTransform: 'none'}}
+                        onClick={() => handleDeleteRecipe(recipeId)}
+                    >
+                        Confirm
+                    </Button>
+                    <Button
+                        key={`${recipeId}-cancel`}
+                        startIcon={<CancelIcon/>}
+                        sx={{textTransform: 'none'}}
+                        onClick={() => setConfirmDelete(current => current.filter(id => id !== recipeId))}
+                    >
+                        Cancel
+                    </Button>
                 </>
             )
         }
@@ -96,16 +104,19 @@ export default function Home(props: Props): JSX.Element {
                 <title>{process.env.siteName}</title>
             </Head>
             <section className={`${utilStyles.headingMd} ${utilStyles.recipePadding}`}>
-                <div style={{marginBottom: 15}}>
-                {accumulated.map(search => (
-                    <Chip key={search} label={search} size='small' style={{marginRight: 7}} onDelete={() => deleteAccumulated(search)}/>
-                ))}
+                <div>
+                    {accumulated.map(search => (
+                        <Chip key={search} label={search} size='small' style={{marginRight: 7}}
+                              onDelete={() => deleteAccumulated(search)}/>
+                    ))}
                 </div>
+                <div className={utilStyles.recipeCount}>Showing {recipes.length} of {recipeCount} recipes</div>
                 <ul className={utilStyles.list}>
                     {recipes.map(recipe => (
                         <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
                             <Link href={`/recipes/${recipe._id}`}><a>{recipe.name}</a></Link>
-                            {inProgress(recipe._id.toString()) ? <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
+                            {inProgress(recipe._id.toString()) ?
+                                <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
                             {recipe.tags.map(tag => (
                                 <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
@@ -113,7 +124,8 @@ export default function Home(props: Props): JSX.Element {
                             ))}
                             {renderDelete(recipe._id.toString())}
                             <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
-                                <Date epochMillis={(recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number}/>
+                                <Date
+                                    epochMillis={(recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number}/>
                             </div>
                         </li>
                     ))}
