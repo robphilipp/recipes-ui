@@ -64,7 +64,7 @@ export function StepForm(props: Props): JSX.Element {
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 <IconButton
-                    onClick={() => onDelete(step._id)}
+                    onClick={() => onDelete(step.id)}
                     color='primary'
                     size='small'
                 >

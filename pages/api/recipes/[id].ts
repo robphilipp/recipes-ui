@@ -1,18 +1,34 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {addRecipe, recipeById} from "../../../lib/recipes";
+import {addRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/Recipe";
+
+enum RequestMethod {
+    GET = 'GET',
+    PUT = 'PUT',
+    POST = 'POST',
+    DELETE = 'DELETE'
+}
 
 export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<Recipe>
 ): Promise<void> {
-    console.log("request", request)
-    if (request.method === "GET") {
-        return recipeById(request.query.id as string)
-            .then(summaries => response.status(200).json(summaries))
-    }
-    if (request.method === "PUT") {
-        return addRecipe(request.body as Recipe)
-            .then(recipe => response.status(200).json(recipe))
+    switch (request.method) {
+        case RequestMethod.GET:
+            return recipeById(request.query.id as string)
+                .then(summaries => response.status(200).json(summaries))
+
+        case RequestMethod.PUT:
+            return addRecipe(request.body as Recipe)
+                .then(recipe => response.status(200).json(recipe))
+
+        case RequestMethod.POST:
+            return updateRecipe(request.body as Recipe)
+                .then(recipe => response.status(200).json(recipe))
+
+        case RequestMethod.DELETE:
+
+        default:
+            return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
     }
 }

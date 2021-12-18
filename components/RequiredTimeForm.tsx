@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {isEmptyRequiredTime, RequiredTime, Time, TimeUnits, timeUnitsFrom} from "./Recipe";
 import {IconButton, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
@@ -25,6 +25,12 @@ export function RequiredTimeForm(props: Props): JSX.Element {
     const [requiredTime, setRequiredTime] = useState<RequiredTime>(() => props.requiredTime)
     const [mode, setMode] = useState<DisplayMode>(initialMode)
 
+    useEffect(
+        () => {
+            setRequiredTime(props.requiredTime)
+        },
+        [props.requiredTime]
+    )
 
     function handleTotalUnitSelect(event: SelectChangeEvent): void {
         setRequiredTime(current => ({

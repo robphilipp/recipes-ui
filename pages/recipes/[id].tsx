@@ -3,11 +3,13 @@ import Head from "next/head";
 import utilStyles from "../../styles/utils.module.css";
 import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
-import {useEffect, useState} from "react";
-import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
+import React, {useEffect, useState} from "react";
+import {Checkbox, Chip, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
 import {Ingredient, ingredientAsText, Recipe, Step} from "../../components/Recipe";
+import ModeEditIcon from "@mui/icons-material/ModeEdit";
+import {useRouter} from "next/router";
 
 type Props = {
     recipeId: string
@@ -15,6 +17,8 @@ type Props = {
 
 export default function RecipeView(props: Props): JSX.Element {
     const {recipeId} = props
+
+    const router = useRouter()
 
     const {
         isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
@@ -66,13 +70,27 @@ export default function RecipeView(props: Props): JSX.Element {
         <Layout>
             <Head><title>{recipe.name}</title></Head>
             <article>
-                <h1 className={utilStyles.recipeName}>{recipe.name}</h1>
+                <h1 className={utilStyles.recipeName}>
+                    {recipe.name}
+                    <IconButton
+                        onClick={() => router.push(`/recipes/edit?id=${recipe._id.toString()}`)}
+                        color='primary'
+                        size='small'
+                    >
+                        <ModeEditIcon sx={{width: 18, height: 18}}/>
+                    </IconButton>
+                </h1>
                 <div className={utilStyles.recipeObjectId}>{recipe._id}</div>
                 <div className={utilStyles.recipeDate}>Created On: <Date epochMillis={recipe.createdOn as number}/></div>
                 {recipe.modifiedOn != null ?
                     <div className={utilStyles.lightText}>Modified On: <Date epochMillis={recipe.modifiedOn as number}/></div> :
                     <span/>
                 }
+                {recipe.tags.map(tag => (
+                    <span style={{paddingRight: 7}} key={`${recipe.name}-tag-${tag}`}>
+                                    <Chip label={tag} variant='filled' size='small'/>
+                                </span>
+                ))}
                 <div className={utilStyles.recipeYield}>{recipe.yield.value} {recipe.yield.unit}</div>
                 <div className={utilStyles.recipeTimes}>Total time: {recipe.requiredTime.total.value} {recipe.requiredTime.total.unit}</div>
                 <div className={utilStyles.recipeTimes}>Active time: {recipe.requiredTime.active.value} {recipe.requiredTime.active.unit}</div>

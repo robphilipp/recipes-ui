@@ -53,7 +53,7 @@ export async function allRecipePaths(): Promise<Array<string>> {
         .then(recipes => recipes.map(recipe => recipe._id.toString()))
 }
 
-function removeIds(recipe: Recipe): Recipe {
+function removeRecipeId(recipe: Recipe): Recipe {
     return {
         story: recipe.story,
         name: recipe.name,
@@ -62,14 +62,33 @@ function removeIds(recipe: Recipe): Recipe {
         createdOn: Long.fromNumber(recipe.createdOn as number),
         modifiedOn: recipe.modifiedOn ? new Long(recipe.createdOn as number) : null,
         tags: recipe.tags,
-        ingredients: recipe.ingredients.map(i => ({name: i.name, brand: i.brand, amount: i.amount} as Ingredient)),
-        steps: recipe.steps.map(s => ({title: s.title, text: s.text})),
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+        // ingredients: recipe.ingredients.map(i => ({name: i.name, brand: i.brand, amount: i.amount} as Ingredient)),
+        // steps: recipe.steps.map(s => ({title: s.title, text: s.text})),
         notes: recipe.notes
     }
 }
 
 export async function addRecipe(recipe: Recipe): Promise<Recipe> {
     const client = await clientPromise
-    const id = await recipeCollection(client).insertOne(removeIds(recipe))
-    return await recipeById(id.insertedId?.toString())
+    const result = await recipeCollection(client).insertOne(removeRecipeId(recipe))
+    return await recipeById(result.insertedId?.toString())
+}
+
+export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
+    const client = await clientPromise
+    const result = await recipeCollection(client).replaceOne({_id: new ObjectId(recipe._id)}, removeRecipeId(recipe))
+    // const result = await recipeCollection(client).replaceOne({_id: new ObjectId(recipe._id)}, recipe)
+    // const result = await recipeCollection(client).updateOne({_id: new ObjectId(recipe._id)}, recipe)
+    if (result.acknowledged) {
+        if (result.matchedCount !== 1) {
+            return Promise.reject(`No recipe found for ID; _id: ${recipe._id}; name: ${recipe.name}`)
+        }
+        if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
+            return Promise.reject(`Failed to update recipe; _id: ${recipe._id}; name: ${recipe.name}`)
+        }
+        return await recipeById(recipe._id.toString())
+    }
+    return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe._id}; name: ${recipe.name}`)
 }

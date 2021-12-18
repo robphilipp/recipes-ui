@@ -47,14 +47,14 @@ export type Amount = {
 }
 
 export type Ingredient = {
-    _id?: string
+    id: string
     name: string
     brand: string | null
     amount: Amount
 }
 
 export type Step = {
-    _id?: string
+    id: string
     title: string | null
     text: string
 }
@@ -145,7 +145,7 @@ export function isValidRecipe(recipe: Recipe): boolean {
  */
 export function emptyIngredient(): Ingredient {
     return {
-        _id: `(new)${(new UUID()).toString('hex')}`,
+        id: (new UUID()).toString('hex'),
         amount: {value: NaN, unit: Units.PIECE},
         name: '',
         brand: null
@@ -159,7 +159,7 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
 
 export function copyIngredient(ingredient: Ingredient): Ingredient {
     return {
-        _id: ingredient._id,
+        id: ingredient.id,
         amount: {...ingredient.amount},
         name: ingredient.name,
         brand: ingredient.brand
@@ -183,7 +183,7 @@ export function ingredientAsText(ingredient: Ingredient): string {
  */
 export function emptyStep(): Step {
     return {
-        _id: `(new)${(new UUID()).toString('hex')}`,
+        id: (new UUID()).toString('hex'),
         title: null,
         text: ''
     }

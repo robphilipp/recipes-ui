@@ -85,7 +85,7 @@ export function IngredientForm(props: Props): JSX.Element {
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
                 <IconButton
-                    onClick={() => onDelete(ingredient._id)}
+                    onClick={() => onDelete(ingredient.id)}
                     color='primary'
                     size='small'
                 >
