@@ -1,7 +1,17 @@
 import '../styles/global.css'
 import {AppProps} from 'next/app'
 import Link from 'next/link'
-import {AppBar, BottomNavigation, BottomNavigationAction, Box, Paper, Toolbar, Typography} from "@mui/material";
+import {
+    AppBar,
+    BottomNavigation,
+    BottomNavigationAction,
+    Box,
+    Drawer, List, ListItem, Menu,
+    MenuItem,
+    Paper,
+    Toolbar,
+    Typography
+} from "@mui/material";
 import Image from "next/image";
 import utilStyles from "../styles/utils.module.css";
 import React, {useState} from "react";
@@ -12,6 +22,10 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SearchProvider from "../lib/useSearch";
 import RecipeSearch from "../components/RecipeSearch";
 import StatusProvider from "../lib/useStatus";
+import {ThemeProvider} from '@mui/material/styles';
+import {lightTheme} from "../theme/theme";
+import Grid from "@mui/material/Grid";
+import {position} from "unist-util-position";
 
 enum Navigation {HOME, ADD_RECIPE}
 
@@ -35,55 +49,129 @@ export default function App(props: AppProps) {
     }
 
     return (
-        <SearchProvider>
-            <StatusProvider>
-                <Box sx={{flexGrow: 1}}>
-                    <AppBar
-                        color="default"
-                        position="fixed"
-                        elevation={0}
-                    >
-                        <Toolbar>
-                            <Link href={"/"}>
-                                <a style={{marginTop: 7}}>
-                                    <Image
-                                        priority
-                                        src="/images/2020.jpg"
-                                        className={utilStyles.borderCircle}
-                                        height={50}
-                                        width={50}
-                                        alt="Shitty Year"
-                                    />
-                                </a>
-                            </Link>
-                            <Typography
-                                variant="h6"
-                                noWrap
-                                component="div"
-                                style={{paddingLeft: 10}}
-                                sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-                            >
-                                {process.env.bookTitle}
-                            </Typography>
-                            <RecipeSearch/>
-                        </Toolbar>
-                        <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
-                            <BottomNavigation
-                                showLabels
-                                value={navItem}
-                                onChange={(event, newValue) => handleBottomNav(event, newValue)}
-                            >
-                                <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-                                <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
-                                <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
-                            </BottomNavigation>
-                        </Paper>
-                    </AppBar>
-                </Box>
-                <Component {...pageProps} />
-            </StatusProvider>
-        </SearchProvider>
+        <ThemeProvider theme={lightTheme}>
+            <SearchProvider>
+                <StatusProvider>
+                    <Box sx={{flexGrow: 1}}>
+                        <Grid container spacing={{xs: 2, md: 3}} columns={{xs: 4, sm: 8, md: 12}}>
+                            <Grid item xs={4} sm={8} md={12} sx={{height: 65}}>
+                                <AppBar
+                                    color="primary"
+                                    position="fixed"
+                                    elevation={1}
+                                    sx={{height: 65}}
+                                >
+                                    <Toolbar>
+                                        <Link href={"/"}>
+                                            <a style={{marginTop: 7}}>
+                                                <Image
+                                                    priority
+                                                    src="/images/2020.jpg"
+                                                    className={utilStyles.borderCircle}
+                                                    height={50}
+                                                    width={50}
+                                                    alt="Shitty Year"
+                                                />
+                                            </a>
+                                        </Link>
+                                        <Typography
+                                            variant="h6"
+                                            noWrap
+                                            component="div"
+                                            color="default"
+                                            style={{paddingLeft: 10}}
+                                            sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
+                                        >
+                                            {process.env.bookTitle}
+                                        </Typography>
+                                        <RecipeSearch/>
+                                    </Toolbar>
+                                </AppBar>
+                            </Grid>
+                            <Grid item xs={4} sm={8} md={2}>
+                                {/*<Toolbar>*/}
+                                {/*    <List>*/}
+                                {/*        <MenuItem>Test</MenuItem>*/}
+                                {/*        <MenuItem>Test</MenuItem>*/}
+                                {/*        <MenuItem>Test</MenuItem>*/}
+                                {/*    </List>*/}
+                                {/*</Toolbar>*/}
+                            </Grid>
+                            <Grid item xs={4} sm={8} md={10}>
+                                <Component {...pageProps} />
+                            </Grid>
+                            <Grid item xs={4} sm={8} md={12}>
+                                <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
+                                    <BottomNavigation
+                                        showLabels
+                                        value={navItem}
+                                        onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                                    >
+                                        <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+                                        <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
+                                        <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                                    </BottomNavigation>
+                                </Paper>
+                            </Grid>
+                        </Grid>
+                    </Box>
+                </StatusProvider>
+            </SearchProvider>
+        </ThemeProvider>
     )
+    // return (
+    //     <ThemeProvider theme={lightTheme}>
+    //         <SearchProvider>
+    //             <StatusProvider>
+    //                 <Box sx={{flexGrow: 1}}>
+    //                     <AppBar
+    //                         color="primary"
+    //                         position="fixed"
+    //                         elevation={0}
+    //                     >
+    //                         <Toolbar>
+    //                             <Link href={"/"}>
+    //                                 <a style={{marginTop: 7}}>
+    //                                     <Image
+    //                                         priority
+    //                                         src="/images/2020.jpg"
+    //                                         className={utilStyles.borderCircle}
+    //                                         height={50}
+    //                                         width={50}
+    //                                         alt="Shitty Year"
+    //                                     />
+    //                                 </a>
+    //                             </Link>
+    //                             <Typography
+    //                                 variant="h6"
+    //                                 noWrap
+    //                                 component="div"
+    //                                 color="default"
+    //                                 style={{paddingLeft: 10}}
+    //                                 sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
+    //                             >
+    //                                 {process.env.bookTitle}
+    //                             </Typography>
+    //                             <RecipeSearch/>
+    //                         </Toolbar>
+    //                         <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
+    //                             <BottomNavigation
+    //                                 showLabels
+    //                                 value={navItem}
+    //                                 onChange={(event, newValue) => handleBottomNav(event, newValue)}
+    //                             >
+    //                                 <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+    //                                 <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
+    //                                 <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+    //                             </BottomNavigation>
+    //                         </Paper>
+    //                     </AppBar>
+    //                 </Box>
+    //                 <Component {...pageProps} />
+    //             </StatusProvider>
+    //         </SearchProvider>
+    //     </ThemeProvider>
+    // )
 }
 
 // App.getInitialProps = async (appContext: AppContext) => {
