@@ -1,6 +1,7 @@
 import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
+import {valueWithUnits} from "../lib/utils";
 
 export type Yield = {
     value: number
@@ -147,6 +148,17 @@ export function updateModifiedTimestamp(recipe: Recipe): Recipe {
     }
 }
 
+export function emptyYield(): Yield {
+    return {
+        value: NaN,
+        unit: ''
+    }
+}
+
+export function isEmptyYield(yielded: Yield): boolean {
+    return isNaN(yielded.value) && yielded.unit === ''
+}
+
 /*
  | INGREDIENTS
  */
@@ -180,9 +192,9 @@ export function unitsFrom(unit: string): Units {
 
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
-        return `${ingredient.amount.value} ${ingredient.name}`
+        return `${valueWithUnits(ingredient.amount.value, ingredient.name)}`
     }
-    return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
+    return `${valueWithUnits(ingredient.amount.value, ingredient.amount.unit)} ${ingredient.name}`
 }
 
 /*

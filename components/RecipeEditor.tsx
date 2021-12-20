@@ -2,12 +2,12 @@ import Layout from "./Layout";
 import Head from "next/head";
 import utilStyles from "../styles/utils.module.css";
 import React, {ChangeEvent, useEffect, useState} from "react";
-import {Box, Button, ButtonGroup, List, ListItem, TextField} from "@mui/material";
+import {Box, Button, ButtonGroup, List, ListItem, TextField, Typography} from "@mui/material";
 import {
     emptyIngredient,
     emptyRecipe,
-    emptyStep,
-    Ingredient,
+    emptyStep, emptyYield,
+    Ingredient, isEmptyYield,
     isValidRecipe,
     Recipe,
     RequiredTime,
@@ -24,8 +24,9 @@ import {RequiredTimeForm} from "./RequiredTimeForm";
 import {DisplayMode} from "./FormMode";
 import {TagsForm} from "./TagsForm";
 
-const YIELD_REGEX: RegExp = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
-const YIELD_UNIT_REGEX: RegExp = /([a-zA-Z \t]*)$/
+const YIELD_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
+const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
+const YIELD_MISSING_SPACE_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 
 enum EditMode {ADD, UPDATE }
 
@@ -45,7 +46,9 @@ export function RecipeEditor(props: Props): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    const [yieldValue, setYieldValue] = useState<string>()
+    // const [yieldValue, setYieldValue] = useState<string>(() => `${props.recipe.yield.value} ${props.recipe.yield.unit}`)
+    const [yieldValue, setYieldValue] = useState<string>(() => `${props.recipe.yield.value}`)
+    // const [yieldValue, setYieldValue] = useState<string>()
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
@@ -57,6 +60,7 @@ export function RecipeEditor(props: Props): JSX.Element {
             //      then the local modifications will be lost.
             if (props.recipe !== undefined) {
                 setRecipe(props.recipe)
+                setYieldValue(`${props.recipe.yield.value}`)
             }
         },
         [props.recipe]
@@ -77,6 +81,12 @@ export function RecipeEditor(props: Props): JSX.Element {
     }
 
     function handleYieldValueChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
+        // const yielded = parseYield(event.target.value)
+        // if (!isEmptyYield(yielded)) {
+        //     setYieldValue(`${isNaN(yielded.value) ? '' : yielded.value}`)
+        //     setRecipe(rec => ({...rec, yield: yielded}))
+        // }
+
         const fullMatch = event.target.value.match(YIELD_REGEX)
         if (fullMatch) {
             fullMatch.shift()
@@ -84,7 +94,7 @@ export function RecipeEditor(props: Props): JSX.Element {
             const unit = fullMatch.shift() || ''
             setYieldValue(value)
             // update the recipe
-            const recipeYield: Yield = {value: parseFloat(value), unit}
+            const recipeYield: Yield = {value: parseFloat(value), unit: unit.trim()}
             setRecipe(rec => ({...rec, yield: recipeYield}))
             return
         }
@@ -100,6 +110,30 @@ export function RecipeEditor(props: Props): JSX.Element {
             return
         }
     }
+
+    // function parseYield(yieldExpression: string): Yield {
+    //     const yielded = emptyYield()
+    //     const fullMatch = yieldExpression.match(YIELD_REGEX)
+    //     if (fullMatch) {
+    //         fullMatch.shift()
+    //         return {
+    //             ...yielded,
+    //             value: parseFloat(fullMatch.shift()),
+    //             unit: fullMatch.shift().trim() || ''
+    //         }
+    //     }
+    //
+    //     const unitMatch = yieldExpression.match(YIELD_UNIT_REGEX)
+    //     if (unitMatch) {
+    //         unitMatch.shift()
+    //         return {
+    //             ...yielded,
+    //             value: NaN,
+    //             unit: unitMatch.shift().trim() || ''
+    //         }
+    //     }
+    //     return yielded
+    // }
 
     function handleUpdateRequiredTime(requiredTime: RequiredTime): void {
         setRecipe(current => ({
@@ -204,7 +238,16 @@ export function RecipeEditor(props: Props): JSX.Element {
                         maxRows={20}
                         size='small'
                         value={recipe.story}
-                        sx={{"& .MuiOutlinedInput-root": {minWidth: 500, maxWidth: 800}}}
+                        sx={{
+                            "& .MuiOutlinedInput-root": {
+                                minWidth: {
+                                    xs: 450,
+                                    sm: 380,
+                                    md: 600,
+                                },
+                                maxWidth: 800
+                            }
+                        }}
                         onChange={event => setRecipe(current => ({...current, story: event.target.value}))}
                     />
                 </div>
@@ -213,7 +256,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                         id="recipe-yield-amount"
                         label="Yield"
                         size='small'
-                        value={yieldValue ? `${yieldValue}${recipe.yield.unit}` : recipe.yield.unit}
+                        value={yieldValue ? `${yieldValue} ${recipe.yield.unit}` : recipe.yield.unit}
                         onChange={handleYieldValueChange}
                         sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
                     />
@@ -226,7 +269,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                     />
                 </div>
 
-                <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
                 <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
                     {recipe.ingredients.map(ingredient => (
                         <ListItem key={ingredient.name} disablePadding>
@@ -260,7 +303,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                     <span/>
                 }
 
-                <h2 className={utilStyles.headingMd}>Steps</h2>
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
                 <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
                     {recipe.steps.map(step => (
                         <ListItem key={step.text} disablePadding>
@@ -294,7 +337,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                     <span/>
                 }
 
-                <h2 className={utilStyles.headingMd}>Notes</h2>
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Notes</Typography>
                 <TextField
                     id="recipe-notes"
                     label="Notes"
@@ -302,7 +345,16 @@ export function RecipeEditor(props: Props): JSX.Element {
                     maxRows={20}
                     size='small'
                     value={recipe.notes}
-                    sx={{"& .MuiOutlinedInput-root": {minWidth: 500, maxWidth: 800}}}
+                    sx={{
+                        "& .MuiOutlinedInput-root": {
+                            minWidth: {
+                                xs: 450,
+                                sm: 380,
+                                md: 600,
+                            },
+                            maxWidth: 800
+                        }
+                    }}
                     onChange={event => setRecipe(current => ({...current, notes: event.target.value}))}
                 />
                 <ButtonGroup sx={{marginTop: 5}}>

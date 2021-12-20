@@ -1,6 +1,4 @@
-import Layout from "../../components/Layout";
 import Head from "next/head";
-import utilStyles from "../../styles/utils.module.css";
 import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
 import React, {useEffect, useState} from "react";
@@ -13,7 +11,8 @@ import {
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Typography, useTheme
+    Typography,
+    useTheme
 } from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
@@ -22,6 +21,7 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import {valueWithUnits} from "../../lib/utils";
 
 type Props = {
     recipeId: string
@@ -68,13 +68,6 @@ export default function RecipeView(props: Props): JSX.Element {
         }
     }
 
-    // function formatIngredient(ingredient: Ingredient): string {
-    //     if (ingredient.amount.unit.toString() === 'piece') {
-    //         return `${ingredient.amount.value} ${ingredient.name}`
-    //     }
-    //     return `${ingredient.amount.value} ${ingredient.amount.unit} ${ingredient.name}`
-    // }
-
     if (recipe === undefined) {
         return <div>Loading...</div>
     }
@@ -112,14 +105,14 @@ export default function RecipeView(props: Props): JSX.Element {
                 ))}
 
                 <Typography sx={{marginTop: 1.75}}>
-                    Yield: {recipe.yield.value} {recipe.yield.unit}
+                    Yield: {valueWithUnits(recipe.yield.value, recipe.yield.unit)}
                 </Typography>
 
                 <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                     <AccessTimeIcon sx={{
                         width: 14,
                         height: 14
-                    }}/> {recipe.requiredTime.total.value} {recipe.requiredTime.total.unit} total; {recipe.requiredTime.active.value} {recipe.requiredTime.active.unit} active
+                    }}/> {valueWithUnits(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total; {valueWithUnits(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>

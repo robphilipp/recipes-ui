@@ -65,7 +65,7 @@ export default function Home(props: Props): JSX.Element {
             })
     }
 
-    function renderDelete(recipeId: string): JSX.Element {
+    function renderEditDelete(recipeId: string): JSX.Element {
         if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
                 <>
@@ -138,7 +138,7 @@ export default function Home(props: Props): JSX.Element {
                     {recipes.map(recipe => (
                         <ListItem
                             key={`${recipe.name}-li`}
-                            secondaryAction={renderDelete(recipe._id.toString())}
+                            secondaryAction={renderEditDelete(recipe._id.toString())}
                         >
                             <div>
                                 {inProgress(recipe._id.toString()) ?
@@ -152,10 +152,15 @@ export default function Home(props: Props): JSX.Element {
                                 </span>
                                 ))}
                                 <div>
-                                    <Typography paragraph
-                                                sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}>
+                                    <Typography
+                                        paragraph
+                                        sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}
+                                    >
                                         <Date epochMillis={
-                                            (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
+                                            (recipe.modifiedOn !== null ?
+                                                recipe.modifiedOn :
+                                                recipe.createdOn
+                                            ) as number
                                         }/>
                                     </Typography>
                                 </div>

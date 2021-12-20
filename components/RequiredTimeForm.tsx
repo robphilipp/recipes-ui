@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from 'react'
 import {isEmptyRequiredTime, RequiredTime, Time, TimeUnits, timeUnitsFrom} from "./Recipe";
-import {IconButton, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
+import {IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {DisplayMode} from "./FormMode";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CancelIcon from "@mui/icons-material/Cancel";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import {valueWithUnits} from "../lib/utils";
 
 function noop() {}
 
@@ -72,17 +74,21 @@ export function RequiredTimeForm(props: Props): JSX.Element {
 
     if (mode === DisplayMode.VIEW && !isEmptyRequiredTime(requiredTime)) {
         return (
-            <>
+            <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                 <IconButton
                     onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'
                     size='small'
+                    sx={{marginBottom: 1}}
                 >
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
-                <div>Total Time: {displayTime(requiredTime.total)}</div>
-                <div>Active Time: {displayTime(requiredTime.active)}</div>
-            </>
+
+                <AccessTimeIcon sx={{
+                    width: 14,
+                    height: 14
+                }}/> {valueWithUnits(requiredTime.total.value, requiredTime.total.unit)} total; {valueWithUnits(requiredTime.active.value, requiredTime.active.unit)} active
+            </Typography>
         )
 
     }
@@ -137,12 +143,4 @@ export function RequiredTimeForm(props: Props): JSX.Element {
             </IconButton>
         </>
     )
-}
-
-function displayTime(time: Time): string {
-    const {value, unit} = time
-    if (value === 0 || unit === null) {
-        return '[none]'
-    }
-    return `${value} ${unit}`
 }

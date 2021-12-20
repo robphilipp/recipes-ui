@@ -1,5 +1,15 @@
 import React, {ChangeEvent, useRef, useState} from 'react'
-import {IconButton, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
+import {
+    Button,
+    IconButton,
+    ListItem,
+    ListSubheader,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    TextField,
+    Typography
+} from "@mui/material";
 import {
     Amount,
     copyIngredient,
@@ -74,7 +84,7 @@ export function IngredientForm(props: Props): JSX.Element {
         onCancel()
     }
 
-    if (mode === IngredientMode.VIEW) {
+    function renderEditDelete(ingredient: Ingredient): JSX.Element {
         return (
             <>
                 <IconButton
@@ -91,8 +101,27 @@ export function IngredientForm(props: Props): JSX.Element {
                 >
                     <DeleteIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
-                {ingredientAsText(ingredient)}
             </>
+        )
+    }
+
+
+    if (mode === IngredientMode.VIEW) {
+        return (
+            <ListItem
+                key={`${props.ingredient.id}-li`}
+                secondaryAction={renderEditDelete(ingredient)}
+                sx={{
+                    width: '100%',
+                    maxWidth: {
+                        xs: 500,
+                        sm: 550,
+                        md: 600,
+                    }
+                }}
+            >
+                {ingredientAsText(ingredient)}
+            </ListItem>
         )
     }
 
