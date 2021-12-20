@@ -44,35 +44,27 @@ export default function App(props: AppProps) {
 
     const [mobileOpen, setMobileOpen] = React.useState(false);
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+    const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
+    const goHome = async () => router
+        .push("/")
+        .then(() => setNavItem(Navigation.HOME))
+    const goAddRecipe = async () => router
+        .push("/recipes/new")
+        .then(() => setNavItem(Navigation.ADD_RECIPE))
 
-    function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
+
+    async function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
         switch (newNavItem) {
             case Navigation.HOME:
-                goHome()
-                // router.push("/")
-                // setNavItem(newNavItem)
+                await goHome()
                 break
             case Navigation.ADD_RECIPE:
-                router.push("/recipes/new")
-                setNavItem(newNavItem)
+                await goAddRecipe()
                 break
         }
     }
 
-    function goHome(): void {
-        router.push("/")
-        setNavItem(Navigation.HOME)
-    }
-
-    function goAddRecipe(): void {
-        router.push("/recipes/new")
-        setNavItem(Navigation.ADD_RECIPE)
-    }
-
-    function drawer() {
+    function navbarContents() {
         return (
             <div>
                 <Toolbar/>
@@ -183,7 +175,7 @@ export default function App(props: AppProps) {
                                     },
                                 }}
                             >
-                                {drawer()}
+                                {navbarContents()}
                             </Drawer>
                             <Drawer
                                 variant="permanent"
@@ -200,7 +192,7 @@ export default function App(props: AppProps) {
                                 }}
                                 open
                             >
-                                {drawer()}
+                                {navbarContents()}
                             </Drawer>
                             <Drawer
                                 variant="permanent"
@@ -217,7 +209,7 @@ export default function App(props: AppProps) {
                                 }}
                                 open
                             >
-                                {drawer()}
+                                {navbarContents()}
                             </Drawer>
                         </Box>
                         <Box
