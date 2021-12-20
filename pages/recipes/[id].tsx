@@ -4,12 +4,24 @@ import utilStyles from "../../styles/utils.module.css";
 import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
 import React, {useEffect, useState} from "react";
-import {Checkbox, Chip, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
+import {
+    Checkbox,
+    Chip,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Typography, useTheme
+} from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
 import {Ingredient, ingredientAsText, Recipe, Step} from "../../components/Recipe";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 type Props = {
     recipeId: string
@@ -18,6 +30,7 @@ type Props = {
 export default function RecipeView(props: Props): JSX.Element {
     const {recipeId} = props
 
+    const theme = useTheme()
     const router = useRouter()
 
     const {
@@ -67,10 +80,10 @@ export default function RecipeView(props: Props): JSX.Element {
     }
 
     return (
-        <Layout>
+        <>
             <Head><title>{recipe.name}</title></Head>
             <article>
-                <h1 className={utilStyles.recipeName}>
+                <Typography sx={{fontSize: '1.5em', fontWeight: 520}}>
                     {recipe.name}
                     <IconButton
                         onClick={() => router.push(`/recipes/edit?id=${recipe._id.toString()}`)}
@@ -79,90 +92,105 @@ export default function RecipeView(props: Props): JSX.Element {
                     >
                         <ModeEditIcon sx={{width: 18, height: 18}}/>
                     </IconButton>
-                </h1>
-                <div className={utilStyles.recipeObjectId}>{recipe._id}</div>
-                <div className={utilStyles.recipeDate}>Created: <Date epochMillis={recipe.createdOn as number}/></div>
+                </Typography>
+                <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
+                    {recipe._id}
+                </Typography>
+                <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
+                    Created: <Date epochMillis={recipe.createdOn as number}/>
+                </Typography>
                 {recipe.modifiedOn != null ?
-                    <div className={utilStyles.lightText}>Modified: <Date epochMillis={recipe.modifiedOn as number}/></div> :
+                    <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
+                        Created: <Date epochMillis={recipe.modifiedOn as number}/>
+                    </Typography> :
                     <span/>
                 }
                 {recipe.tags.map(tag => (
                     <span style={{paddingRight: 7}} key={`${recipe.name}-tag-${tag}`}>
-                                    <Chip label={tag} variant='filled' size='small'/>
-                                </span>
+                        <Chip label={tag} variant='filled' size='small' sx={{marginTop: 1.5}}/>
+                    </span>
                 ))}
-                <div className={utilStyles.recipeYield}>{recipe.yield.value} {recipe.yield.unit}</div>
-                <div className={utilStyles.recipeTimes}>Total time: {recipe.requiredTime.total.value} {recipe.requiredTime.total.unit}</div>
-                <div className={utilStyles.recipeTimes}>Active time: {recipe.requiredTime.active.value} {recipe.requiredTime.active.unit}</div>
-                <div className={utilStyles.recipeStory}>{recipe.story}</div>
-                <h2 className={utilStyles.recipeIngredientsHeader}>Ingredients</h2>
-                <div>
-                    <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
-                        {recipe.ingredients.map((ingredient: Ingredient) => {
-                            const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}`
-                            return (
-                                <ListItem key={labelId} disablePadding>
-                                    <ListItemButton
-                                        role={undefined}
-                                        onClick={() => handleToggleIngredientStatus(ingredient.name)}
-                                        dense
-                                    >
-                                        <ListItemIcon>
-                                            <Checkbox
-                                                edge="start"
-                                                checked={isIngredientSelected(recipeId, ingredient.name)}
-                                                tabIndex={-1}
-                                                disableRipple
-                                                size="small"
-                                                inputProps={{'aria-labelledby': labelId}}
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            id={labelId}
-                                            primary={ingredientAsText(ingredient)}
+
+                <Typography sx={{marginTop: 1.75}}>
+                    Yield: {recipe.yield.value} {recipe.yield.unit}
+                </Typography>
+
+                <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
+                    <AccessTimeIcon sx={{
+                        width: 14,
+                        height: 14
+                    }}/> {recipe.requiredTime.total.value} {recipe.requiredTime.total.unit} total; {recipe.requiredTime.active.value} {recipe.requiredTime.active.unit} active
+                </Typography>
+
+                <Typography paragraph sx={{marginTop: 2}}>
+                    <AutoStoriesIcon/> {recipe.story}
+                </Typography>
+
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
+                <List sx={{width: '100%', maxWidth: 360, marginTop: -1}}>
+                    {recipe.ingredients.map((ingredient: Ingredient) => {
+                        const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}`
+                        return (
+                            <ListItem key={labelId} disablePadding>
+                                <ListItemButton
+                                    role={undefined}
+                                    onClick={() => handleToggleIngredientStatus(ingredient.name)}
+                                    dense
+                                >
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            edge="start"
+                                            checked={isIngredientSelected(recipeId, ingredient.name)}
+                                            tabIndex={-1}
+                                            disableRipple
+                                            size="small"
+                                            inputProps={{'aria-labelledby': labelId}}
                                         />
-                                    </ListItemButton>
-                                </ListItem>
-                            )
-                        })}
-                    </List>
-                </div>
-                <h2 className={utilStyles.headingMd}>Steps</h2>
-                <div>
-                    <List sx={{width: '100%', maxWidth: 360, bgcolor: 'background.paper'}}>
-                        {recipe.steps.map((step: Step) => {
-                            const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
-                            return (
-                                <ListItem key={labelId} disablePadding>
-                                    <ListItemButton
-                                        role={undefined}
-                                        onClick={() => handleToggleStepStatus(step.text)}
-                                        dense
-                                    >
-                                        <ListItemIcon>
-                                            <Checkbox
-                                                edge="start"
-                                                checked={isStepSelected(recipeId, step.text)}
-                                                tabIndex={-1}
-                                                disableRipple
-                                                size="small"
-                                                inputProps={{'aria-labelledby': labelId}}
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            id={labelId}
-                                            primary={step.text}
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        id={labelId}
+                                        primary={ingredientAsText(ingredient)}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        )
+                    })}
+                </List>
+
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
+                <List sx={{width: '100%', maxWidth: 360, marginTop: -1}}>
+                    {recipe.steps.map((step: Step) => {
+                        const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
+                        return (
+                            <ListItem key={labelId} disablePadding>
+                                <ListItemButton
+                                    role={undefined}
+                                    onClick={() => handleToggleStepStatus(step.text)}
+                                    dense
+                                >
+                                    <ListItemIcon>
+                                        <Checkbox
+                                            edge="start"
+                                            checked={isStepSelected(recipeId, step.text)}
+                                            tabIndex={-1}
+                                            disableRipple
+                                            size="small"
+                                            inputProps={{'aria-labelledby': labelId}}
                                         />
-                                    </ListItemButton>
-                                </ListItem>
-                            )
-                        })}
-                    </List>
-                </div>
-                <h2 className={utilStyles.headingMd}>Notes</h2>
-                <div>{recipe.notes}</div>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        id={labelId}
+                                        primary={step.text}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
+                        )
+                    })}
+                </List>
+                <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Notes</Typography>
+                <Typography paragraph>{recipe.notes}</Typography>
             </article>
-        </Layout>
+        </>
     )
 }
 
