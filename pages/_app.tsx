@@ -6,8 +6,13 @@ import {
     BottomNavigation,
     BottomNavigationAction,
     Box,
-    Drawer, List, ListItem, Menu,
-    MenuItem,
+    CssBaseline,
+    Divider,
+    Drawer,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
     Paper,
     Toolbar,
     Typography
@@ -24,8 +29,10 @@ import RecipeSearch from "../components/RecipeSearch";
 import StatusProvider from "../lib/useStatus";
 import {ThemeProvider} from '@mui/material/styles';
 import {lightTheme} from "../theme/theme";
-import Grid from "@mui/material/Grid";
-import {position} from "unist-util-position";
+import SearchIcon from '@mui/icons-material/Search';
+
+const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
+const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 
 enum Navigation {HOME, ADD_RECIPE}
 
@@ -35,11 +42,18 @@ export default function App(props: AppProps) {
 
     const [navItem, setNavItem] = useState<number>(0)
 
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
     function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
         switch (newNavItem) {
             case Navigation.HOME:
-                router.push("/")
-                setNavItem(newNavItem)
+                goHome()
+                // router.push("/")
+                // setNavItem(newNavItem)
                 break
             case Navigation.ADD_RECIPE:
                 router.push("/recipes/new")
@@ -48,130 +62,206 @@ export default function App(props: AppProps) {
         }
     }
 
+    function goHome(): void {
+        router.push("/")
+        setNavItem(Navigation.HOME)
+    }
+
+    function goAddRecipe(): void {
+        router.push("/recipes/new")
+        setNavItem(Navigation.ADD_RECIPE)
+    }
+
+    function drawer() {
+        return (
+            <div>
+                <Toolbar/>
+                <Divider/>
+                <List>
+                    <ListItem
+                        button
+                        onClick={goHome}
+                    >
+                        <ListItemIcon><HomeIcon/></ListItemIcon>
+                        <ListItemText primary="Home"/>
+                    </ListItem>
+                    <ListItem
+                        button
+                        onClick={goAddRecipe}
+                    >
+                        <ListItemIcon><AddCircleIcon/></ListItemIcon>
+                        <ListItemText primary="Add Recipe"/>
+                    </ListItem>
+                </List>
+                <Divider/>
+                <List>
+                    <ListItem
+                        button
+                        // onClick={goAddRecipe}
+                        disabled
+                    >
+                        <ListItemIcon><SearchIcon/></ListItemIcon>
+                        <ListItemText primary="Search"/>
+                    </ListItem>
+                </List>
+            </div>
+        );
+    }
+
     return (
         <ThemeProvider theme={lightTheme}>
             <SearchProvider>
                 <StatusProvider>
-                    <Box sx={{flexGrow: 1}}>
-                        <Grid container spacing={{xs: 2, md: 3}} columns={{xs: 4, sm: 8, md: 12}}>
-                            <Grid item xs={4} sm={8} md={12} sx={{height: 65}}>
-                                <AppBar
-                                    color="primary"
-                                    position="fixed"
-                                    elevation={1}
-                                    sx={{height: 65}}
+                    <Box sx={{display: 'flex'}}>
+                        <CssBaseline/>
+                        <AppBar
+                            color="primary"
+                            position="fixed"
+                            elevation={1}
+                            sx={{
+                                // zIndex: theme => theme.zIndex.drawer + 1,
+                                width: {
+                                    sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
+                                    md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
+                                },
+                                ml: {sm: `${SMALL_SIDEBAR_NAV_WIDTH}px`},
+                            }}
+                        >
+                            <Toolbar>
+                                <Link href={"/"}>
+                                    <a style={{marginTop: 7}}>
+                                        <Image
+                                            priority
+                                            src="/images/2020.jpg"
+                                            className={utilStyles.borderCircle}
+                                            height={50}
+                                            width={50}
+                                            alt="Shitty Year"
+                                        />
+                                    </a>
+                                </Link>
+                                <Typography
+                                    variant="h6"
+                                    noWrap
+                                    component="div"
+                                    color="default"
+                                    style={{paddingLeft: 10}}
+                                    sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
                                 >
-                                    <Toolbar>
-                                        <Link href={"/"}>
-                                            <a style={{marginTop: 7}}>
-                                                <Image
-                                                    priority
-                                                    src="/images/2020.jpg"
-                                                    className={utilStyles.borderCircle}
-                                                    height={50}
-                                                    width={50}
-                                                    alt="Shitty Year"
-                                                />
-                                            </a>
-                                        </Link>
-                                        <Typography
-                                            variant="h6"
-                                            noWrap
-                                            component="div"
-                                            color="default"
-                                            style={{paddingLeft: 10}}
-                                            sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-                                        >
-                                            {process.env.bookTitle}
-                                        </Typography>
-                                        <RecipeSearch/>
-                                    </Toolbar>
-                                </AppBar>
-                            </Grid>
-                            <Grid item xs={4} sm={8} md={2}>
-                                {/*<Toolbar>*/}
-                                {/*    <List>*/}
-                                {/*        <MenuItem>Test</MenuItem>*/}
-                                {/*        <MenuItem>Test</MenuItem>*/}
-                                {/*        <MenuItem>Test</MenuItem>*/}
-                                {/*    </List>*/}
-                                {/*</Toolbar>*/}
-                            </Grid>
-                            <Grid item xs={4} sm={8} md={10}>
-                                <Component {...pageProps} />
-                            </Grid>
-                            <Grid item xs={4} sm={8} md={12}>
-                                <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
-                                    <BottomNavigation
-                                        showLabels
-                                        value={navItem}
-                                        onChange={(event, newValue) => handleBottomNav(event, newValue)}
-                                    >
-                                        <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-                                        <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
-                                        <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
-                                    </BottomNavigation>
-                                </Paper>
-                            </Grid>
-                        </Grid>
+                                    {process.env.bookTitle}
+                                </Typography>
+                                <RecipeSearch/>
+                            </Toolbar>
+                        </AppBar>
+                        <Box
+                            component="nav"
+                            sx={{
+                                width: {
+                                    sm: SMALL_SIDEBAR_NAV_WIDTH,
+                                    md: MEDIUM_SIDEBAR_NAV_WIDTH
+                                },
+                                flexShrink: {sm: 0}
+                            }}
+                            aria-label="mailbox folders"
+                        >
+                            <Drawer
+                                variant="temporary"
+                                open={mobileOpen}
+                                onClose={handleDrawerToggle}
+                                ModalProps={{
+                                    keepMounted: true,
+                                }}
+                                sx={{
+                                    display: {
+                                        xs: 'block',
+                                        sm: 'none',
+                                        md: 'none'
+                                    },
+                                    '& .MuiDrawer-paper': {
+                                        boxSizing: 'border-box',
+                                        width: SMALL_SIDEBAR_NAV_WIDTH
+                                    },
+                                }}
+                            >
+                                {drawer()}
+                            </Drawer>
+                            <Drawer
+                                variant="permanent"
+                                sx={{
+                                    display: {
+                                        xs: 'none',
+                                        sm: 'block',
+                                        md: 'none'
+                                    },
+                                    '& .MuiDrawer-paper': {
+                                        boxSizing: 'border-box',
+                                        width: SMALL_SIDEBAR_NAV_WIDTH
+                                    },
+                                }}
+                                open
+                            >
+                                {drawer()}
+                            </Drawer>
+                            <Drawer
+                                variant="permanent"
+                                sx={{
+                                    display: {
+                                        xs: 'none',
+                                        sm: 'none',
+                                        md: 'block'
+                                    },
+                                    '& .MuiDrawer-paper': {
+                                        boxSizing: 'border-box',
+                                        width: MEDIUM_SIDEBAR_NAV_WIDTH
+                                    },
+                                }}
+                                open
+                            >
+                                {drawer()}
+                            </Drawer>
+                        </Box>
+                        <Box
+                            component="main"
+                            sx={{
+                                flexGrow: 1,
+                                p: 3,
+                                width: {
+                                    sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
+                                    md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
+                                }
+                            }}
+                        >
+                            <Toolbar/>
+                            <Component {...pageProps} />
+                            <Toolbar/>
+                        </Box>
+                        <Box>
+                            <Paper
+                                sx={{
+                                    position: 'fixed',
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    zIndex: theme => theme.zIndex.drawer + 1
+                                }}
+                                elevation={3}
+                            >
+                                <BottomNavigation
+                                    showLabels
+                                    value={navItem}
+                                    onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                                >
+                                    <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+                                    <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
+                                    <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                                </BottomNavigation>
+                            </Paper>
+                        </Box>
                     </Box>
                 </StatusProvider>
             </SearchProvider>
         </ThemeProvider>
     )
-    // return (
-    //     <ThemeProvider theme={lightTheme}>
-    //         <SearchProvider>
-    //             <StatusProvider>
-    //                 <Box sx={{flexGrow: 1}}>
-    //                     <AppBar
-    //                         color="primary"
-    //                         position="fixed"
-    //                         elevation={0}
-    //                     >
-    //                         <Toolbar>
-    //                             <Link href={"/"}>
-    //                                 <a style={{marginTop: 7}}>
-    //                                     <Image
-    //                                         priority
-    //                                         src="/images/2020.jpg"
-    //                                         className={utilStyles.borderCircle}
-    //                                         height={50}
-    //                                         width={50}
-    //                                         alt="Shitty Year"
-    //                                     />
-    //                                 </a>
-    //                             </Link>
-    //                             <Typography
-    //                                 variant="h6"
-    //                                 noWrap
-    //                                 component="div"
-    //                                 color="default"
-    //                                 style={{paddingLeft: 10}}
-    //                                 sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
-    //                             >
-    //                                 {process.env.bookTitle}
-    //                             </Typography>
-    //                             <RecipeSearch/>
-    //                         </Toolbar>
-    //                         <Paper sx={{position: 'fixed', bottom: 0, left: 0, right: 0}} elevation={3}>
-    //                             <BottomNavigation
-    //                                 showLabels
-    //                                 value={navItem}
-    //                                 onChange={(event, newValue) => handleBottomNav(event, newValue)}
-    //                             >
-    //                                 <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-    //                                 <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
-    //                                 <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
-    //                             </BottomNavigation>
-    //                         </Paper>
-    //                     </AppBar>
-    //                 </Box>
-    //                 <Component {...pageProps} />
-    //             </StatusProvider>
-    //         </SearchProvider>
-    //     </ThemeProvider>
-    // )
 }
 
 // App.getInitialProps = async (appContext: AppContext) => {

@@ -7,7 +7,9 @@ module.exports = {
 
         MONGODB_URI: 'mongodb://localhost:27017',
         mongoDatabase: 'recipeBook',
-        recipeCollection: 'recipes'
-        // recipeCollection: 'recipeDao'
+        recipeCollection: 'recipes',
+
+        sidebarNavWidthSmall: 180,
+        sidebarNavWidthMedium: 250,
     },
 }

@@ -1,129 +1,129 @@
-.heading2Xl {
-    font-size: 2.5rem;
-    line-height: 1.2;
-    font-weight: 800;
-    letter-spacing: -0.05rem;
-    margin: 1rem 0;
-}
+/*.heading2Xl {*/
+/*    font-size: 2.5rem;*/
+/*    line-height: 1.2;*/
+/*    font-weight: 800;*/
+/*    letter-spacing: -0.05rem;*/
+/*    margin: 1rem 0;*/
+/*}*/
 
-.headingXl {
-    font-size: 2rem;
-    line-height: 1.3;
-    font-weight: 800;
-    letter-spacing: -0.05rem;
-    margin: 1rem 0;
-}
+/*.headingXl {*/
+/*    font-size: 2rem;*/
+/*    line-height: 1.3;*/
+/*    font-weight: 800;*/
+/*    letter-spacing: -0.05rem;*/
+/*    margin: 1rem 0;*/
+/*}*/
 
-.headingLg {
-    font-size: 1.5rem;
-    line-height: 1.4;
-    margin: 1rem 0;
-}
+/*.headingLg {*/
+/*    font-size: 1.5rem;*/
+/*    line-height: 1.4;*/
+/*    margin: 1rem 0;*/
+/*}*/
 
-.headingMd {
-    font-size: 1.2rem;
-    line-height: 1.5;
-}
+/*.headingMd {*/
+/*    font-size: 1.2rem;*/
+/*    line-height: 1.5;*/
+/*}*/
 
-.borderCircle {
-    border-radius: 9999px;
-}
+/*.borderCircle {*/
+/*    border-radius: 9999px;*/
+/*}*/
 
-.colorInherit {
-    color: inherit;
-}
+/*.colorInherit {*/
+/*    color: inherit;*/
+/*}*/
 
-.padding1px {
-    padding-top: 1px;
-}
+/*.padding1px {*/
+/*    padding-top: 1px;*/
+/*}*/
 
-.recipePadding {
-    padding-top: 10px;
-}
+/*.recipePadding {*/
+/*    padding-top: 10px;*/
+/*}*/
 
-.list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+/*.list {*/
+/*    list-style: none;*/
+/*    padding: 0;*/
+/*    margin: 0;*/
+/*}*/
 
-.listItem {
-    margin: 0 0 1.25rem 0;
-}
+/*.listItem {*/
+/*    margin: 0 0 1.25rem 0;*/
+/*}*/
 
-.recipeListItem {
-    margin: 0 0 1rem;
-}
+/*.recipeListItem {*/
+/*    margin: 0 0 1rem;*/
+/*}*/
 
-.recipeListItemDate {
-    color: #666;
-    font-size: 0.6rem;
-}
+/*.recipeListItemDate {*/
+/*    color: #666;*/
+/*    font-size: 0.6rem;*/
+/*}*/
 
-.recipeCount {
-    color: #bbbaba;
-    font-size: 0.6rem;
-    margin-bottom: 15px;
-}
+/*.recipeCount {*/
+/*    color: #bbbaba;*/
+/*    font-size: 0.6rem;*/
+/*    margin-bottom: 15px;*/
+/*}*/
 
-.lightText {
-    color: #666;
-    font-size: 0.6rem;
-}
+/*.lightText {*/
+/*    color: #666;*/
+/*    font-size: 0.6rem;*/
+/*}*/
 
-/*
- | INDIVIDUAL RECIPES
- */
-.recipeName {
-    font-size: 2rem;
-    line-height: 1.3;
-    font-weight: 700;
-    letter-spacing: -0.05rem;
-    margin: 0.5rem 0 0 0;
-}
+/*!**/
+/* | INDIVIDUAL RECIPES*/
+/* *!*/
+/*.recipeName {*/
+/*    font-size: 2rem;*/
+/*    line-height: 1.3;*/
+/*    font-weight: 700;*/
+/*    letter-spacing: -0.05rem;*/
+/*    margin: 0.5rem 0 0 0;*/
+/*}*/
 
-.recipeObjectId {
-    color: #bbbaba;
-    font-size: 0.5rem;
-    margin-top: -0.25rem;
-    margin-bottom: 0.6rem;
-}
+/*.recipeObjectId {*/
+/*    color: #bbbaba;*/
+/*    font-size: 0.5rem;*/
+/*    margin-top: -0.25rem;*/
+/*    margin-bottom: 0.6rem;*/
+/*}*/
 
-.recipeDate {
-    color: #666;
-    font-size: 0.6rem;
-    margin-top: -0.6rem;
-}
+/*.recipeDate {*/
+/*    color: #666;*/
+/*    font-size: 0.6rem;*/
+/*    margin-top: -0.6rem;*/
+/*}*/
 
-.recipeYield {
-    /*margin: 0.7rem 0 1rem 0;*/
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #4a4a77;
-    /*line-height: 1.5;*/
-}
+/*.recipeYield {*/
+/*    !*margin: 0.7rem 0 1rem 0;*!*/
+/*    font-size: 0.9rem;*/
+/*    font-weight: 700;*/
+/*    color: #4a4a77;*/
+/*    !*line-height: 1.5;*!*/
+/*}*/
 
-.recipeTimes {
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #5e5e77;
-    line-height: 1;
-}
+/*.recipeTimes {*/
+/*    font-size: 0.8rem;*/
+/*    font-weight: 500;*/
+/*    color: #5e5e77;*/
+/*    line-height: 1;*/
+/*}*/
 
-.recipeStory {
-    margin-top: 10px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #202020;
-}
+/*.recipeStory {*/
+/*    margin-top: 10px;*/
+/*    font-size: 0.9rem;*/
+/*    font-weight: 500;*/
+/*    color: #202020;*/
+/*}*/
 
-.recipeIngredientsHeader {
-    font-size: 1.2rem;
-    line-height: 1;
-}
+/*.recipeIngredientsHeader {*/
+/*    font-size: 1.2rem;*/
+/*    line-height: 1;*/
+/*}*/
 
-.recipeIngredient {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+/*.recipeIngredient {*/
+/*    list-style: none;*/
+/*    padding: 0;*/
+/*    margin: 0;*/
+/*}*/
