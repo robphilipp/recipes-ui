@@ -4,7 +4,7 @@ import utilStyles from '../styles/utils.module.css'
 import Link from 'next/link'
 import Date from '../components/Date'
 import React, {useEffect, useState} from "react";
-import {Button, Chip, IconButton} from "@mui/material";
+import {Button, Chip, IconButton, List, ListItem, Typography} from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
@@ -12,6 +12,7 @@ import {MenuBook} from "@mui/icons-material";
 import {RecipeSummary} from "../components/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
+import {useRouter} from "next/router";
 
 type Props = {
     // allPostsData: Array<PostData>
@@ -25,6 +26,8 @@ export default function Home(props: Props): JSX.Element {
         // recipes,
         // search
     } = props
+
+    const router = useRouter()
 
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
@@ -110,26 +113,37 @@ export default function Home(props: Props): JSX.Element {
                               onDelete={() => deleteAccumulated(search)}/>
                     ))}
                 </div>
-                <div className={utilStyles.recipeCount}>Showing {recipes.length} of {recipeCount} recipes</div>
-                <ul className={utilStyles.list}>
+                <Typography paragraph sx={{fontSize: '0.7em', marginTop: '0.25em'}}>
+                    Showing {recipes.length} of {recipeCount} recipes
+                </Typography>
+                <List>
                     {recipes.map(recipe => (
-                        <li className={utilStyles.recipeListItem} key={`${recipe.name}-li`}>
-                            <Link href={`/recipes/${recipe._id}`}><a>{recipe.name}</a></Link>
+                        <ListItem
+                            key={`${recipe.name}-li`}
+                            secondaryAction={renderDelete(recipe._id.toString())}
+                        >
+                            <div>
                             {inProgress(recipe._id.toString()) ?
                                 <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
+                            <Button onClick={() => router.push(`/recipes/${recipe._id}`)}>
+                                {recipe.name}
+                            </Button>
                             {recipe.tags.map(tag => (
                                 <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
                             ))}
-                            {renderDelete(recipe._id.toString())}
-                            <div className={utilStyles.recipeListItemDate} key={`${recipe.name}-date`}>
-                                <Date
-                                    epochMillis={(recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number}/>
+                            <div>
+                            <Typography paragraph sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}>
+                                <Date epochMillis={
+                                    (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
+                                }/>
+                            </Typography>
                             </div>
-                        </li>
+                            </div>
+                        </ListItem>
                     ))}
-                </ul>
+                </List>
             </section>
         </Layout>
     )
