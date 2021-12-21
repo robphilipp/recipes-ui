@@ -26,6 +26,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import {DisplayMode} from "./FormMode";
 
 function noop() {
 }
@@ -34,7 +35,7 @@ export enum IngredientMode {VIEW, EDIT}
 
 type Props = {
     ingredient: Ingredient
-    initialMode?: IngredientMode
+    initialMode?: DisplayMode
     onSubmit?: (ingredient: Ingredient, andAgain: boolean) => void
     onCancel?: () => void
     onDelete?: (id: string) => void
@@ -42,7 +43,7 @@ type Props = {
 
 export function IngredientForm(props: Props): JSX.Element {
     const {
-        initialMode = IngredientMode.VIEW,
+        initialMode = DisplayMode.VIEW,
         onSubmit = noop,
         onCancel = noop,
         onDelete = noop
@@ -51,7 +52,7 @@ export function IngredientForm(props: Props): JSX.Element {
     const [ingredient, setIngredient] = useState<Ingredient>(() => copyIngredient(props.ingredient))
     const newItemRef = useRef<boolean>(isEmptyIngredient(props.ingredient))
 
-    const [mode, setMode] = useState<IngredientMode>(initialMode)
+    const [mode, setMode] = useState<DisplayMode>(initialMode)
 
     function handleIngredientUnitSelect(event: SelectChangeEvent): void {
         const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
@@ -73,13 +74,13 @@ export function IngredientForm(props: Props): JSX.Element {
             onSubmit(ingredient, andAgain)
             setIngredient(emptyIngredient())
         } else {
-            setMode(IngredientMode.VIEW)
+            setMode(DisplayMode.VIEW)
             onSubmit(ingredient, andAgain)
         }
     }
 
     function handleCancel(): void {
-        setMode(IngredientMode.VIEW)
+        setMode(DisplayMode.VIEW)
         setIngredient(props.ingredient)
         onCancel()
     }
@@ -88,7 +89,7 @@ export function IngredientForm(props: Props): JSX.Element {
         return (
             <>
                 <IconButton
-                    onClick={() => setMode(IngredientMode.EDIT)}
+                    onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'
                     size='small'
                 >
@@ -106,7 +107,7 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
 
-    if (mode === IngredientMode.VIEW) {
+    if (mode === DisplayMode.VIEW) {
         return (
             <ListItem
                 key={`${props.ingredient.id}-li`}

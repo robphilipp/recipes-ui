@@ -75,6 +75,11 @@ export function RequiredTimeForm(props: Props): JSX.Element {
     if (mode === DisplayMode.VIEW && !isEmptyRequiredTime(requiredTime)) {
         return (
             <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
+                <AccessTimeIcon sx={{
+                    width: 14,
+                    height: 14
+                }}/> {valueWithUnits(requiredTime.total.value, requiredTime.total.unit)} total; {valueWithUnits(requiredTime.active.value, requiredTime.active.unit)} active
+
                 <IconButton
                     onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'
@@ -83,14 +88,8 @@ export function RequiredTimeForm(props: Props): JSX.Element {
                 >
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
-
-                <AccessTimeIcon sx={{
-                    width: 14,
-                    height: 14
-                }}/> {valueWithUnits(requiredTime.total.value, requiredTime.total.unit)} total; {valueWithUnits(requiredTime.active.value, requiredTime.active.unit)} active
             </Typography>
         )
-
     }
 
     return (

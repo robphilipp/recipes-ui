@@ -284,7 +284,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                 {addingIngredient ?
                     <IngredientForm
                         ingredient={emptyIngredient()}
-                        initialMode={IngredientMode.EDIT}
+                        initialMode={DisplayMode.EDIT}
                         onSubmit={handleSubmittedNewIngredient}
                         onCancel={handleCancelIngredient}
                     /> :
@@ -318,7 +318,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                 {addingStep ?
                     <StepForm
                         step={emptyStep()}
-                        initialMode={StepMode.EDIT}
+                        initialMode={DisplayMode.EDIT}
                         onSubmit={handleSubmittedNewStep}
                         onCancel={handleCancelStep}
                     /> :

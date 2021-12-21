@@ -1,11 +1,12 @@
 import React, {useRef, useState} from 'react'
-import {IconButton, TextField} from "@mui/material";
+import {IconButton, ListItem, TextField} from "@mui/material";
 import {copyStep, emptyStep, isEmptyStep, Step} from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import {DisplayMode} from "./FormMode";
 
 function noop() {
 }
@@ -14,7 +15,7 @@ export enum StepMode {VIEW, EDIT}
 
 type Props = {
     step: Step
-    initialMode?: StepMode
+    initialMode?: DisplayMode
     onSubmit?: (step: Step, andAgain: boolean) => void
     onCancel?: () => void
     onDelete?: (id: string) => void
@@ -22,7 +23,7 @@ type Props = {
 
 export function StepForm(props: Props): JSX.Element {
     const {
-        initialMode = StepMode.VIEW,
+        initialMode = DisplayMode.VIEW,
         onSubmit = noop,
         onCancel = noop,
         onDelete = noop
@@ -31,7 +32,7 @@ export function StepForm(props: Props): JSX.Element {
     const [step, setStep] = useState<Step>(() => copyStep(props.step))
     const newItemRef = useRef<boolean>(isEmptyStep(props.step))
 
-    const [mode, setMode] = useState<StepMode>(initialMode)
+    const [mode, setMode] = useState<DisplayMode>(initialMode)
 
     function canSubmit(): boolean {
         return step.text !== undefined && step.text !== null && step.text !== ''
@@ -42,22 +43,22 @@ export function StepForm(props: Props): JSX.Element {
             onSubmit(step, andAgain)
             setStep(emptyStep())
         } else {
-            setMode(StepMode.VIEW)
+            setMode(DisplayMode.VIEW)
             onSubmit(step, andAgain)
         }
     }
 
     function handleCancel(): void {
-        setMode(StepMode.VIEW)
+        setMode(DisplayMode.VIEW)
         setStep(props.step)
         onCancel()
     }
 
-    if (mode === StepMode.VIEW) {
+    function renderEditDelete(step: Step): JSX.Element {
         return (
             <>
                 <IconButton
-                    onClick={() => setMode(StepMode.EDIT)}
+                    onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'
                     size='small'
                 >
@@ -70,8 +71,26 @@ export function StepForm(props: Props): JSX.Element {
                 >
                     <DeleteIcon sx={{width: 18, height: 18}}/>
                 </IconButton>
-                {step.text}
             </>
+        )
+    }
+
+    if (mode === DisplayMode.VIEW) {
+        return (
+            <ListItem
+                key={`${props.step.id}-li`}
+                secondaryAction={renderEditDelete(step)}
+                sx={{
+                    width: '100%',
+                    maxWidth: {
+                        xs: 500,
+                        sm: 550,
+                        md: 600,
+                    }
+                }}
+            >
+                {step.text}
+            </ListItem>
         )
     }
 
