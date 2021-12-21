@@ -96,11 +96,15 @@ export function RequiredTimeForm(props: Props): JSX.Element {
         <>
             <TextField
                 id="recipe-required-time-total-value"
-                label="Total Time"
+                label="Total"
                 size='small'
                 type="number"
                 value={requiredTime.total.value}
-                sx={{"& .MuiOutlinedInput-root": {width: 120}}}
+                sx={{
+                    "& .MuiOutlinedInput-root": {
+                        width: {xs: 75}
+                    }
+                }}
                 onChange={event => setRequiredTime(current => ({...current, total: {...current.total, value: parseFloat(event.target.value)}}))}
             />
             <Select
@@ -116,11 +120,15 @@ export function RequiredTimeForm(props: Props): JSX.Element {
             </Select>
             <TextField
                 id="recipe-required-time-active-value"
-                label="Active Time"
+                label="Active"
                 size='small'
                 type="number"
                 value={requiredTime.active.value}
-                sx={{"& .MuiOutlinedInput-root": {width: 120}}}
+                sx={{
+                    "& .MuiOutlinedInput-root": {
+                        width: {xs: 75}
+                    }
+                }}
                 onChange={event => setRequiredTime(current => ({...current, active: {...current.active, value: parseFloat(event.target.value)}}))}
             />
             <Select

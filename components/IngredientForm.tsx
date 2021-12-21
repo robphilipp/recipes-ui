@@ -1,5 +1,14 @@
 import React, {ChangeEvent, useRef, useState} from 'react'
-import {IconButton, ListItem, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
+import {
+    IconButton,
+    ListItem,
+    ListSubheader,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    TextField,
+    useMediaQuery, useTheme
+} from "@mui/material";
 import {
     Amount,
     copyIngredient,
@@ -38,6 +47,9 @@ export function IngredientForm(props: Props): JSX.Element {
         onCancel = noop,
         onDelete = noop
     } = props
+
+    const theme = useTheme()
+    const smallerThanMedium = useMediaQuery(theme.breakpoints.down('md'))
 
     const [ingredient, setIngredient] = useState<Ingredient>(() => copyIngredient(props.ingredient))
     const newItemRef = useRef<boolean>(isEmptyIngredient(props.ingredient))
@@ -124,7 +136,11 @@ export function IngredientForm(props: Props): JSX.Element {
                 size='small'
                 type="number"
                 value={ingredient.amount.value}
-                sx={{"& .MuiOutlinedInput-root": {width: 120}}}
+                sx={{
+                    "& .MuiOutlinedInput-root": {
+                        maxWidth: {xs: 90}
+                    }
+                }}
                 onChange={handleIngredientAmountChange}
             />
             {/*todo replace select with autocomplete*/}
@@ -144,19 +160,19 @@ export function IngredientForm(props: Props): JSX.Element {
             >
                 <ListSubheader>Mass</ListSubheader>
                 {unitsByCategory.get(UnitCategories.MASS).map((unit) => (
-                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                    <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
                 ))}
                 <ListSubheader>Weight</ListSubheader>
                 {unitsByCategory.get(UnitCategories.WEIGHT).map((unit) => (
-                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                    <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
                 ))}
                 <ListSubheader>Volume</ListSubheader>
                 {unitsByCategory.get(UnitCategories.VOLUME).map((unit) => (
-                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                    <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
                 ))}
                 <ListSubheader>Piece</ListSubheader>
                 {unitsByCategory.get(UnitCategories.PIECE).map((unit) => (
-                    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>
+                    <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
                 ))}
             </Select>
             <TextField
@@ -166,13 +182,14 @@ export function IngredientForm(props: Props): JSX.Element {
                 value={ingredient.name}
                 onChange={event => setIngredient(ing => ({...ing, name: event.target.value}))}
             />
-            <TextField
+            {smallerThanMedium ? <span/> : <TextField
                 id="recipe-ingredient-brand"
                 label="Brand"
                 size='small'
                 value={ingredient.brand}
                 onChange={event => setIngredient(ing => ({...ing, brand: event.target.value}))}
             />
+            }
             <IconButton onClick={() => handleSubmit(false)} color='primary' disabled={!canSubmit()}>
                 <SaveIcon/>
             </IconButton>

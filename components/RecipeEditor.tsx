@@ -1,22 +1,21 @@
 import Layout from "./Layout";
 import Head from "next/head";
-import utilStyles from "../styles/utils.module.css";
 import React, {ChangeEvent, useEffect, useState} from "react";
 import {Box, Button, ButtonGroup, List, ListItem, TextField, Typography} from "@mui/material";
 import {
     emptyIngredient,
     emptyRecipe,
-    emptyStep, emptyYield,
-    Ingredient, isEmptyYield,
+    emptyStep,
+    Ingredient,
     isValidRecipe,
     Recipe,
     RequiredTime,
     Step,
     Yield
 } from "./Recipe";
-import {IngredientForm, IngredientMode} from "./IngredientForm";
+import {IngredientForm} from "./IngredientForm";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import {StepForm, StepMode} from "./StepForm";
+import {StepForm} from "./StepForm";
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 import {useRouter} from "next/router";
@@ -26,7 +25,6 @@ import {TagsForm} from "./TagsForm";
 
 const YIELD_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
-const YIELD_MISSING_SPACE_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 
 enum EditMode {ADD, UPDATE }
 
@@ -81,12 +79,6 @@ export function RecipeEditor(props: Props): JSX.Element {
     }
 
     function handleYieldValueChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
-        // const yielded = parseYield(event.target.value)
-        // if (!isEmptyYield(yielded)) {
-        //     setYieldValue(`${isNaN(yielded.value) ? '' : yielded.value}`)
-        //     setRecipe(rec => ({...rec, yield: yielded}))
-        // }
-
         const fullMatch = event.target.value.match(YIELD_REGEX)
         if (fullMatch) {
             fullMatch.shift()
@@ -305,9 +297,10 @@ export function RecipeEditor(props: Props): JSX.Element {
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
                 <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                    {recipe.steps.map(step => (
+                    {recipe.steps.map((step, index) => (
                         <ListItem key={step.text} disablePadding>
                             <StepForm
+                                stepNumber={index+1}
                                 step={step}
                                 onSubmit={handleUpdatedStep}
                                 onCancel={handleCancelStep}

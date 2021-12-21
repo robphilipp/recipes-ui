@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {Chip, IconButton, TextField} from "@mui/material";
+import {Box, Chip, Grid, IconButton, TextField} from "@mui/material";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 
@@ -36,6 +36,16 @@ export function TagsForm(props: Props): JSX.Element {
         onRemove(tag)
     }
 
+    function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>): void {
+        switch (event.key) {
+            case 'Enter':
+                handleSubmit()
+                break
+            case 'Escape':
+                setNewTag('')
+        }
+    }
+
     if (displayMode === DisplayMode.VIEW) {
         return <>
             {tags.map(tag => (
@@ -58,20 +68,27 @@ export function TagsForm(props: Props): JSX.Element {
                 size='small'
                 value={newTag}
                 onChange={event => setNewTag(event.target.value)}
+                onKeyDown={handleKeyDown}
             />
-            <IconButton onClick={handleSubmit} color='primary' disabled={!canAdd(newTag)}>
-                <AddCircleIcon/>
+            <IconButton
+                onClick={handleSubmit}
+                color='primary'
+                disabled={!canAdd(newTag)}
+            >
+                <AddCircleIcon sx={{marginTop: 1}}/>
             </IconButton>
-            {tags.map(tag => (
-                <Chip
-                    key={tag}
-                    label={tag}
-                    variant='outlined'
-                    size='small'
-                    sx={{marginRight: 1}}
-                    onDelete={() => handleRemove(tag)}
-                />
-            ))}
+            {
+                tags.map(tag => (
+                    <Chip
+                        key={tag}
+                        label={tag}
+                        variant='outlined'
+                        size='small'
+                        sx={{marginRight: 1, marginTop: 1}}
+                        onDelete={() => handleRemove(tag)}
+                    />
+                ))
+            }
         </>
     )
 }
