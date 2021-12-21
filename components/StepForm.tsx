@@ -101,12 +101,15 @@ export function StepForm(props: Props): JSX.Element {
                     }
                 }}
             >
-                {stepNumber !== undefined ? <ListItemAvatar><Avatar>{stepNumber}</Avatar></ListItemAvatar> : <span/>}
+                {stepNumber !== undefined ?
+                    <ListItemAvatar><Avatar>{stepNumber}</Avatar></ListItemAvatar> :
+                    <span/>
+                }
                 <Typography
                     sx={{
                         maxWidth: {
                             xs: 350,
-                            sm: 450,
+                            sm: 400,
                             md: 600,
                         }
                     }}

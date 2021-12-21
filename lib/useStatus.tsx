@@ -97,7 +97,7 @@ export default function StatusProvider(props: Props): JSX.Element {
     }
     
     function unselectStep(recipeId: string, step: string): void {
-        if (stepsStatus.has(step) && stepsStatus.get(recipeId).delete(step)) {
+        if (stepsStatus.has(recipeId) && stepsStatus.get(recipeId).delete(step)) {
             if (stepsStatus.get(recipeId).size === 0) {
                 stepsStatus.delete(recipeId)
             }
