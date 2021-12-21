@@ -2,7 +2,20 @@ import Head from 'next/head'
 import Layout from '../components/Layout'
 import Date from '../components/Date'
 import React, {useEffect, useState} from "react";
-import {Button, Chip, IconButton, List, ListItem, Typography} from "@mui/material";
+import {
+    Avatar,
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    CardHeader,
+    Chip,
+    IconButton,
+    List,
+    ListItem,
+    Typography,
+    useTheme
+} from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
@@ -12,6 +25,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
 import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import Link from 'next/link'
 
 type Props = {
     // allPostsData: Array<PostData>
@@ -27,6 +42,7 @@ export default function Home(props: Props): JSX.Element {
     } = props
 
     const router = useRouter()
+    const theme = useTheme()
 
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
@@ -71,7 +87,7 @@ export default function Home(props: Props): JSX.Element {
                 <>
                     <Button
                         key={`${recipeId}-confirm`}
-                        startIcon={<DeleteIcon/>}
+                        startIcon={<DeleteIcon sx={{width: 18, height: 18}}/>}
                         sx={{textTransform: 'none'}}
                         onClick={() => handleDeleteRecipe(recipeId)}
                     >
@@ -79,7 +95,7 @@ export default function Home(props: Props): JSX.Element {
                     </Button>
                     <Button
                         key={`${recipeId}-cancel`}
-                        startIcon={<CancelIcon/>}
+                        startIcon={<CancelIcon sx={{width: 18, height: 18}}/>}
                         sx={{textTransform: 'none'}}
                         onClick={() => setConfirmDelete(current => current.filter(id => id !== recipeId))}
                     >
@@ -134,40 +150,78 @@ export default function Home(props: Props): JSX.Element {
                     Showing {recipes.length} of {recipeCount} recipes
                 </Typography>
 
-                <List>
-                    {recipes.map(recipe => (
-                        <ListItem
-                            key={`${recipe.name}-li`}
-                            secondaryAction={renderEditDelete(recipe._id.toString())}
-                        >
-                            <div>
-                                {inProgress(recipe._id.toString()) ?
-                                    <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}
-                                <Button onClick={() => router.push(`/recipes/${recipe._id}`)}>
-                                    {recipe.name}
-                                </Button>
-                                {recipe.tags.map(tag => (
-                                    <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
+                {recipes.map(recipe => (
+                    <Card
+                        key={`${recipe.name}-li`}
+                        variant="outlined"
+                        sx={{
+                            maxWidth: {
+                                xs: 500,
+                                md: 500
+                            },
+                            marginBottom: 1
+                        }}
+                    >
+                        <CardHeader
+                            avatar={inProgress(recipe._id.toString()) ?
+                                <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
+                                <span/>
+                            }
+                            title={<Link href={`/recipes/${recipe._id}`}>
+                                <a style={{textDecoration: 'none', color: theme.palette.primary.main}}>
+                                    {recipe.name.toUpperCase()}
+                                </a>
+                            </Link>}
+                            subheader={<Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
+                                <Date epochMillis={
+                                    (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
+                                }/>
+                            </Typography>}
+                            action={renderEditDelete(recipe._id.toString())}
+                        />
+                        <CardContent>
+                            {recipe.tags.map(tag => (
+                                <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
-                                ))}
-                                <div>
-                                    <Typography
-                                        paragraph
-                                        sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}
-                                    >
-                                        <Date epochMillis={
-                                            (recipe.modifiedOn !== null ?
-                                                recipe.modifiedOn :
-                                                recipe.createdOn
-                                            ) as number
-                                        }/>
-                                    </Typography>
-                                </div>
-                            </div>
-                        </ListItem>
-                    ))}
-                </List>
+                            ))}
+                        </CardContent>
+                    </Card>
+                ))}
+                {/*<List>*/}
+                {/*    {recipes.map(recipe => (*/}
+                {/*        <ListItem*/}
+                {/*            key={`${recipe.name}-li`}*/}
+                {/*            secondaryAction={renderEditDelete(recipe._id.toString())}*/}
+                {/*        >*/}
+                {/*            <div>*/}
+                {/*                {inProgress(recipe._id.toString()) ?*/}
+                {/*                    <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}*/}
+                {/*                <Button onClick={() => router.push(`/recipes/${recipe._id}`)}>*/}
+                {/*                    {recipe.name}*/}
+                {/*                </Button>*/}
+                {/*                {recipe.tags.map(tag => (*/}
+                {/*                    <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>*/}
+                {/*                    <Chip label={tag} variant='outlined' size='small'/>*/}
+                {/*                </span>*/}
+                {/*                ))}*/}
+                {/*                <div>*/}
+                {/*                    <Typography*/}
+                {/*                        paragraph*/}
+                {/*                        sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}*/}
+                {/*                    >*/}
+                {/*                        <Date epochMillis={*/}
+                {/*                            (recipe.modifiedOn !== null ?*/}
+                {/*                                recipe.modifiedOn :*/}
+                {/*                                recipe.createdOn*/}
+                {/*                            ) as number*/}
+                {/*                        }/>*/}
+                {/*                    </Typography>*/}
+                {/*                </div>*/}
+                {/*            </div>*/}
+                {/*        </ListItem>*/}
+                {/*    ))}*/}
+                {/*</List>*/}
             </section>
         </Layout>
     )
