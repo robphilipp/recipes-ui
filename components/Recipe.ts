@@ -1,13 +1,54 @@
 import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
-import {valueWithUnits} from "../lib/utils";
+import {formatQuantityFor} from "../lib/utils";
 
+/*
+    This file contains:
+      1. the types that compose a `Recipe` from the datastore.
+      2. helper functions for creating, copying, testing the recipe's data
+         structures
+ */
+
+/**
+ * The yield of the recipe. For example, 10 servings, or 2 slices, etc.
+ */
 export type Yield = {
+    // the quantity
     value: number
+    // the unit corresponding to the quantity
     unit: string
 }
 
+/**
+ * The units for the time it takes to make the recipe
+ */
+export enum TimeUnits {
+    MINUTE = 'minute', HOUR = 'hour', DAY = 'day', MONTH = 'month'
+}
+
+/**
+ * The time for making the recipe
+ */
+export type Time = {
+    value: number
+    unit: TimeUnits
+}
+
+/**
+ * The required time for making the recipe includes the active time
+ * (i.e. the time work is required), and the passive time (cooling,
+ * baking, rising, etc). The total time equals the active time plus
+ * the passive time.
+ */
+export type RequiredTime = {
+    total: Time
+    active: Time
+}
+
+/**
+ * The units for the ingredients
+ */
 export enum Units {
     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
     OUNCE = 'oz', POUND = 'lb',
@@ -16,37 +57,37 @@ export enum Units {
     PIECE = 'piece'
 }
 
-export enum TimeUnits {
-    MINUTE = 'minute', HOUR = 'hour', DAY = 'day', MONTH = 'month'
-}
-
-export type Time = {
-    value: number
-    unit: TimeUnits
-}
-
-export type RequiredTime = {
-    total: Time
-    active: Time
-}
-
+/**
+ * The categories for the units used by the ingredients
+ */
 export enum UnitCategories {
-    MASS = 'Mass', 
+    MASS = 'Mass',
     WEIGHT = 'Weight',
     VOLUME = 'Volume',
     PIECE = 'Piece'
 }
 
+/**
+ * The unit name and its associated human-readable value
+ */
 export type Unit = {
+    // the unit name
     value: string
+    // the human-readable value
     label: string
 }
 
+/**
+ * The amount of the ingredient
+ */
 export type Amount = {
     value: number
     unit: Units
 }
 
+/**
+ * An ingredient
+ */
 export type Ingredient = {
     id: string
     name: string
@@ -54,12 +95,18 @@ export type Ingredient = {
     amount: Amount
 }
 
+/**
+ * A step in making the recipe
+ */
 export type Step = {
     id: string
     title: string | null
     text: string
 }
 
+/**
+ * The recipe summary information
+ */
 export type RecipeSummary = {
     _id?: ObjectId
     name: string
@@ -68,6 +115,9 @@ export type RecipeSummary = {
     modifiedOn: number | null | Long
 }
 
+/**
+ * The full-blown recipe (includes the recipe summary information)
+ */
 export type Recipe = RecipeSummary & {
     story: string
     yield: Yield
@@ -81,8 +131,18 @@ export type Recipe = RecipeSummary & {
 |                         HELPER FUNCTIONS
 +**************************************************************************/
 
+/**
+ * Constructs a {@link Unit} from the unit and its human-readable label
+ * @param unit The unit
+ * @param label The human-readable label
+ */
 const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
 
+/**
+ * Map that holds the units that belong to each category. For example,
+ * kg, mg are mass, and pounds, and ounces are weights, and liter
+ * and gallon are volume, etc.
+ */
 export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
     [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
@@ -93,6 +153,11 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
 
 /*
  | RECIPES
+ */
+/**
+ * Constructs a {@link Recipe} from the json document returned from the datastore
+ * @param doc The JSON document describing the recipe
+ * @return A {@link Recipe} object
  */
 export function asRecipe(doc: WithId<Recipe>): Recipe {
     return {
@@ -110,6 +175,12 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
     }
 }
 
+/**
+ * Constructs a {@link RecipeSummary} form the json document returned from the
+ * datastore
+ * @param doc The JSON document describing the recipe
+ * @return A {@link RecipeSummary} object
+ */
 export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
     return {
         _id: doc._id,
@@ -120,6 +191,10 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
     }
 }
 
+/**
+ * Constructs an empty {@link Recipe} object
+ * @return A {@link Recipe} object
+ */
 export function emptyRecipe(): Recipe {
     return {
         _id: null,
@@ -192,9 +267,9 @@ export function unitsFrom(unit: string): Units {
 
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
-        return `${valueWithUnits(ingredient.amount.value, ingredient.name)}`
+        return `${formatQuantityFor(ingredient.amount.value, ingredient.name)}`
     }
-    return `${valueWithUnits(ingredient.amount.value, ingredient.amount.unit)} ${ingredient.name}`
+    return `${formatQuantityFor(ingredient.amount.value, ingredient.amount.unit)} ${ingredient.name}`
 }
 
 /*

@@ -6,7 +6,7 @@ import {DisplayMode} from "./FormMode";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SaveIcon from '@mui/icons-material/Save';
-import {valueWithUnits} from "../lib/utils";
+import {formatQuantityFor} from "../lib/utils";
 
 function noop() {}
 
@@ -78,7 +78,7 @@ export function RequiredTimeForm(props: Props): JSX.Element {
                 <AccessTimeIcon sx={{
                     width: 14,
                     height: 14
-                }}/> {valueWithUnits(requiredTime.total.value, requiredTime.total.unit)} total; {valueWithUnits(requiredTime.active.value, requiredTime.active.unit)} active
+                }}/> {formatQuantityFor(requiredTime.total.value, requiredTime.total.unit)} total; {formatQuantityFor(requiredTime.active.value, requiredTime.active.unit)} active
 
                 <IconButton
                     onClick={() => setMode(DisplayMode.EDIT)}

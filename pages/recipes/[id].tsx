@@ -21,7 +21,7 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import {valueWithUnits} from "../../lib/utils";
+import {formatQuantityFor} from "../../lib/utils";
 
 type Props = {
     recipeId: string
@@ -105,14 +105,14 @@ export default function RecipeView(props: Props): JSX.Element {
                 ))}
 
                 <Typography sx={{marginTop: 1.75}}>
-                    Yield: {valueWithUnits(recipe.yield.value, recipe.yield.unit)}
+                    Yield: {formatQuantityFor(recipe.yield.value, recipe.yield.unit)}
                 </Typography>
 
                 <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                     <AccessTimeIcon sx={{
                         width: 14,
                         height: 14
-                    }}/> {valueWithUnits(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total; {valueWithUnits(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
+                    }}/> {formatQuantityFor(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total; {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>

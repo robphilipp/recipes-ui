@@ -1,6 +1,13 @@
 import * as React from 'react';
 import {createContext, useContext, useState} from 'react';
 
+/*
+    react hook that holds the selection status of the ingredients and steps to provide durability
+    across pages. when user selects ingredients and then steps, holds the status of the selection
+    for each recipe. this status is used when the user returns to the recipe, and signifies which
+    recipes are current being worked on.
+ */
+
 interface UseStatusValues {
     // map(recipe_id -> set(checked_ingredients))
     readonly ingredientsStatus: Map<string, Set<string>>
@@ -47,18 +54,38 @@ interface Props {
     children: JSX.Element | Array<JSX.Element>;
 }
 
+/**
+ * Context provider for recipe ingredient and step selection status
+ * @param props The children
+ * @constructor
+ */
 export default function StatusProvider(props: Props): JSX.Element {
     const [ingredientsStatus, setIngredientsStatus] = useState<Map<string, Set<string>>>(() => new Map())
     const [stepsStatus, setStepsStatus] = useState<Map<string, Set<string>>>(() => new Map())
 
+    /**
+     * @param recipeId The ID of the recipe
+     * @return `true` when the recipe is in progress; `false` otherwise
+     */
     function inProgress(recipeId: string): boolean {
         return ingredientsStatus.get(recipeId)?.size > 0 || stepsStatus.get(recipeId)?.size > 0
     }
-    
+
+    /**
+     * Reports whether the specified ingredient, in the specifed recipe, has been selected
+     * @param recipeId The ID of the recipe
+     * @param ingredient The ingredient
+     * @return `true` if the recipe's ingredient has been selected; `false` otherwise
+     */
     function isIngredientSelected(recipeId: string, ingredient: string): boolean {
         return ingredientsStatus.get(recipeId)?.has(ingredient) || false
     }
-    
+
+    /**
+     * Sets the status of the recipe's ingredient to selected
+     * @param recipeId The ID of the recipe
+     * @param ingredient The ingredient
+     */
     function selectIngredient(recipeId: string, ingredient: string): void {
         if (ingredientsStatus.has(recipeId)) {
             ingredientsStatus.get(recipeId).add(ingredient)
@@ -67,7 +94,12 @@ export default function StatusProvider(props: Props): JSX.Element {
         }
         setIngredientsStatus(status => new Map(status))
     }
-    
+
+    /**
+     * Sets the status of the recipe's ingredient to unselected
+     * @param recipeId The ID of the recipe
+     * @param ingredient The ingredient
+     */
     function unselectIngredient(recipeId: string, ingredient: string): void {
         if (ingredientsStatus.has(recipeId) && ingredientsStatus.get(recipeId).delete(ingredient)) {
             if (ingredientsStatus.get(recipeId).size === 0) {
@@ -76,7 +108,11 @@ export default function StatusProvider(props: Props): JSX.Element {
             setIngredientsStatus(status => new Map(status))
         }
     }
-    
+
+    /**
+     * Clears all the ingredients of the recipe
+     * @param recipeId The ID of the recipe
+     */
     function clearIngredients(recipeId: string): void {
         if (ingredientsStatus.delete(recipeId)) {
             setIngredientsStatus(status => new Map(status))
@@ -121,6 +157,9 @@ export default function StatusProvider(props: Props): JSX.Element {
     </StatusContext.Provider>
 }
 
+/**
+ * The recipes' status selection hook
+ */
 export function useStatus(): UseStatusValues {
     const context = useContext<UseStatusValues>(StatusContext)
     const {
