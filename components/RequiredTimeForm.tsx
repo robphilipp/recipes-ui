@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react'
-import {isEmptyRequiredTime, RequiredTime, Time, TimeUnits, timeUnitsFrom} from "./Recipe";
+import {isEmptyRequiredTime, RequiredTime, TimeUnits, timeUnitsFrom} from "./Recipe";
 import {IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {DisplayMode} from "./FormMode";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import SaveIcon from '@mui/icons-material/Save';
 import {valueWithUnits} from "../lib/utils";
 
 function noop() {}
@@ -135,7 +135,7 @@ export function RequiredTimeForm(props: Props): JSX.Element {
                 ))}
             </Select>
             <IconButton onClick={handleSubmit} color='primary' disabled={!canSubmit()}>
-                <CheckBoxIcon/>
+                <SaveIcon/>
             </IconButton>
             <IconButton onClick={handleCancel} color='secondary' disabled={isEmptyRequiredTime(requiredTime)}>
                 <CancelIcon/>

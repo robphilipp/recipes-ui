@@ -1,15 +1,5 @@
 import React, {ChangeEvent, useRef, useState} from 'react'
-import {
-    Button,
-    IconButton,
-    ListItem,
-    ListSubheader,
-    MenuItem,
-    Select,
-    SelectChangeEvent,
-    TextField,
-    Typography
-} from "@mui/material";
+import {IconButton, ListItem, ListSubheader, MenuItem, Select, SelectChangeEvent, TextField} from "@mui/material";
 import {
     Amount,
     copyIngredient,
@@ -22,10 +12,10 @@ import {
     unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
 import {DisplayMode} from "./FormMode";
 
 function noop() {
@@ -184,7 +174,7 @@ export function IngredientForm(props: Props): JSX.Element {
                 onChange={event => setIngredient(ing => ({...ing, brand: event.target.value}))}
             />
             <IconButton onClick={() => handleSubmit(false)} color='primary' disabled={!canSubmit()}>
-                <CheckBoxIcon/>
+                <SaveIcon/>
             </IconButton>
             <IconButton onClick={handleCancel} color='secondary'>
                 <CancelIcon/>

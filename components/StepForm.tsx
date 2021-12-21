@@ -2,10 +2,10 @@ import React, {useRef, useState} from 'react'
 import {IconButton, ListItem, TextField} from "@mui/material";
 import {copyStep, emptyStep, isEmptyStep, Step} from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
 import {DisplayMode} from "./FormMode";
 
 function noop() {
@@ -115,7 +115,7 @@ export function StepForm(props: Props): JSX.Element {
                 onChange={event => setStep(current => ({...current, text: event.target.value}))}
             />
             <IconButton onClick={() => handleSubmit(false)} color='primary' disabled={!canSubmit()}>
-                <CheckBoxIcon/>
+                <SaveIcon/>
             </IconButton>
             <IconButton onClick={handleCancel} color='secondary'>
                 <CancelIcon/>
