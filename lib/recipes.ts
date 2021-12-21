@@ -53,6 +53,20 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
         .toArray()
 }
 
+export async function recipeSummariesSearch(words: Array<string>): Promise<Array<RecipeSummary>> {
+    const client = await clientPromise
+    return await recipeCollection(client)
+        .find({
+            $or: [
+                {name: {$regex: new RegExp(`(${words.join(')|(')})`, 'i')}},
+                {tags: {$in: words}}
+            ]
+        })
+        .collation({locale: 'en', strength: 2})
+        .map(doc => asRecipeSummary(doc))
+        .toArray()
+}
+
 export async function allRecipePaths(): Promise<Array<string>> {
     return await recipeSummaries()
         .then(recipes => recipes.map(recipe => recipe._id.toString()))

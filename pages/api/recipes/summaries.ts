@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {recipeSummariesByName} from "../../../lib/recipes";
+import {recipeSummariesByName, recipeSummariesSearch} from "../../../lib/recipes";
 import {RecipeSummary} from "../../../components/Recipe";
 
 export default async function handler(
@@ -8,6 +8,7 @@ export default async function handler(
 ): Promise<void> {
     console.log("summaries request", request)
     const queries = typeof request.query.name === 'string' ? [request.query.name] : request.query.name
-    return recipeSummariesByName(queries)
+    // return recipeSummariesByName(queries)
+    return recipeSummariesSearch(queries)
         .then(summaries => response.status(200).json(summaries))
 }
