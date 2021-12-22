@@ -1,6 +1,7 @@
 import React, {useRef, useState} from 'react'
 import {
     Avatar,
+    Box,
     IconButton,
     ListItem,
     ListItemAvatar,
@@ -42,7 +43,7 @@ export function StepForm(props: Props): JSX.Element {
     const smallerThanMedium = useMediaQuery(theme.breakpoints.down('md'))
 
     const [step, setStep] = useState<Step>(() => copyStep(props.step))
-    const newItemRef = useRef<boolean>(isEmptyStep(props.step))
+    const isNewItemRef = useRef<boolean>(isEmptyStep(props.step))
 
     const [mode, setMode] = useState<DisplayMode>(initialMode)
 
@@ -64,6 +65,19 @@ export function StepForm(props: Props): JSX.Element {
         setMode(DisplayMode.VIEW)
         setStep(props.step)
         onCancel()
+    }
+
+    function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+        switch (event.key) {
+            case 'Enter':
+                if (canSubmit()) {
+                    handleSubmit(event.ctrlKey && isNewItemRef.current)
+                }
+                break
+            case 'Escape':
+                handleCancel()
+                break
+        }
     }
 
     function renderEditDelete(step: Step): JSX.Element {
@@ -121,25 +135,29 @@ export function StepForm(props: Props): JSX.Element {
     }
 
     return (
-        <>
-            {smallerThanMedium ? <span/> : <TextField
-                id="recipe-step-title"
-                label="Title"
-                size='small'
-                value={step.title}
-                sx={{
-                    "& .MuiOutlinedInput-root": {
-                        minWidth: {xs: 200},
-                        maxWidth: {xs: 200}
-                    }
-                }}
-                onChange={event => setStep(current => ({...current, title: event.target.value}))}
-            />}
+        <Box onKeyDown={handleKeyPress}>
+            {smallerThanMedium ?
+                <span/> :
+                <TextField
+                    id="recipe-step-title"
+                    label="Title"
+                    size='small'
+                    autoFocus={true}
+                    value={step.title}
+                    sx={{
+                        "& .MuiOutlinedInput-root": {
+                            minWidth: {xs: 200},
+                            maxWidth: {xs: 200}
+                        }
+                    }}
+                    onChange={event => setStep(current => ({...current, title: event.target.value}))}
+                />}
             <TextField
                 id="recipe-step-text"
                 label="Instruction"
                 multiline
                 size='small'
+                autoFocus={true}
                 value={step.text}
                 sx={{
                     "& .MuiOutlinedInput-root": {
@@ -154,24 +172,24 @@ export function StepForm(props: Props): JSX.Element {
                 color='primary'
                 disabled={!canSubmit()}
             >
-                <SaveIcon/>
+                <SaveIcon sx={{width: 18, height: 18}}/>
             </IconButton>
             <IconButton
                 onClick={handleCancel}
                 color='secondary'
             >
-                <CancelIcon/>
+                <CancelIcon sx={{width: 18, height: 18}}/>
             </IconButton>
-            {newItemRef.current ?
+            {isNewItemRef.current ?
                 <IconButton
                     onClick={() => handleSubmit(true)}
                     color='primary'
                     disabled={!canSubmit()}
                 >
-                    <AddCircleIcon/>
+                    <AddCircleIcon sx={{width: 18, height: 18}}/>
                 </IconButton> :
                 <span/>
             }
-        </>
+        </Box>
     )
 }

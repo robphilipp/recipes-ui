@@ -1,5 +1,6 @@
 import React, {ChangeEvent, useRef, useState} from 'react'
 import {
+    Box,
     IconButton,
     ListItem,
     ListSubheader,
@@ -30,8 +31,6 @@ import {DisplayMode} from "./FormMode";
 function noop() {
 }
 
-export enum IngredientMode {VIEW, EDIT}
-
 type Props = {
     ingredient: Ingredient
     initialMode?: DisplayMode
@@ -52,7 +51,7 @@ export function IngredientForm(props: Props): JSX.Element {
     const smallerThanMedium = useMediaQuery(theme.breakpoints.down('md'))
 
     const [ingredient, setIngredient] = useState<Ingredient>(() => copyIngredient(props.ingredient))
-    const newItemRef = useRef<boolean>(isEmptyIngredient(props.ingredient))
+    const isNewItemRef = useRef<boolean>(isEmptyIngredient(props.ingredient))
 
     const [mode, setMode] = useState<DisplayMode>(initialMode)
 
@@ -71,8 +70,15 @@ export function IngredientForm(props: Props): JSX.Element {
             ingredient.name !== '' && ingredient.name !== null && ingredient.name !== undefined
     }
 
+    /**
+     * Handles the submitting of the ingredient information.
+     * @param andAgain When `true` and the new-item flag reference is also `true`, then signals the parent
+     * that a new ingredient should be added, and clears out the ingredient in this form. When set
+     * to `false` or the new-item flag reference is `false` then does a regular submit and switches the
+     * mode to editing
+     */
     function handleSubmit(andAgain: boolean): void {
-        if (andAgain) {
+        if (andAgain && isNewItemRef.current) {
             onSubmit(ingredient, andAgain)
             setIngredient(emptyIngredient())
         } else {
@@ -85,6 +91,19 @@ export function IngredientForm(props: Props): JSX.Element {
         setMode(DisplayMode.VIEW)
         setIngredient(props.ingredient)
         onCancel()
+    }
+
+    function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+        switch (event.key) {
+            case 'Enter':
+                if (canSubmit()) {
+                    handleSubmit(event.ctrlKey && isNewItemRef.current)
+                }
+                break
+            case 'Escape':
+                handleCancel()
+                break
+        }
     }
 
     function renderEditDelete(ingredient: Ingredient): JSX.Element {
@@ -129,16 +148,18 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     return (
-        <>
+        <Box onKeyDown={handleKeyPress}>
             <TextField
                 id="recipe-ingredient-amount-value"
                 label="Amount"
                 size='small'
                 type="number"
+                required
+                autoFocus={true}
                 value={ingredient.amount.value}
                 sx={{
                     "& .MuiOutlinedInput-root": {
-                        maxWidth: {xs: 90}
+                        maxWidth: {xs: 80}
                     }
                 }}
                 onChange={handleIngredientAmountChange}
@@ -152,8 +173,9 @@ export function IngredientForm(props: Props): JSX.Element {
             {/*/>*/}
             <Select
                 id="recipe-ingredient-amount-unit"
-                // label="Units"
+                label="Units"
                 size='small'
+                required
                 value={ingredient.amount.unit}
                 onChange={handleIngredientUnitSelect}
                 sx={{mt: 1.2, mr: 0.5, minWidth: 100}}
@@ -179,29 +201,41 @@ export function IngredientForm(props: Props): JSX.Element {
                 id="recipe-ingredient-name"
                 label="Ingredient"
                 size='small'
+                required
                 value={ingredient.name}
-                onChange={event => setIngredient(ing => ({...ing, name: event.target.value}))}
+                onChange={event => setIngredient(current => ({...current, name: event.target.value}))}
             />
             {smallerThanMedium ? <span/> : <TextField
                 id="recipe-ingredient-brand"
                 label="Brand"
                 size='small'
                 value={ingredient.brand}
-                onChange={event => setIngredient(ing => ({...ing, brand: event.target.value}))}
+                onChange={event => setIngredient(current => ({...current, brand: event.target.value}))}
             />
             }
-            <IconButton onClick={() => handleSubmit(false)} color='primary' disabled={!canSubmit()}>
-                <SaveIcon/>
+            <IconButton
+                onClick={() => handleSubmit(false)}
+                color='primary'
+                disabled={!canSubmit()}
+            >
+                <SaveIcon sx={{width: 18, height: 18}}/>
             </IconButton>
-            <IconButton onClick={handleCancel} color='secondary'>
-                <CancelIcon/>
+            <IconButton
+                onClick={handleCancel}
+                color='secondary'
+            >
+                <CancelIcon sx={{width: 18, height: 18}}/>
             </IconButton>
-            {newItemRef.current ?
-                <IconButton onClick={() => handleSubmit(true)} color='primary' disabled={!canSubmit()}>
-                    <AddCircleIcon/>
+            {isNewItemRef.current ?
+                <IconButton
+                    onClick={() => handleSubmit(true)}
+                    color='primary'
+                    disabled={!canSubmit()}
+                >
+                    <AddCircleIcon sx={{width: 18, height: 18}}/>
                 </IconButton> :
                 <span/>
             }
-        </>
+        </Box>
     )
 }

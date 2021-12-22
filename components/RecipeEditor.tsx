@@ -1,4 +1,3 @@
-import Layout from "./Layout";
 import Head from "next/head";
 import React, {ChangeEvent, useEffect, useState} from "react";
 import {Box, Button, ButtonGroup, List, ListItem, TextField, Typography} from "@mui/material";
@@ -29,10 +28,29 @@ const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
 enum EditMode {ADD, UPDATE }
 
 type Props = {
+    /**
+     * Optional recipe. When the recipe is not specified (i.e. undefined), then signal to the
+     * editor that it should be in "add" mode. Otherwise, editor is in "update" mode.
+     */
     recipe?: Recipe
+    /**
+     * Callback function when the recipe is submitted
+     * @param recipe The updated or new recipe
+     */
     onSubmit: (recipe: Recipe) => void
 }
 
+/**
+ * Recipe editor for modifying existing recipes or adding new ones. When the recipe is undefined,
+ * then editor is in "add" mode. When the recipe is specified, then editor is in "update" mode.
+ *
+ * The recipe editor manages the state of the basic elements: recipe name, story, yield, and, notes.
+ * For the more complex parts of the recipe, it relies on {@link TagsForm}, {@link RequiredTimeForm},
+ * {@link IngredientForm}, and {@link StepForm}.
+ * @param props The properties defining the editors behavior
+ * @return The recipe editor component
+ * @constructor
+ */
 export function RecipeEditor(props: Props): JSX.Element {
     const {onSubmit} = props
 
@@ -44,9 +62,7 @@ export function RecipeEditor(props: Props): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    // const [yieldValue, setYieldValue] = useState<string>(() => `${props.recipe.yield.value} ${props.recipe.yield.unit}`)
     const [yieldValue, setYieldValue] = useState<string>(() => `${props.recipe.yield.value}`)
-    // const [yieldValue, setYieldValue] = useState<string>()
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
@@ -102,30 +118,6 @@ export function RecipeEditor(props: Props): JSX.Element {
             return
         }
     }
-
-    // function parseYield(yieldExpression: string): Yield {
-    //     const yielded = emptyYield()
-    //     const fullMatch = yieldExpression.match(YIELD_REGEX)
-    //     if (fullMatch) {
-    //         fullMatch.shift()
-    //         return {
-    //             ...yielded,
-    //             value: parseFloat(fullMatch.shift()),
-    //             unit: fullMatch.shift().trim() || ''
-    //         }
-    //     }
-    //
-    //     const unitMatch = yieldExpression.match(YIELD_UNIT_REGEX)
-    //     if (unitMatch) {
-    //         unitMatch.shift()
-    //         return {
-    //             ...yielded,
-    //             value: NaN,
-    //             unit: unitMatch.shift().trim() || ''
-    //         }
-    //     }
-    //     return yielded
-    // }
 
     function handleUpdateRequiredTime(requiredTime: RequiredTime): void {
         setRecipe(current => ({
@@ -197,7 +189,7 @@ export function RecipeEditor(props: Props): JSX.Element {
     }
 
     return (
-        <Layout>
+        <>
             <Head><title>New Recipe</title></Head>
             <Box
                 component="form"
@@ -210,6 +202,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                         id="recipe-name"
                         label="Recipe Name"
                         size='small'
+                        autoFocus={true}
                         value={recipe.name}
                         onChange={handleNameChange}
                     />
@@ -375,7 +368,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                     </Button>
                 </ButtonGroup>
             </Box>
-        </Layout>
+        </>
     )
 }
 

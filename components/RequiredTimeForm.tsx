@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {isEmptyRequiredTime, RequiredTime, TimeUnits, timeUnitsFrom} from "./Recipe";
-import {IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
+import {Box, IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {DisplayMode} from "./FormMode";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -67,6 +67,19 @@ export function RequiredTimeForm(props: Props): JSX.Element {
         onCancel()
     }
 
+    function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+        switch (event.key) {
+            case 'Enter':
+                if (canSubmit()) {
+                    handleSubmit()
+                }
+                break
+            case 'Escape':
+                handleCancel()
+                break
+        }
+    }
+
     function canSubmit(): boolean {
         const {total, active} = requiredTime
         return total.value > 0 && total.unit !== null && active.value > 0 && active.unit !== null
@@ -93,12 +106,13 @@ export function RequiredTimeForm(props: Props): JSX.Element {
     }
 
     return (
-        <>
+        <Box onKeyDown={handleKeyPress}>
             <TextField
                 id="recipe-required-time-total-value"
                 label="Total"
                 size='small'
                 type="number"
+                autoFocus={true}
                 value={requiredTime.total.value}
                 sx={{
                     "& .MuiOutlinedInput-root": {
@@ -142,12 +156,20 @@ export function RequiredTimeForm(props: Props): JSX.Element {
                     <MenuItem key={unit} value={unit}>{label.toLowerCase()}</MenuItem>
                 ))}
             </Select>
-            <IconButton onClick={handleSubmit} color='primary' disabled={!canSubmit()}>
-                <SaveIcon/>
+            <IconButton
+                onClick={handleSubmit}
+                color='primary'
+                disabled={!canSubmit()}
+            >
+                <SaveIcon sx={{width: 18, height: 18}}/>
             </IconButton>
-            <IconButton onClick={handleCancel} color='secondary' disabled={isEmptyRequiredTime(requiredTime)}>
-                <CancelIcon/>
+            <IconButton
+                onClick={handleCancel}
+                color='secondary'
+                disabled={isEmptyRequiredTime(requiredTime)}
+            >
+                <CancelIcon sx={{width: 18, height: 18}}/>
             </IconButton>
-        </>
+        </Box>
     )
 }
