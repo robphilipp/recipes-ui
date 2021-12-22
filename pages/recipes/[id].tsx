@@ -155,28 +155,43 @@ export default function RecipeView(props: Props): JSX.Element {
                     {recipe.steps.map((step: Step) => {
                         const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
                         return (
-                            <ListItem key={labelId} disablePadding>
-                                <ListItemButton
-                                    role={undefined}
-                                    onClick={() => handleToggleStepStatus(step.text)}
-                                    dense
-                                >
-                                    <ListItemIcon>
-                                        <Checkbox
-                                            edge="start"
-                                            checked={isStepSelected(recipeId, step.text)}
-                                            tabIndex={-1}
-                                            disableRipple
-                                            size="small"
-                                            inputProps={{'aria-labelledby': labelId}}
-                                        />
-                                    </ListItemIcon>
+                            <>
+                                {step.title !== null ?
                                     <ListItemText
                                         id={labelId}
-                                        primary={step.text}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
+                                        sx={{marginBottom: -1, fontWeight: 550, marginLeft: 2}}
+                                    >
+                                        {step.title}
+                                    </ListItemText> :
+                                    <span/>
+                                }
+                                <ListItem key={labelId} disablePadding>
+                                    <ListItemButton
+                                        role={undefined}
+                                        onClick={() => handleToggleStepStatus(step.text)}
+                                        dense
+                                    >
+                                        <ListItemIcon>
+                                            <Checkbox
+                                                edge="start"
+                                                checked={isStepSelected(recipeId, step.text)}
+                                                tabIndex={-1}
+                                                disableRipple
+                                                size="small"
+                                                inputProps={{'aria-labelledby': labelId}}
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText id={labelId}>
+                                            {/*{step.title !== null ?*/}
+                                            {/*    <div style={{fontWeight: 600, fontSize: '1.1em'}}>{step.title}</div> :*/}
+                                            {/*    <span/>*/}
+                                            {/*}*/}
+                                            {/*<div>{step.text}</div>*/}
+                                            {step.text}
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                            </>
                         )
                     })}
                 </List>

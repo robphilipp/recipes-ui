@@ -4,7 +4,7 @@ import {
     Box,
     IconButton,
     ListItem,
-    ListItemAvatar,
+    ListItemAvatar, ListItemText,
     TextField,
     Typography,
     useMediaQuery,
@@ -107,7 +107,6 @@ export function StepForm(props: Props): JSX.Element {
                 key={`${props.step.id}-li`}
                 secondaryAction={renderEditDelete(step)}
                 sx={{
-                    // width: '100%',
                     maxWidth: {
                         xs: 500,
                         sm: 550,
@@ -119,7 +118,7 @@ export function StepForm(props: Props): JSX.Element {
                     <ListItemAvatar><Avatar>{stepNumber}</Avatar></ListItemAvatar> :
                     <span/>
                 }
-                <Typography
+                <ListItemText
                     sx={{
                         maxWidth: {
                             xs: 350,
@@ -128,8 +127,12 @@ export function StepForm(props: Props): JSX.Element {
                         }
                     }}
                 >
-                    {step.text}
-                </Typography>
+                    {step.title !== null ?
+                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{step.title.toUpperCase()}</div> :
+                        <span/>
+                    }
+                    <div>{step.text}</div>
+                </ListItemText>
             </ListItem>
         )
     }
