@@ -25,6 +25,24 @@ import {TagsForm} from "./TagsForm";
 const YIELD_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
 
+export enum Movement {UP, DOWN}
+
+export type ItemPosition = {
+    itemNumber: number
+    numItems: number
+    isFirst: boolean
+    isLast: boolean
+}
+
+function itemPosition(itemNumber: number, numItems: number): ItemPosition {
+    return {
+        itemNumber,
+        numItems,
+        isFirst: itemNumber <= 1,
+        isLast: itemNumber >= numItems
+    }
+}
+
 enum EditMode {ADD, UPDATE }
 
 type Props = {
@@ -155,6 +173,16 @@ export function RecipeEditor(props: Props): JSX.Element {
         setAddingIngredient(false)
     }
 
+    function handleMoveIngredient(ingredient: Ingredient, ingredientNumber: number, direction: Movement): void {
+        const index = ingredientNumber - 1
+        if (index >= 0 && index < recipe.ingredients.length) {
+            setRecipe(current => ({
+                ...current,
+                ingredients: swapItem(current.ingredients, index, direction)
+            }))
+        }
+    }
+
     function handleAddingStep(): void {
         setAddingStep(true)
     }
@@ -182,6 +210,22 @@ export function RecipeEditor(props: Props): JSX.Element {
 
     function handleCancelStep(): void {
         setAddingStep(false)
+    }
+
+    function handleMoveStep(step: Step, stepNumber: number, direction: Movement): void {
+        const index = stepNumber - 1
+        if (index >= 0 && index < recipe.steps.length) {
+            setRecipe(current => ({...current, steps: swapItem(current.steps, index, direction)}))
+        }
+    }
+
+    function swapItem<T>(items: Array<T>, index: number, direction: Movement): Array<T> {
+        const updated = items.slice()
+        const otherIndex = direction === Movement.UP ? index - 1 : index + 1
+        const item = updated[index]
+        updated[index] = updated[otherIndex]
+        updated[otherIndex] = item
+        return updated
     }
 
     function handleSubmitRecipe(): void {
@@ -256,13 +300,15 @@ export function RecipeEditor(props: Props): JSX.Element {
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
                 <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                    {recipe.ingredients.map(ingredient => (
+                    {recipe.ingredients.map((ingredient, index) => (
                         <ListItem key={ingredient.name} disablePadding>
                             <IngredientForm
+                                position={itemPosition(index+1, recipe.ingredients.length)}
                                 ingredient={ingredient}
                                 onSubmit={handleUpdatedIngredient}
                                 onCancel={handleCancelIngredient}
                                 onDelete={handleDeleteIngredient}
+                                onMove={handleMoveIngredient}
                             />
                         </ListItem>))}
                 </List>
@@ -293,11 +339,12 @@ export function RecipeEditor(props: Props): JSX.Element {
                     {recipe.steps.map((step, index) => (
                         <ListItem key={step.text} disablePadding>
                             <StepForm
-                                stepNumber={index+1}
+                                position={itemPosition(index + 1, recipe.steps.length)}
                                 step={step}
                                 onSubmit={handleUpdatedStep}
                                 onCancel={handleCancelStep}
                                 onDelete={handleDeleteStep}
+                                onMove={handleMoveStep}
                             />
                         </ListItem>))}
                 </List>
@@ -307,6 +354,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                         initialMode={DisplayMode.EDIT}
                         onSubmit={handleSubmittedNewStep}
                         onCancel={handleCancelStep}
+                        onMove={handleMoveStep}
                     /> :
                     <span/>}
                 {!addingStep ?

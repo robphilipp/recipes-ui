@@ -27,24 +27,31 @@ import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import {DisplayMode} from "./FormMode";
+import {ItemPosition, Movement} from "./RecipeEditor";
+import MoveUpIcon from "@mui/icons-material/MoveUp";
+import MoveDownIcon from "@mui/icons-material/MoveDown";
 
 function noop() {
 }
 
 type Props = {
+    position?: ItemPosition
     ingredient: Ingredient
     initialMode?: DisplayMode
     onSubmit?: (ingredient: Ingredient, andAgain: boolean) => void
     onCancel?: () => void
     onDelete?: (id: string) => void
+    onMove?: (ingredient: Ingredient, ingredientNumber: number, direction: Movement) => void
 }
 
 export function IngredientForm(props: Props): JSX.Element {
     const {
+        position,
         initialMode = DisplayMode.VIEW,
         onSubmit = noop,
         onCancel = noop,
-        onDelete = noop
+        onDelete = noop,
+        onMove = noop,
     } = props
 
     const theme = useTheme()
@@ -109,6 +116,22 @@ export function IngredientForm(props: Props): JSX.Element {
     function renderEditDelete(ingredient: Ingredient): JSX.Element {
         return (
             <>
+                {position ? <IconButton
+                    onClick={() => onMove(ingredient, position.itemNumber, Movement.UP)}
+                    color='primary'
+                    size='small'
+                    disabled={position.isFirst}
+                >
+                    <MoveUpIcon sx={{width: 18, height: 18}}/>
+                </IconButton> : <span/>}
+                {position ? <IconButton
+                    onClick={() => onMove(ingredient, position.itemNumber, Movement.DOWN)}
+                    color='primary'
+                    size='small'
+                    disabled={position.isLast}
+                >
+                    <MoveDownIcon sx={{width: 18, height: 18}}/>
+                </IconButton> : <span/>}
                 <IconButton
                     onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'

@@ -34,8 +34,8 @@ export default function RecipeView(props: Props): JSX.Element {
     const router = useRouter()
 
     const {
-        isIngredientSelected, selectIngredient, unselectIngredient, clearIngredients,
-        isStepSelected, selectStep, unselectStep, clearSteps
+        isIngredientSelected, selectIngredient, unselectIngredient,
+        isStepSelected, selectStep, unselectStep,
     } = useStatus()
 
     const [recipe, setRecipe] = useState<Recipe>()

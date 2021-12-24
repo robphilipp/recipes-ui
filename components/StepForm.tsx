@@ -4,9 +4,9 @@ import {
     Box,
     IconButton,
     ListItem,
-    ListItemAvatar, ListItemText,
+    ListItemAvatar,
+    ListItemText,
     TextField,
-    Typography,
     useMediaQuery,
     useTheme
 } from "@mui/material";
@@ -16,27 +16,32 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
+import MoveDownIcon from '@mui/icons-material/MoveDown';
+import MoveUpIcon from '@mui/icons-material/MoveUp';
 import {DisplayMode} from "./FormMode";
+import {ItemPosition, Movement} from "./RecipeEditor";
 
 function noop() {
 }
 
 type Props = {
-    stepNumber?: number
+    position?: ItemPosition
     step: Step
     initialMode?: DisplayMode
     onSubmit?: (step: Step, andAgain: boolean) => void
     onCancel?: () => void
     onDelete?: (id: string) => void
+    onMove?: (step: Step, stepNumber: number, direction: Movement) => void
 }
 
 export function StepForm(props: Props): JSX.Element {
     const {
-        stepNumber,
+        position,
         initialMode = DisplayMode.VIEW,
         onSubmit = noop,
         onCancel = noop,
-        onDelete = noop
+        onDelete = noop,
+        onMove = noop,
     } = props
 
     const theme = useTheme()
@@ -83,6 +88,22 @@ export function StepForm(props: Props): JSX.Element {
     function renderEditDelete(step: Step): JSX.Element {
         return (
             <>
+                {position ? <IconButton
+                    onClick={() => onMove(step, position.itemNumber, Movement.UP)}
+                    color='primary'
+                    size='small'
+                    disabled={position.isFirst}
+                >
+                    <MoveUpIcon sx={{width: 18, height: 18}}/>
+                </IconButton> : <span/>}
+                {position ? <IconButton
+                    onClick={() => onMove(step, position.itemNumber, Movement.DOWN)}
+                    color='primary'
+                    size='small'
+                    disabled={position.isLast}
+                >
+                    <MoveDownIcon sx={{width: 18, height: 18}}/>
+                </IconButton> : <span/>}
                 <IconButton
                     onClick={() => setMode(DisplayMode.EDIT)}
                     color='primary'
@@ -114,8 +135,8 @@ export function StepForm(props: Props): JSX.Element {
                     }
                 }}
             >
-                {stepNumber !== undefined ?
-                    <ListItemAvatar><Avatar>{stepNumber}</Avatar></ListItemAvatar> :
+                {position ?
+                    <ListItemAvatar><Avatar>{position.itemNumber}/{position.numItems}</Avatar></ListItemAvatar> :
                     <span/>
                 }
                 <ListItemText
