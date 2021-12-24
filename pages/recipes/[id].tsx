@@ -158,6 +158,7 @@ export default function RecipeView(props: Props): JSX.Element {
                             <>
                                 {step.title !== null ?
                                     <ListItemText
+                                        key={labelId+'item'}
                                         id={labelId}
                                         sx={{marginBottom: -1, fontWeight: 550, marginLeft: 2}}
                                     >

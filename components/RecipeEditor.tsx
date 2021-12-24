@@ -25,15 +25,34 @@ import {TagsForm} from "./TagsForm";
 const YIELD_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
 const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
 
-export enum Movement {UP, DOWN}
+/**
+ * Represents the movement an item in the list (visually). Visually, the item list starts with the
+ * first item at the top and the last item at the bottom. So moving an item "up" the list means moving
+ * it towards the top of the list, and this means moving it from index `n` to index `n-1`. Moving an
+ * item "down" the list means moving it towards the bottom, and this means moving it from an index `n`
+ * to and index `n+1`.
+ */
+export enum Movement {
+    // moves item up the list (visually) from step n+1 to step n
+    UP,
+    // moves item down the list (visually) from step n to step n+1
+    DOWN
+}
 
 export type ItemPosition = {
+    // first item has a number 1 (not zero based)
     itemNumber: number
     numItems: number
     isFirst: boolean
     isLast: boolean
 }
 
+/**
+ * Factory function for creating {@link ItemPosition} objects
+ * @param itemNumber The number of the item in the list (first item is 1 rather than 0)
+ * @param numItems The number of items in the list
+ * @return An {@link ItemPosition}
+ */
 function itemPosition(itemNumber: number, numItems: number): ItemPosition {
     return {
         itemNumber,
