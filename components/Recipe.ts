@@ -144,10 +144,30 @@ const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
  * and gallon are volume, etc.
  */
 export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
-    [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
-    [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
-    [UnitCategories.VOLUME, [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]],
-    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece'), unitFrom(Units.PINCH, 'pinch')]]
+    [UnitCategories.MASS, [
+        unitFrom(Units.MILLIGRAM, 'milligram'),
+        unitFrom(Units.GRAM, 'gram'),
+        unitFrom(Units.KILOGRAM, 'kilogram')
+    ]],
+    [UnitCategories.WEIGHT, [
+        unitFrom(Units.OUNCE, 'ounce'),
+        unitFrom(Units.POUND, 'pound')
+    ]],
+    [UnitCategories.VOLUME, [
+        unitFrom(Units.MILLILITER, 'milliliter'),
+        unitFrom(Units.LITER, 'liter'),
+        unitFrom(Units.TEASPOON, 'teaspoon'),
+        unitFrom(Units.TABLESPOON, 'tablespoon'),
+        unitFrom(Units.FLUID_OUNCE, 'fluid ounce'),
+        unitFrom(Units.CUP, 'cup'),
+        unitFrom(Units.PINT, 'pint'),
+        unitFrom(Units.QUART, 'quart'),
+        unitFrom(Units.GALLON, 'gallon')
+    ]],
+    [UnitCategories.PIECE, [
+        unitFrom(Units.PIECE, 'piece'),
+        unitFrom(Units.PINCH, 'pinch')
+    ]]
 ])
 
 
