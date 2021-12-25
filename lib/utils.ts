@@ -14,5 +14,8 @@ export function formatQuantityFor(quantity: number, units?: string): string {
     if (units === undefined || units === '') {
         return `${quantity}`
     }
+    if (quantity === 0) {
+        return `0 ${pluralize(units, 0)}`
+    }
     return `${formatQuantity(quantity, true)} ${pluralize(units, Math.max(1, quantity))}`
 }

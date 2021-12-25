@@ -99,7 +99,7 @@ export function RecipeEditor(props: Props): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    const [yieldValue, setYieldValue] = useState<string>(() => `${props.recipe.yield.value}`)
+    const [yieldValue, setYieldValue] = useState<string>(() => props.recipe ? `${props.recipe.yield.value}` : undefined)
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
@@ -312,7 +312,6 @@ export function RecipeEditor(props: Props): JSX.Element {
                 <div>
                     <RequiredTimeForm
                         requiredTime={recipe.requiredTime}
-                        initialMode={editMode === EditMode.ADD ? DisplayMode.EDIT : DisplayMode.VIEW}
                         onSubmit={handleUpdateRequiredTime}
                     />
                 </div>
@@ -322,7 +321,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                     {recipe.ingredients.map((ingredient, index) => (
                         <ListItem key={ingredient.name} disablePadding>
                             <IngredientForm
-                                position={itemPosition(index+1, recipe.ingredients.length)}
+                                position={itemPosition(index + 1, recipe.ingredients.length)}
                                 ingredient={ingredient}
                                 onSubmit={handleUpdatedIngredient}
                                 onCancel={handleCancelIngredient}
@@ -419,13 +418,16 @@ export function RecipeEditor(props: Props): JSX.Element {
                     >
                         Save
                     </Button>
-                    <Button
-                        startIcon={<AddCircleIcon/>}
-                        sx={{textTransform: 'none'}}
-                        disabled={!isValidRecipe(recipe)}
-                    >
-                        Save And Add
-                    </Button>
+                    {editMode === EditMode.ADD ?
+                        <Button
+                            startIcon={<AddCircleIcon/>}
+                            sx={{textTransform: 'none'}}
+                            disabled={!isValidRecipe(recipe)}
+                        >
+                            Save And Add
+                        </Button> :
+                        <span/>
+                    }
                     <Button
                         startIcon={<CancelIcon/>}
                         sx={{textTransform: 'none'}}

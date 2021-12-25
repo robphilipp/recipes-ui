@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {isEmptyRequiredTime, RequiredTime, TimeUnits, timeUnitsFrom} from "./Recipe";
+import {RequiredTime, TimeUnits, timeUnitsFrom} from "./Recipe";
 import {Box, IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {DisplayMode} from "./FormMode";
@@ -60,9 +60,7 @@ export function RequiredTimeForm(props: Props): JSX.Element {
     }
 
     function handleCancel(): void {
-        if (!isEmptyRequiredTime(props.requiredTime)) {
-            setMode(DisplayMode.VIEW)
-        }
+        setMode(DisplayMode.VIEW)
         setRequiredTime(props.requiredTime)
         onCancel()
     }
@@ -85,7 +83,7 @@ export function RequiredTimeForm(props: Props): JSX.Element {
         return total.value > 0 && total.unit !== null && active.value > 0 && active.unit !== null
     }
 
-    if (mode === DisplayMode.VIEW && !isEmptyRequiredTime(requiredTime)) {
+    if (mode === DisplayMode.VIEW) {
         return (
             <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                 <AccessTimeIcon sx={{
@@ -166,7 +164,6 @@ export function RequiredTimeForm(props: Props): JSX.Element {
             <IconButton
                 onClick={handleCancel}
                 color='secondary'
-                disabled={isEmptyRequiredTime(requiredTime)}
             >
                 <CancelIcon sx={{width: 18, height: 18}}/>
             </IconButton>
