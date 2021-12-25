@@ -54,7 +54,7 @@ export enum Units {
     OUNCE = 'oz', POUND = 'lb',
     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = 'piece'
+    PIECE = 'piece', PINCH = 'pinch'
 }
 
 /**
@@ -147,7 +147,7 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     [UnitCategories.MASS, [unitFrom(Units.MILLIGRAM, 'milligram'), unitFrom(Units.GRAM, 'gram'), unitFrom(Units.KILOGRAM, 'kilogram')]],
     [UnitCategories.WEIGHT, [unitFrom(Units.OUNCE, 'ounce'), unitFrom(Units.POUND, 'pound')]],
     [UnitCategories.VOLUME, [unitFrom(Units.MILLILITER, 'milliliter'), unitFrom(Units.LITER, 'liter'), unitFrom(Units.TEASPOON, 'teaspoon'), unitFrom(Units.TABLESPOON, 'tablespoon'), unitFrom(Units.FLUID_OUNCE, 'fluid ounce'), unitFrom(Units.CUP, 'cup'), unitFrom(Units.PINT, 'pint'), unitFrom(Units.QUART, 'quart'), unitFrom(Units.GALLON, 'gallon')]],
-    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece')]]
+    [UnitCategories.PIECE, [unitFrom(Units.PIECE, 'piece'), unitFrom(Units.PINCH, 'pinch')]]
 ])
 
 
