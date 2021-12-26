@@ -2,13 +2,13 @@ import React, {useRef, useState} from 'react'
 import {
     Avatar,
     Box,
+    Grid,
     IconButton,
     ListItem,
     ListItemAvatar,
+    ListItemButton,
     ListItemText,
-    TextField,
-    useMediaQuery,
-    useTheme
+    TextField
 } from "@mui/material";
 import {copyStep, emptyStep, isEmptyStep, Step} from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -43,9 +43,6 @@ export function StepForm(props: Props): JSX.Element {
         onDelete = noop,
         onMove = noop,
     } = props
-
-    const theme = useTheme()
-    const smallerThanMedium = useMediaQuery(theme.breakpoints.down('md'))
 
     const [step, setStep] = useState<Step>(() => copyStep(props.step))
     const isNewItemRef = useRef<boolean>(isEmptyStep(props.step))
@@ -85,7 +82,7 @@ export function StepForm(props: Props): JSX.Element {
         }
     }
 
-    function renderEditDelete(step: Step): JSX.Element {
+    function renderControls(step: Step): JSX.Element {
         return (
             <>
                 {position ? <IconButton
@@ -126,7 +123,6 @@ export function StepForm(props: Props): JSX.Element {
         return (
             <ListItem
                 key={`${props.step.id}-li`}
-                secondaryAction={renderEditDelete(step)}
                 sx={{
                     maxWidth: {
                         xs: 500,
@@ -142,9 +138,9 @@ export function StepForm(props: Props): JSX.Element {
                 <ListItemText
                     sx={{
                         maxWidth: {
-                            xs: 350,
-                            sm: 400,
-                            md: 600,
+                            xs: 250,
+                            sm: 250,
+                            md: 800,
                         }
                     }}
                 >
@@ -154,66 +150,88 @@ export function StepForm(props: Props): JSX.Element {
                     }
                     <div>{step.text}</div>
                 </ListItemText>
+                <ListItemButton>
+                    {renderControls(step)}
+                </ListItemButton>
             </ListItem>
         )
     }
 
     return (
         <Box onKeyDown={handleKeyPress}>
-            {smallerThanMedium ?
-                <span/> :
-                <TextField
-                    id="recipe-step-title"
-                    label="Title"
-                    size='small'
-                    autoFocus={true}
-                    value={step.title}
-                    sx={{
-                        "& .MuiOutlinedInput-root": {
-                            minWidth: {xs: 200},
-                            maxWidth: {xs: 200}
-                        }
-                    }}
-                    onChange={event => setStep(current => ({...current, title: event.target.value}))}
-                />}
-            <TextField
-                id="recipe-step-text"
-                label="Instruction"
-                multiline
-                size='small'
-                autoFocus={true}
-                value={step.text}
-                sx={{
-                    "& .MuiOutlinedInput-root": {
-                        minWidth: {xs: 300},
-                        width: {xs: 360}
+            <Grid container sx={{
+                maxWidth: {xs: 500, sm: 500, md: 800}
+            }}>
+                <Grid item xs={4} md={3}>
+                    <TextField
+                        id="recipe-step-title"
+                        label="Title"
+                        size='small'
+                        autoFocus={true}
+                        value={step.title}
+                        // sx={{
+                        //     "& .MuiOutlinedInput-root": {
+                        //         minWidth: {xs: 200},
+                        //         maxWidth: {xs: 200}
+                        //     }
+                        // }}
+                        onChange={event => setStep(current => ({...current, title: event.target.value}))}
+                    />
+                </Grid>
+                <Grid item xs={8} md={6}>
+                    <TextField
+                        id="recipe-step-text"
+                        label="Instruction"
+                        multiline
+                        size='small'
+                        autoFocus={true}
+                        value={step.text}
+                        sx={{
+                            "& .MuiOutlinedInput-root": {
+                                minWidth: {
+                                    xs: 290,
+                                    sm: 290,
+                                    md: 300,
+                                    lg: 400
+                                },
+                                maxWidth: 500
+                            }
+                        }}
+                        // sx={{
+                        //     "& .MuiOutlinedInput-root": {
+                        //         minWidth: {xs: 300},
+                        //         width: {xs: 360}
+                        //     }
+                        // }}
+                        onChange={event => setStep(current => ({...current, text: event.target.value}))}
+                    />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                    <IconButton
+                        onClick={() => handleSubmit(false)}
+                        color='primary'
+                        disabled={!canSubmit()}
+                    >
+                        <SaveIcon sx={{width: 18, height: 18}}/>
+                    </IconButton>
+                    <IconButton
+                        onClick={handleCancel}
+                        color='secondary'
+                    >
+                        <CancelIcon sx={{width: 18, height: 18}}/>
+                    </IconButton>
+                    {isNewItemRef.current ?
+                        <IconButton
+                            onClick={() => handleSubmit(true)}
+                            color='primary'
+                            disabled={!canSubmit()}
+                        >
+                            <AddCircleIcon sx={{width: 18, height: 18}}/>
+                        </IconButton> :
+                        <span/>
                     }
-                }}
-                onChange={event => setStep(current => ({...current, text: event.target.value}))}
-            />
-            <IconButton
-                onClick={() => handleSubmit(false)}
-                color='primary'
-                disabled={!canSubmit()}
-            >
-                <SaveIcon sx={{width: 18, height: 18}}/>
-            </IconButton>
-            <IconButton
-                onClick={handleCancel}
-                color='secondary'
-            >
-                <CancelIcon sx={{width: 18, height: 18}}/>
-            </IconButton>
-            {isNewItemRef.current ?
-                <IconButton
-                    onClick={() => handleSubmit(true)}
-                    color='primary'
-                    disabled={!canSubmit()}
-                >
-                    <AddCircleIcon sx={{width: 18, height: 18}}/>
-                </IconButton> :
-                <span/>
-            }
+                </Grid>
+            </Grid>
         </Box>
     )
 }

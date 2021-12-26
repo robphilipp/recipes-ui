@@ -409,33 +409,35 @@ export function RecipeEditor(props: Props): JSX.Element {
                     }}
                     onChange={event => setRecipe(current => ({...current, notes: event.target.value}))}
                 />
-                <ButtonGroup sx={{marginTop: 5}}>
-                    <Button
-                        startIcon={<SaveIcon/>}
-                        sx={{textTransform: 'none'}}
-                        disabled={!isValidRecipe(recipe)}
-                        onClick={handleSubmitRecipe}
-                    >
-                        Save
-                    </Button>
-                    {editMode === EditMode.ADD ?
+                <div>
+                    <ButtonGroup sx={{marginTop: 5}}>
                         <Button
-                            startIcon={<AddCircleIcon/>}
+                            startIcon={<SaveIcon/>}
                             sx={{textTransform: 'none'}}
                             disabled={!isValidRecipe(recipe)}
+                            onClick={handleSubmitRecipe}
                         >
-                            Save And Add
-                        </Button> :
-                        <span/>
-                    }
-                    <Button
-                        startIcon={<CancelIcon/>}
-                        sx={{textTransform: 'none'}}
-                        onClick={() => router.back()}
-                    >
-                        Cancel
-                    </Button>
-                </ButtonGroup>
+                            Save
+                        </Button>
+                        {editMode === EditMode.ADD ?
+                            <Button
+                                startIcon={<AddCircleIcon/>}
+                                sx={{textTransform: 'none'}}
+                                disabled={!isValidRecipe(recipe)}
+                            >
+                                Save And Add
+                            </Button> :
+                            <span/>
+                        }
+                        <Button
+                            startIcon={<CancelIcon/>}
+                            sx={{textTransform: 'none'}}
+                            onClick={() => router.back()}
+                        >
+                            Cancel
+                        </Button>
+                    </ButtonGroup>
+                </div>
             </Box>
         </>
     )
