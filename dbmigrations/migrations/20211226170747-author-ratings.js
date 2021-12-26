@@ -14,7 +14,7 @@ function updatedSchema() {
         minItems: 5,
         maxItems: 5,
         items: {
-            bsonType: "long",
+            bsonType: "int",
             description: "must be an array of strings and is optional"
         }
     }
@@ -26,6 +26,7 @@ function updatedSchema() {
     }
     const updated = {
         ...schema__v0_1_0.$jsonSchema,
+        required: [...schema__v0_1_0.$jsonSchema.required, "ratings"],
         properties: updatedProperties
     }
     return {$jsonSchema: updated}
@@ -41,10 +42,17 @@ module.exports = {
             collMod: "recipes",
             validator: schema__v0_2_0
         })
+        await db.collection('recipes').updateMany(
+            {},
+            {$set: {ratings: [0, 0, 0, 0, 0]}}
+        )
     },
 
     async down(db) {
-        await db.collection('recipes').updateMany({}, {$unset: {author: "", addedBy: "", ratings: ""}})
+        await db.collection('recipes').updateMany(
+            {},
+            {$unset: {author: "", addedBy: "", ratings: null}}
+        )
         await db.command({
             collMod: "recipes",
             validator: schema__v0_1_0
