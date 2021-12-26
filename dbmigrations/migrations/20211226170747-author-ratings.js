@@ -44,6 +44,7 @@ module.exports = {
     },
 
     async down(db) {
+        await db.collection('recipes').updateMany({}, {$unset: {author: "", addedBy: "", ratings: ""}})
         await db.command({
             collMod: "recipes",
             validator: schema__v0_1_0
