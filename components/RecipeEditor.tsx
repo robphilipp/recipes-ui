@@ -99,7 +99,9 @@ export function RecipeEditor(props: Props): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    const [yieldValue, setYieldValue] = useState<string>(() => props.recipe ? `${props.recipe.yield.value}` : undefined)
+    const [yieldValue, setYieldValue] = useState<string>(
+        () => props.recipe ? `${props.recipe.yield.value}` : undefined
+    )
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [addingStep, setAddingStep] = useState<boolean>(false)
@@ -138,6 +140,7 @@ export function RecipeEditor(props: Props): JSX.Element {
             const value = fullMatch.shift()
             const unit = fullMatch.shift() || ''
             setYieldValue(value)
+
             // update the recipe
             const recipeYield: Yield = {value: parseFloat(value), unit: unit.trim()}
             setRecipe(rec => ({...rec, yield: recipeYield}))
@@ -149,6 +152,7 @@ export function RecipeEditor(props: Props): JSX.Element {
             unitMatch.shift()
             const unit = unitMatch.shift() || ''
             setYieldValue('')
+
             // update the recipe
             const recipeYield: Yield = {value: NaN, unit}
             setRecipe(rec => ({...rec, yield: recipeYield}))
