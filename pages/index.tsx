@@ -3,16 +3,14 @@ import Layout from '../components/Layout'
 import Date from '../components/Date'
 import React, {useEffect, useState} from "react";
 import {
-    Avatar,
+    Avatar, Box,
     Button,
     Card,
-    CardActions,
     CardContent,
     CardHeader,
     Chip,
     IconButton,
-    List,
-    ListItem,
+    Rating,
     Typography,
     useTheme
 } from "@mui/material";
@@ -20,26 +18,17 @@ import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
 import {MenuBook} from "@mui/icons-material";
-import {RecipeSummary} from "../components/Recipe";
+import {ratingsFrom, RecipeSummary} from "../components/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
 import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Link from 'next/link'
 
-type Props = {
-    // allPostsData: Array<PostData>
-    // recipes: Array<RecipeSummary>
-    // search: string | null
-    // recipes: Array<Recipe>
-}
+type Props = {}
 
 export default function Home(props: Props): JSX.Element {
-    const {
-        // recipes,
-        // search
-    } = props
+    const {} = props
 
     const router = useRouter()
     const theme = useTheme()
@@ -150,78 +139,69 @@ export default function Home(props: Props): JSX.Element {
                     Showing {recipes.length} of {recipeCount} recipes
                 </Typography>
 
-                {recipes.map(recipe => (
-                    <Card
-                        key={`${recipe.name}-li`}
-                        variant="outlined"
-                        sx={{
-                            maxWidth: {
-                                xs: 500,
-                                md: 500
-                            },
-                            marginBottom: 1
-                        }}
-                    >
-                        <CardHeader
-                            avatar={inProgress(recipe._id.toString()) ?
-                                <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
-                                <span/>
-                            }
-                            title={<Link href={`/recipes/${recipe._id}`}>
-                                <a style={{textDecoration: 'none', color: theme.palette.primary.main}}>
-                                    {recipe.name.toUpperCase()}
-                                </a>
-                            </Link>}
-                            subheader={<Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
-                                <Date epochMillis={
-                                    (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
-                                }/>
-                            </Typography>}
-                            action={renderEditDelete(recipe._id.toString())}
-                        />
-                        <CardContent>
-                            {recipe.tags.map(tag => (
-                                <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
+                {recipes.map(recipe => {
+                    const rating = ratingsFrom(recipe)
+                    return (
+                        <Card
+                            key={`${recipe.name}-li`}
+                            variant="outlined"
+                            sx={{
+                                maxWidth: {
+                                    xs: 500,
+                                    md: 500
+                                },
+                                marginBottom: 1
+                            }}
+                        >
+                            <CardHeader
+                                avatar={inProgress(recipe._id.toString()) ?
+                                    <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
+                                    <span/>
+                                }
+                                title={<Link href={`/recipes/${recipe._id}`}>
+                                    <a style={{textDecoration: 'none', color: theme.palette.primary.main}}>
+                                        {recipe.name.toUpperCase()}
+                                    </a>
+                                </Link>}
+                                subheader={<Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
+                                    <Date epochMillis={
+                                        (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
+                                    }/>
+                                </Typography>}
+                                action={renderEditDelete(recipe._id.toString())}
+                            />
+                            <CardContent>
+                                <Box
+                                    sx={{
+                                        width: 200,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        paddingLeft: 1,
+                                        marginBottom: 1,
+                                        marginTop: -1
+                                    }}
+                                >
+                                    <Rating
+                                        name="recipe-rating"
+                                        defaultValue={0}
+                                        precision={1}
+                                        value={rating.mean}
+                                        readOnly
+                                    />
+                                    <Box sx={{paddingLeft: 1, fontSize: '0.8em'}}>
+                                        ({rating.ratings})
+                                    </Box>
+                                </Box>
+
+                                {recipe.tags.map(tag => (
+                                    <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>
                                     <Chip label={tag} variant='outlined' size='small'/>
                                 </span>
-                            ))}
-                        </CardContent>
-                    </Card>
-                ))}
-                {/*<List>*/}
-                {/*    {recipes.map(recipe => (*/}
-                {/*        <ListItem*/}
-                {/*            key={`${recipe.name}-li`}*/}
-                {/*            secondaryAction={renderEditDelete(recipe._id.toString())}*/}
-                {/*        >*/}
-                {/*            <div>*/}
-                {/*                {inProgress(recipe._id.toString()) ?*/}
-                {/*                    <MenuBook fontSize='small' style={{marginLeft: 7, paddingTop: 5}}/> : <span/>}*/}
-                {/*                <Button onClick={() => router.push(`/recipes/${recipe._id}`)}>*/}
-                {/*                    {recipe.name}*/}
-                {/*                </Button>*/}
-                {/*                {recipe.tags.map(tag => (*/}
-                {/*                    <span style={{paddingLeft: 7}} key={`${recipe.name}-tag-${tag}`}>*/}
-                {/*                    <Chip label={tag} variant='outlined' size='small'/>*/}
-                {/*                </span>*/}
-                {/*                ))}*/}
-                {/*                <div>*/}
-                {/*                    <Typography*/}
-                {/*                        paragraph*/}
-                {/*                        sx={{fontSize: '0.7em', marginLeft: '1em', marginTop: '-0.2em'}}*/}
-                {/*                    >*/}
-                {/*                        <Date epochMillis={*/}
-                {/*                            (recipe.modifiedOn !== null ?*/}
-                {/*                                recipe.modifiedOn :*/}
-                {/*                                recipe.createdOn*/}
-                {/*                            ) as number*/}
-                {/*                        }/>*/}
-                {/*                    </Typography>*/}
-                {/*                </div>*/}
-                {/*            </div>*/}
-                {/*        </ListItem>*/}
-                {/*    ))}*/}
-                {/*</List>*/}
+                                ))}
+                            </CardContent>
+                        </Card>
+                    )
+                })}
             </section>
         </Layout>
     )

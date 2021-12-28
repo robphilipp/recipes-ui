@@ -1,6 +1,6 @@
 import clientPromise from "./mongodb";
 import {Collection, Long, MongoClient, ObjectId} from "mongodb";
-import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/Recipe";
+import {asRecipe, asRecipeSummary, Rating, Recipe, RecipeSummary} from "../components/Recipe";
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
@@ -74,6 +74,8 @@ export async function allRecipePaths(): Promise<Array<string>> {
 
 function removeRecipeId(recipe: Recipe): Recipe {
     return {
+        author: recipe.author,
+        addedBy: recipe.addedBy,
         story: recipe.story,
         name: recipe.name,
         yield: recipe.yield,
@@ -81,6 +83,7 @@ function removeRecipeId(recipe: Recipe): Recipe {
         createdOn: Long.fromNumber(recipe.createdOn as number),
         modifiedOn: recipe.modifiedOn !== null ? Long.fromNumber(recipe.modifiedOn as number) : null,
         tags: recipe.tags,
+        ratings: recipe.ratings,
         ingredients: recipe.ingredients,
         steps: recipe.steps,
         notes: recipe.notes
@@ -125,4 +128,29 @@ export async function deleteRecipe(recipeId: string): Promise<Recipe> {
         return Promise.reject(`Unable to delete recipe; _id: ${recipeId}; name: ${recipe.name}`)
     }
     return Promise.resolve(recipe)
+}
+
+export async function updateRatings(recipeId: string, newRating: number, ratings: Array<number>): Promise<Recipe> {
+    if (newRating < 1 || newRating > ratings.length) {
+        return Promise.reject(`Invalid rating: ratings must be in [1, 5]; rating: ${newRating}; recipe_id: ${recipeId}`)
+    }
+
+    const updatedRatings = [...ratings]
+    updatedRatings[newRating-1] += 1
+
+    const client = await clientPromise
+    const result = await recipeCollection(client).updateOne(
+        {_id: new ObjectId(recipeId)},
+        {$set: {ratings: updatedRatings}}
+    )
+    if (result.acknowledged) {
+        if (result.matchedCount !== 1) {
+            return Promise.reject(`No recipe found for ID; _id: ${recipeId}`)
+        }
+        if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
+            return Promise.reject(`Failed to update recipe ratings; _id: ${recipeId}`)
+        }
+        return await recipeById(recipeId)
+    }
+    return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipeId}`)
 }

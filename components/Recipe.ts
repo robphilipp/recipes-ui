@@ -104,6 +104,11 @@ export type Step = {
     text: string
 }
 
+export type Rating = {
+    mean: number
+    ratings: number
+}
+
 /**
  * The recipe summary information
  */
@@ -111,8 +116,11 @@ export type RecipeSummary = {
     _id?: ObjectId
     name: string
     tags: Array<string>
+    author?: string
+    addedBy?: string
     createdOn: number | Long
     modifiedOn: number | null | Long
+    ratings: Array<number>
 }
 
 /**
@@ -185,13 +193,16 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
         story: doc.story,
         name: doc.name,
         tags: doc.tags,
+        author: doc.author,
+        addedBy: doc.addedBy,
         yield: doc.yield,
         requiredTime: doc.requiredTime,
         createdOn: doc.createdOn,
         modifiedOn: doc.modifiedOn,
+        ratings: doc.ratings,
         ingredients: doc.ingredients,
         steps: doc.steps,
-        notes: doc.notes
+        notes: doc.notes,
     }
 }
 
@@ -206,8 +217,11 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
         _id: doc._id,
         name: doc.name,
         tags: doc.tags,
+        author: doc.author,
+        addedBy: doc.addedBy,
         createdOn: doc.createdOn,
-        modifiedOn: doc.modifiedOn
+        modifiedOn: doc.modifiedOn,
+        ratings: doc.ratings,
     }
 }
 
@@ -223,6 +237,7 @@ export function emptyRecipe(): Recipe {
         tags: [],
         createdOn: getTime(new Date()),
         modifiedOn: null,
+        ratings: [0, 0, 0, 0, 0],
         yield: {value: 0, unit: ''},
         requiredTime: emptyRequiredTime(),
         ingredients: [],
@@ -240,6 +255,16 @@ export function updateModifiedTimestamp(recipe: Recipe): Recipe {
     return {
         ...recipe,
         modifiedOn: getTime(new Date())
+    }
+}
+
+export function ratingsFrom(recipe: RecipeSummary): Rating {
+    const weightedSum = recipe.ratings
+        .reduce((accum, star, index) => accum + star * (index+1))
+    const numRatings = recipe.ratings.reduce((accum, num) => accum + num)
+    return {
+        mean: weightedSum / numRatings,
+        ratings: numRatings
     }
 }
 

@@ -1,13 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/Recipe";
-
-enum RequestMethod {
-    GET = 'GET',
-    PUT = 'PUT',
-    POST = 'POST',
-    DELETE = 'DELETE'
-}
+import { RequestMethod } from "../../../components/RequestMethod";
 
 export default async function handler(
     request: NextApiRequest,

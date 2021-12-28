@@ -10,18 +10,26 @@ import {
     ListItem,
     ListItemButton,
     ListItemIcon,
-    ListItemText,
+    ListItemText, Rating,
     Typography,
     useTheme
 } from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
-import {Ingredient, ingredientAsText, Recipe, Step} from "../../components/Recipe";
+import {Ingredient, ingredientAsText, ratingsFrom, Recipe, Step} from "../../components/Recipe";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import {formatQuantityFor} from "../../lib/utils";
+
+const ratingFormatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+})
+const numRatingsFormatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 0
+})
 
 type Props = {
     recipeId: string
@@ -68,10 +76,21 @@ export default function RecipeView(props: Props): JSX.Element {
         }
     }
 
+    function handleRatingChange(rating: number): void {
+        console.log("rating", rating)
+        axios
+            .post(`/api/recipes/ratings/${recipeId}`, {newRating: rating, ratings: recipe.ratings})
+            .then(response => {
+                const recipe = response.data as Recipe
+                setRecipe(recipe)
+            })
+    }
+
     if (recipe === undefined) {
         return <div>Loading...</div>
     }
 
+    const rating = ratingsFrom(recipe)
     return (
         <>
             <Head><title>{recipe.name}</title></Head>
@@ -103,16 +122,26 @@ export default function RecipeView(props: Props): JSX.Element {
                         <Chip label={tag} variant='filled' size='small' sx={{marginTop: 1.5}}/>
                     </span>
                 ))}
-
+                <Typography sx={{marginTop: 1.75}}>
+                    <Rating
+                        name="recipe-rating"
+                        defaultValue={0}
+                        precision={1}
+                        value={rating.mean}
+                        onChange={(event, newValue) => handleRatingChange(newValue)}
+                    />
+                    <Typography sx={{marginTop: -1, fontSize: '0.7em'}}>
+                        {ratingFormatter.format(rating.mean)} with {numRatingsFormatter.format(rating.ratings)} ratings
+                    </Typography>
+                </Typography>
                 <Typography sx={{marginTop: 1.75}}>
                     Yield: {formatQuantityFor(recipe.yield.value, recipe.yield.unit)}
                 </Typography>
 
                 <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
-                    <AccessTimeIcon sx={{
-                        width: 14,
-                        height: 14
-                    }}/> {formatQuantityFor(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total; {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
+                    <AccessTimeIcon sx={{width: 14, height: 14}}/>
+                    {formatQuantityFor(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total;
+                    {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>
