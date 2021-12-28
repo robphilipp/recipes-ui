@@ -17,8 +17,6 @@ import {
     Toolbar,
     Typography
 } from "@mui/material";
-import Image from "next/image";
-import utilStyles from "../styles/utils.module.css";
 import React, {useState} from "react";
 import {useRouter} from "next/router";
 import HomeIcon from '@mui/icons-material/Home';
@@ -30,11 +28,19 @@ import StatusProvider from "../lib/useStatus";
 import {ThemeProvider} from '@mui/material/styles';
 import {lightTheme} from "../theme/theme";
 import SearchIcon from '@mui/icons-material/Search';
+import {styled} from '@mui/system'
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 
 enum Navigation {HOME, ADD_RECIPE}
+
+const TitleImage = styled('img')({
+    borderRadius: 9999,
+    height: 40,
+    width: 40,
+    marginRight: 10
+})
 
 export default function App(props: AppProps) {
     const {Component, pageProps} = props
@@ -111,7 +117,6 @@ export default function App(props: AppProps) {
                             position="fixed"
                             elevation={1}
                             sx={{
-                                // zIndex: theme => theme.zIndex.drawer + 1,
                                 width: {
                                     sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
                                     md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
@@ -122,14 +127,7 @@ export default function App(props: AppProps) {
                             <Toolbar>
                                 <Link href={"/"}>
                                     <a style={{marginTop: 7}}>
-                                        <Image
-                                            priority
-                                            src="/images/2020.jpg"
-                                            className={utilStyles.borderCircle}
-                                            height={50}
-                                            width={50}
-                                            alt="Shitty Year"
-                                        />
+                                        <TitleImage src="/images/2020.jpg" alt="City Year"/>
                                     </a>
                                 </Link>
                                 <Typography
