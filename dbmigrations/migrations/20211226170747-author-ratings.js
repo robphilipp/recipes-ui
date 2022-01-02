@@ -1,5 +1,13 @@
 const {schema__v0_1_0} = require("./20211225132708-units-add-pinch")
 
+/**
+ * Adds three fields:
+ * 1. author - the creator of the recipe
+ * 2. addedBy - who added the recipe
+ * 3. ratings - an array holding the number of ratings for each star (1-5) which the
+ *    recipe has received
+ * @return the updated schema
+ */
 function updatedSchema() {
     const author = {
         bsonType: "string",
