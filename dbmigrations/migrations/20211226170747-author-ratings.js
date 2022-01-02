@@ -10,11 +10,11 @@ const {schema__v0_1_0} = require("./20211225132708-units-add-pinch")
  */
 function updatedSchema() {
     const author = {
-        bsonType: "string",
+        bsonType: ["string", "null"],
         description: "must be a string"
     }
     const addedBy = {
-        bsonType: "string",
+        bsonType: ["string", "null"],
         description: "must be a string"
     }
     const ratings = {

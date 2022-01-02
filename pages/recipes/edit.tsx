@@ -3,7 +3,6 @@ import {RecipeEditor} from "../../components/RecipeEditor";
 import axios from "axios";
 import {useRouter} from "next/router";
 import {emptyRecipe, Recipe, updateModifiedTimestamp} from "../../components/Recipe";
-import {getTime} from "date-fns/fp";
 
 export default function UpdateRecipe() {
     const router = useRouter()
@@ -13,7 +12,11 @@ export default function UpdateRecipe() {
 
     useEffect(
         () => {
-            axios.get(`/api/recipes/${objectId}`).then(response => setRecipe(response.data as Recipe))
+            if (objectId !== undefined) {
+                axios
+                    .get(`/api/recipes/${objectId}`)
+                    .then(response => setRecipe(response.data as Recipe))
+            }
         },
         [objectId]
     )

@@ -51,7 +51,7 @@ This project uses [migrate-mongo](https://www.npmjs.com/package/migrate-mongo) t
 In the `dbmigrations` directory,
 
 ```shell
-migrate-mongo <create some_description_of_changes>
+migrate-mongo create <create some_description_of_changes>
 ```
 
 This will create a migration file in the `dbmigrations/migrations` directory, to which you can add the migration. Then to apply the migration

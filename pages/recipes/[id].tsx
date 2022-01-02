@@ -50,8 +50,9 @@ export default function RecipeView(props: Props): JSX.Element {
 
     useEffect(
         () => {
+            const id = recipeId ? recipeId : (router.query.id as string)
             axios
-                .get(`/api/recipes/${recipeId}`)
+                .get(`/api/recipes/${id}`)
                 .then(response => {
                     const recipe = response.data as Recipe
                     setRecipe(recipe)

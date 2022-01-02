@@ -116,8 +116,8 @@ export type RecipeSummary = {
     _id?: ObjectId
     name: string
     tags: Array<string>
-    author?: string
-    addedBy?: string
+    author: string | null
+    addedBy: string | null
     createdOn: number | Long
     modifiedOn: number | null | Long
     ratings: Array<number>
@@ -235,6 +235,8 @@ export function emptyRecipe(): Recipe {
         story: '',
         name: '',
         tags: [],
+        author: null,
+        addedBy: null,
         createdOn: getTime(new Date()),
         modifiedOn: null,
         ratings: [0, 0, 0, 0, 0],
