@@ -168,7 +168,7 @@ export default function Home(props: Props): JSX.Element {
                                         (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
                                     }/>
                                     <div>
-                                        {recipe.author ? <span style={{marginRight: 10}}>Author: {recipe.author}</span> : <span/>}
+                                        {recipe.author ? <span style={{marginRight: 25}}>Author: {recipe.author}</span> : <span/>}
                                         {recipe.addedBy ? <span>Added By: {recipe.addedBy}</span> : <span/>}
                                     </div>
                                 </Typography>}

@@ -308,7 +308,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                         id="recipe-author"
                         label="Author"
                         size="small"
-                        value={recipe.author}
+                        value={recipe.author || ''}
                         onChange={event => setRecipe(current => ({...current, author: event.target.value}))}
                     />
                 </div>
@@ -317,7 +317,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                         id="recipe-added-by"
                         label="Added By"
                         size="small"
-                        value={recipe.addedBy}
+                        value={recipe.addedBy || ''}
                         onChange={event => setRecipe(current => ({...current, addedBy: event.target.value}))}
                     />
                 </div>
