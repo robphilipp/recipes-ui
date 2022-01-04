@@ -167,6 +167,10 @@ export default function Home(props: Props): JSX.Element {
                                     <Date epochMillis={
                                         (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
                                     }/>
+                                    <div>
+                                        {recipe.author ? <span style={{marginRight: 10}}>Author: {recipe.author}</span> : <span/>}
+                                        {recipe.addedBy ? <span>Added By: {recipe.addedBy}</span> : <span/>}
+                                    </div>
                                 </Typography>}
                                 action={renderEditDelete(recipe._id.toString())}
                             />

@@ -118,6 +118,12 @@ export default function RecipeView(props: Props): JSX.Element {
                     </Typography> :
                     <span/>
                 }
+                {recipe.author ? <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
+                    Author: {recipe.author}
+                </Typography> : <span/>}
+                {recipe.addedBy ? <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
+                    Added by: {recipe.addedBy}
+                </Typography> : <span/>}
                 {recipe.tags.map(tag => (
                     <span style={{paddingRight: 7}} key={`${recipe.name}-tag-${tag}`}>
                         <Chip label={tag} variant='filled' size='small' sx={{marginTop: 1.5}}/>
@@ -141,8 +147,10 @@ export default function RecipeView(props: Props): JSX.Element {
 
                 <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                     <AccessTimeIcon sx={{width: 14, height: 14}}/>
-                    {formatQuantityFor(recipe.requiredTime.total.value, recipe.requiredTime.total.unit)} total;
+                    <span style={{paddingLeft: 10}}/>
                     {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
+                    <span style={{paddingLeft: 10}}/>
+                    {formatQuantityFor(recipe.requiredTime.total.value - recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} beer time
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>
