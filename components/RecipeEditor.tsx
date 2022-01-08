@@ -22,9 +22,6 @@ import {RequiredTimeForm} from "./RequiredTimeForm";
 import {DisplayMode} from "./FormMode";
 import {TagsForm} from "./TagsForm";
 
-const YIELD_REGEX = /^([0-9]+[.]?[0-9]*)([a-zA-Z \t]*)$/
-const YIELD_UNIT_REGEX = /([a-zA-Z \t]*)$/
-
 /**
  * Represents the movement an item in the list (visually). Visually, the item list starts with the
  * first item at the top and the last item at the bottom. So moving an item "up" the list means moving
@@ -131,33 +128,6 @@ export function RecipeEditor(props: Props): JSX.Element {
 
     function handleRemoveTag(tag: string): void {
         setRecipe(current => ({...current, tags: current.tags.filter(t => t !== tag)}))
-    }
-
-    function handleYieldValueChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
-        const fullMatch = event.target.value.match(YIELD_REGEX)
-        if (fullMatch) {
-            fullMatch.shift()
-            const value = fullMatch.shift()
-            const unit = fullMatch.shift() || ''
-            setYieldValue(value)
-
-            // update the recipe
-            const recipeYield: Yield = {value: parseFloat(value), unit: unit.trim()}
-            setRecipe(rec => ({...rec, yield: recipeYield}))
-            return
-        }
-
-        const unitMatch = event.target.value.match(YIELD_UNIT_REGEX)
-        if (unitMatch) {
-            unitMatch.shift()
-            const unit = unitMatch.shift() || ''
-            setYieldValue('')
-
-            // update the recipe
-            const recipeYield: Yield = {value: NaN, unit}
-            setRecipe(rec => ({...rec, yield: recipeYield}))
-            return
-        }
     }
 
     function handleUpdateRequiredTime(requiredTime: RequiredTime): void {
@@ -326,8 +296,17 @@ export function RecipeEditor(props: Props): JSX.Element {
                         id="recipe-yield-amount"
                         label="Yield"
                         size='small'
-                        value={yieldValue ? `${yieldValue} ${recipe.yield.unit}` : recipe.yield.unit}
-                        onChange={handleYieldValueChange}
+                        type='number'
+                        value={recipe.yield.value}
+                        onChange={event => setRecipe(current => ({...current, yield: {...current.yield, value: parseFloat(event.target.value)}}))}
+                        sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
+                    />
+                    <TextField
+                        id="recipe-yield-unit"
+                        label="Yield"
+                        size='small'
+                        value={recipe.yield.unit}
+                        onChange={event => setRecipe(current => ({...current, yield: {...current.yield, unit: event.target.value}}))}
                         sx={{'& .MuiTextField-root': {m: 1.1, width: '5ch'}}}
                     />
                 </div>
