@@ -118,12 +118,10 @@ export default function RecipeView(props: Props): JSX.Element {
                     </Typography> :
                     <span/>
                 }
-                {recipe.author ? <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
-                    Author: {recipe.author}
-                </Typography> : <span/>}
-                {recipe.addedBy ? <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
-                    Added by: {recipe.addedBy}
-                </Typography> : <span/>}
+                <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
+                    {recipe.author ? <span style={{marginRight: 25}}>Author: {recipe.author}</span> : <span/>}
+                    {recipe.addedBy ? <span>Added By: {recipe.addedBy}</span> : <span/>}
+                </Typography>
                 {recipe.tags.map(tag => (
                     <span style={{paddingRight: 7}} key={`${recipe.name}-tag-${tag}`}>
                         <Chip label={tag} variant='filled' size='small' sx={{marginTop: 1.5}}/>
@@ -154,7 +152,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>
-                    <AutoStoriesIcon/> {recipe.story}
+                    <AutoStoriesIcon sx={{marginRight: 1, marginBottom: -0.5}}/> {recipe.story}
                 </Typography>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
