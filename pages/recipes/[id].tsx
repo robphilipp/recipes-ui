@@ -187,7 +187,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 </List>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
-                <List sx={{width: '100%', maxWidth: 360, marginTop: -1}}>
+                <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
                     {recipe.steps.map((step: Step) => {
                         const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
                         return (

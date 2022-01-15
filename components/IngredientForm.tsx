@@ -182,11 +182,6 @@ export function IngredientForm(props: Props): JSX.Element {
                         required
                         autoFocus={true}
                         value={ingredient.amount.value}
-                        // sx={{
-                        //     "& .MuiOutlinedInput-root": {
-                        //         maxWidth: {xs: 80}
-                        //     }
-                        // }}
                         onChange={handleIngredientAmountChange}
                     />
                 </Grid>

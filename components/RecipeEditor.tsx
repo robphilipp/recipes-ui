@@ -333,6 +333,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                 </List>
                 {addingIngredient ?
                     <IngredientForm
+                        key={`new-ingredient-${recipe.ingredients.length+1}`}
                         ingredient={emptyIngredient()}
                         initialMode={DisplayMode.EDIT}
                         onSubmit={handleSubmittedNewIngredient}
