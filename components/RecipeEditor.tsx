@@ -370,6 +370,7 @@ export function RecipeEditor(props: Props): JSX.Element {
                 </List>
                 {addingStep ?
                     <StepForm
+                        key={`new-step-${recipe.steps.length+1}`}
                         step={emptyStep()}
                         initialMode={DisplayMode.EDIT}
                         onSubmit={handleSubmittedNewStep}
