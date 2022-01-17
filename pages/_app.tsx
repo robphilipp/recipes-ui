@@ -22,6 +22,7 @@ import {useRouter} from "next/router";
 import HomeIcon from '@mui/icons-material/Home';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 import SearchProvider from "../lib/useSearch";
 import RecipeSearch from "../components/RecipeSearch";
 import StatusProvider from "../lib/useStatus";
@@ -33,13 +34,14 @@ import {styled} from '@mui/system'
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 
-enum Navigation {HOME, ADD_RECIPE}
+enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
 
 const TitleImage = styled('img')({
-    borderRadius: 9999,
-    height: 40,
-    width: 40,
-    marginRight: 10
+    borderRadius: 5,
+    height: 50,
+    width: 50 * 1.56,
+    marginRight: 10,
+    marginLeft: -15
 })
 
 export default function App(props: AppProps) {
@@ -57,6 +59,9 @@ export default function App(props: AppProps) {
     const goAddRecipe = async () => router
         .push("/recipes/new")
         .then(() => setNavItem(Navigation.ADD_RECIPE))
+    const goImportRecipe = async () => router
+        .push("/recipes/import/ocr")
+        .then(() => setNavItem(Navigation.IMPORT_RECIPE_OCR))
 
 
     async function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
@@ -89,6 +94,13 @@ export default function App(props: AppProps) {
                     >
                         <ListItemIcon><AddCircleIcon/></ListItemIcon>
                         <ListItemText primary="Add Recipe"/>
+                    </ListItem>
+                    <ListItem
+                        button
+                        onClick={goImportRecipe}
+                    >
+                        <ListItemIcon><DocumentScannerIcon/></ListItemIcon>
+                        <ListItemText primary="Import (OCR)"/>
                     </ListItem>
                 </List>
                 <Divider/>
@@ -127,7 +139,7 @@ export default function App(props: AppProps) {
                             <Toolbar>
                                 <Link href={"/"}>
                                     <a style={{marginTop: 7}}>
-                                        <TitleImage src="/images/2020.jpg" alt="City Year"/>
+                                        <TitleImage src="/images/goodoletimes.png" alt="City Year"/>
                                     </a>
                                 </Link>
                                 <Typography

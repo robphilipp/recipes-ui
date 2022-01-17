@@ -16,14 +16,17 @@
     "date-fns": "^2.27.0",
     "format-quantity": "^1.0.1",
     "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
     "mongodb": "^4.2.0",
     "next": "latest",
     "pluralize": "^8.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-dropzone": "^11.5.1",
     "remark": "^14.0.2",
     "remark-html": "^15.0.0",
-    "swr": "^1.0.1"
+    "swr": "^1.0.1",
+    "tesseract.js": "^2.1.5"
   },
   "devDependencies": {
     "@types/node": "^16.11.10",
