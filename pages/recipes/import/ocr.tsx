@@ -56,8 +56,8 @@ export default function ImportRecipeOcr(): JSX.Element {
 
     function parseText(text: string): JSX.Element {
         return <Box sx={{minWidth: 35}}>
-            {text.split(/\n/).map(para => (
-                <Typography variant="body2" color="text.secondary">{para}</Typography>
+            {text.split(/\n/).map((para, index) => (
+                <Typography key={index} variant="body2" color="text.secondary">{para}</Typography>
             ))}
         </Box>
     }
