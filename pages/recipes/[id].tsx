@@ -58,7 +58,7 @@ export default function RecipeView(props: Props): JSX.Element {
                     setRecipe(recipe)
                 })
         },
-        [recipeId]
+        [recipeId, router.query.id]
     )
 
     function handleToggleIngredientStatus(ingredient: string) {

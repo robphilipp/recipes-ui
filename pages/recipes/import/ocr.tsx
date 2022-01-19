@@ -52,7 +52,7 @@ export default function ImportRecipeOcr(): JSX.Element {
             setFileDropped(false)
             await workerRef.current.terminate()
         })();
-    }, [workerRef.current])
+    }, [])
 
     function parseText(text: string): JSX.Element {
         return <Box sx={{minWidth: 35}}>
