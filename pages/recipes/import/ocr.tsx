@@ -11,6 +11,7 @@ export default function ImportRecipeOcr(): JSX.Element {
     const [ocrProgress, setOcrProgress] = useState<number>()
     const [fileDropped, setFileDropped] = useState(false)
     const [status, setStatus] = useState<string>()
+    const [recipe, setRecipe] = useState<JSX.Element>()
 
     useEffect(
         () => {
@@ -45,12 +46,21 @@ export default function ImportRecipeOcr(): JSX.Element {
         (async () => {
             const {data: {text}} = await workerRef.current.recognize(acceptedFiles[0])
             console.log(text)
-            setStatus(text)
+            setRecipe(parseText(text))
+            setStatus(undefined)
             setOcrProgress(undefined)
             setFileDropped(false)
             await workerRef.current.terminate()
         })();
     }, [workerRef.current])
+
+    function parseText(text: string): JSX.Element {
+        return <Box sx={{minWidth: 35}}>
+            {text.split(/\n/).map(para => (
+                <Typography variant="body2" color="text.secondary">{para}</Typography>
+            ))}
+        </Box>
+    }
 
     function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
         return (
@@ -102,5 +112,6 @@ export default function ImportRecipeOcr(): JSX.Element {
                 <Typography variant="body2" color="text.secondary">{status}</Typography>
             </Box>
         }
+        {recipe ? recipe : <div/>}
     </>
 }
