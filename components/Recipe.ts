@@ -35,6 +35,23 @@ export type Time = {
     unit: TimeUnits
 }
 
+const timeConversion: Map<TimeUnits, number> = new Map([
+    [TimeUnits.MINUTE, 1],
+    [TimeUnits.HOUR, 60],
+    [TimeUnits.DAY, 24 * 60],
+    [TimeUnits.MONTH, 30 * 24 * 60],
+])
+
+export function subtractTime(t1: Time, t2: Time, units: TimeUnits = TimeUnits.MINUTE): Time {
+    const v1 = (timeConversion.get(t1.unit) || 1) * t1.value
+    const v2 = (timeConversion.get(t2.unit) || 1) * t2.value
+    const diff = Math.abs(v2 - v1)
+    return {
+        value: diff / (timeConversion.get(units) || 1),
+        unit: units
+    }
+}
+
 /**
  * The required time for making the recipe includes the active time
  * (i.e. the time work is required), and the passive time (cooling,

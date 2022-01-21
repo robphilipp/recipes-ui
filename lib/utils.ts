@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import formatQuantity from "format-quantity";
-import {Units} from "../components/Recipe";
+import {RequiredTime, Time, Units} from "../components/Recipe";
 
 /**
  * Converts the quantity to a fraction and pluralizes the units for display.

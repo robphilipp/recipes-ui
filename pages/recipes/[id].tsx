@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import {useStatus} from "../../lib/useStatus";
-import {Ingredient, ingredientAsText, ratingsFrom, Recipe, Step} from "../../components/Recipe";
+import {Ingredient, ingredientAsText, ratingsFrom, Recipe, Step, subtractTime} from "../../components/Recipe";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -92,6 +92,7 @@ export default function RecipeView(props: Props): JSX.Element {
     }
 
     const rating = ratingsFrom(recipe)
+    const beerTime = subtractTime(recipe.requiredTime.total, recipe.requiredTime.active, recipe.requiredTime.total.unit)
     return (
         <>
             <Head><title>{recipe.name}</title></Head>
@@ -146,9 +147,9 @@ export default function RecipeView(props: Props): JSX.Element {
                 <Typography sx={{fontSize: '0.8em', fontWeight: 540, marginTop: 1}}>
                     <AccessTimeIcon sx={{width: 14, height: 14}}/>
                     <span style={{paddingLeft: 10}}/>
-                    {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active
+                    {formatQuantityFor(recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} active;
                     <span style={{paddingLeft: 10}}/>
-                    {formatQuantityFor(recipe.requiredTime.total.value - recipe.requiredTime.active.value, recipe.requiredTime.active.unit)} beer time
+                    {formatQuantityFor(beerTime.value, beerTime.unit)} passive time
                 </Typography>
 
                 <Typography paragraph sx={{marginTop: 2}}>
