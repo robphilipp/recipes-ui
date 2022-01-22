@@ -87,6 +87,77 @@ export default function RecipeView(props: Props): JSX.Element {
             })
     }
 
+    function Steps(): JSX.Element {
+        // organize steps by section. any step without a section takes on the current
+        // section, any step with a section gets added to that section
+        type Accumulator = { currentSection: string, accumulated: Map<string, Array<Step>> }
+        const initial: Accumulator = {currentSection: "", accumulated: new Map<string, Array<Step>>()}
+        const organizedSteps = recipe.steps.reduce(
+            (accum, step) => {
+                // when the step has an explicit section, then add the step to the steps
+                // in that section and update the current section to the new section,
+                // otherwise add it to the current section
+                if (step.title !== null && step.title !== '') {
+                    accum.currentSection = step.title;
+                    const accumSteps = accum.accumulated.get(step.title) || []
+                    accumSteps.push(step)
+                    accum.accumulated.set(step.title, accumSteps)
+                } else {
+                    const accumSteps = accum.accumulated.get(accum.currentSection) || []
+                    accumSteps.push(step)
+                    accum.accumulated.set(accum.currentSection, accumSteps)
+                }
+                return accum
+            },
+            initial
+        )
+        return (
+            <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
+                {Array.from(organizedSteps.accumulated).map(([section, steps]) => {
+                    return <>
+                        {section !== null && section !== '' ?
+                            <ListItemText
+                                key={`step-list-section-${section}`}
+                                sx={{marginBottom: -1, fontWeight: 550, marginLeft: 2}}
+                            >
+                                <Typography sx={{fontSize: `1.1em`, marginTop: 2, marginBottom: 1}}>
+                                    {section}
+                                </Typography>
+                            </ListItemText> :
+                            <span/>
+                        }
+                        {steps.map(step => {
+                            const labelId = `${recipe.name}-step-list-item-${step.text}`
+                            return (
+                                <ListItem key={labelId} disablePadding>
+                                    <ListItemButton
+                                        role={undefined}
+                                        onClick={() => handleToggleStepStatus(step.text)}
+                                        dense
+                                    >
+                                        <ListItemIcon>
+                                            <Checkbox
+                                                edge="start"
+                                                checked={isStepSelected(recipeId, step.text)}
+                                                tabIndex={-1}
+                                                disableRipple
+                                                size="small"
+                                                inputProps={{'aria-labelledby': labelId}}
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText id={labelId}>
+                                            {step.text}
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                            )
+                        })}
+                    </>
+                })}
+            </List>
+        )
+    }
+
     if (recipe === undefined) {
         return <div>Loading...</div>
     }
@@ -188,51 +259,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 </List>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
-                <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
-                    {recipe.steps.map((step: Step) => {
-                        const labelId = `${recipe.name}-ingredient-list-item-${step.text}`
-                        return (
-                            <>
-                                {step.title !== null ?
-                                    <ListItemText
-                                        key={labelId+'item'}
-                                        id={labelId}
-                                        sx={{marginBottom: -1, fontWeight: 550, marginLeft: 2}}
-                                    >
-                                        {step.title}
-                                    </ListItemText> :
-                                    <span/>
-                                }
-                                <ListItem key={labelId} disablePadding>
-                                    <ListItemButton
-                                        role={undefined}
-                                        onClick={() => handleToggleStepStatus(step.text)}
-                                        dense
-                                    >
-                                        <ListItemIcon>
-                                            <Checkbox
-                                                edge="start"
-                                                checked={isStepSelected(recipeId, step.text)}
-                                                tabIndex={-1}
-                                                disableRipple
-                                                size="small"
-                                                inputProps={{'aria-labelledby': labelId}}
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText id={labelId}>
-                                            {/*{step.title !== null ?*/}
-                                            {/*    <div style={{fontWeight: 600, fontSize: '1.1em'}}>{step.title}</div> :*/}
-                                            {/*    <span/>*/}
-                                            {/*}*/}
-                                            {/*<div>{step.text}</div>*/}
-                                            {step.text}
-                                        </ListItemText>
-                                    </ListItemButton>
-                                </ListItem>
-                            </>
-                        )
-                    })}
-                </List>
+                <Steps/>
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Notes</Typography>
                 <Typography paragraph>{recipe.notes}</Typography>
             </article>

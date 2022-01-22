@@ -66,28 +66,6 @@
 //
 // const schema__v0_3_0 = updatedSchema()
 //
-// module.exports = {
-//     async up(db, client) {
-//         // update the schema
-//         await db.command({
-//             collMod: "recipes",
-//             validator: schema__v0_3_0
-//         })
-//         // add section to ingredients
-//         await db.collection("recipes").updateMany(
-//             {},
-//             {$set: {sections: []}}
-//         )
-//         // for "steps" we need to convert any "title" values to "section" values, and add
-//         // the those values to the "sections" of the recipe
-//     },
-//
-//     async down(db, client) {
-//         // TODO write the statements to rollback your migration (if possible)
-//         // Example:
-//         // await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: false}});
-//     }
-// };
 /**
  * I goofed, so this is just an empty migration
  * @type {{up(*, *): Promise<*>, down(*, *): Promise<*>}}
