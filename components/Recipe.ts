@@ -117,6 +117,7 @@ export type Ingredient = {
  */
 export type Step = {
     id: string
+    // section title that allows steps to be organized into sections
     title: string | null
     text: string
 }

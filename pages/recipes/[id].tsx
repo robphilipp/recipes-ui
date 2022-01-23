@@ -87,6 +87,11 @@ export default function RecipeView(props: Props): JSX.Element {
             })
     }
 
+    /**
+     * Renders the list of steps, organizing them by sections, if specified, and returns the
+     * list as a component
+     * @constructor
+     */
     function Steps(): JSX.Element {
         // organize steps by section. any step without a section takes on the current
         // section, any step with a section gets added to that section
@@ -111,6 +116,7 @@ export default function RecipeView(props: Props): JSX.Element {
             },
             initial
         )
+
         return (
             <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
                 {Array.from(organizedSteps.accumulated).map(([section, steps]) => {
