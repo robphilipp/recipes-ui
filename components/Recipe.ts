@@ -107,6 +107,7 @@ export type Amount = {
  */
 export type Ingredient = {
     id: string
+    section: string | null
     name: string
     brand: string | null
     amount: Amount
@@ -305,6 +306,7 @@ export function isEmptyYield(yielded: Yield): boolean {
 export function emptyIngredient(): Ingredient {
     return {
         id: (new UUID()).toString('hex'),
+        section: null,
         amount: {value: NaN, unit: Units.PIECE},
         name: '',
         brand: null
@@ -319,6 +321,7 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
 export function copyIngredient(ingredient: Ingredient): Ingredient {
     return {
         id: ingredient.id,
+        section: ingredient.section,
         amount: {...ingredient.amount},
         name: ingredient.name,
         brand: ingredient.brand
