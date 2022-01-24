@@ -163,7 +163,29 @@ export function IngredientForm(props: Props): JSX.Element {
                     }
                 }}
             >
-                <ListItemText>{ingredientAsText(ingredient)}</ListItemText>
+                <ListItemText
+                    sx={{
+                        maxWidth: {
+                            xs: 250,
+                            sm: 250,
+                            md: 800,
+                        }
+                    }}
+                >
+                    {ingredient.section !== null ?
+                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :
+                        <span/>
+                    }
+                    <div>{ingredientAsText(ingredient)}</div>
+                </ListItemText>
+
+                {/*<ListItemText>*/}
+                {/*    {ingredient.section !== null ?*/}
+                {/*        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :*/}
+                {/*        <span/>*/}
+                {/*    }*/}
+                {/*    <div>{ingredientAsText(ingredient)}</div>*/}
+                {/*</ListItemText>*/}
             </ListItem>
         )
     }
@@ -173,6 +195,17 @@ export function IngredientForm(props: Props): JSX.Element {
             <Grid container sx={{
                 maxWidth: {xs: 500, sm: 500, md: 800}
             }}>
+                <Grid item xs={12} md={2}>
+                    <TextField
+                        id="recipe-ingredient-section-value"
+                        label="Section"
+                        size='small'
+                        required
+                        autoFocus={true}
+                        value={ingredient.section}
+                        onChange={event => setIngredient(current => ({...current, section: event.target.value}))}
+                    />
+                </Grid>
                 <Grid item xs={6} md={2}>
                     <TextField
                         id="recipe-ingredient-amount-value"
@@ -180,7 +213,7 @@ export function IngredientForm(props: Props): JSX.Element {
                         size='small'
                         type="number"
                         required
-                        autoFocus={true}
+                        autoFocus={false}
                         value={ingredient.amount.value}
                         onChange={handleIngredientAmountChange}
                     />

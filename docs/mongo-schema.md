@@ -1,6 +1,24 @@
 # mongo schema and sample data
 
 ```shell
+mongosh
+```
+
+To view the scheme in `mongosh`
+
+```shell
+db.getCollectionInfos({name:'recipes'})
+```
+
+to have all the objects expanded, rather than seeing [object] or [array]
+
+```shell
+config.set("inspectDepth", Infinity)
+```
+
+see the [mongosh docs](https://docs.mongodb.com/mongodb-shell/reference/configure-shell-settings/) for more details.
+
+```shell
 use recipeBook
 ```
 

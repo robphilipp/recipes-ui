@@ -155,6 +155,10 @@ export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
     return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe._id}; name: ${recipe.name}`)
 }
 
+export async function updateRecipes(recipes: Array<Recipe>): Promise<Array<Recipe>> {
+    return Promise.all(recipes.map(updateRecipe))
+}
+
 export async function deleteRecipe(recipeId: string): Promise<Recipe> {
     try {
         const client = await clientPromise

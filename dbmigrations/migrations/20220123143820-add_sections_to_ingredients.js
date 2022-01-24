@@ -4,6 +4,7 @@
  * prior to that and use schema v0.2.0 and export the updated schema as v0.3.0.
  */
 const {schema__v0_2_0} = require("./20211226170747-author-ratings");
+const {ObjectId} = require("mongodb");
 
 /**
  * Adds `sections` to the main properties, and these sections are to be used to associate
@@ -50,6 +51,25 @@ module.exports = {
             collMod: "recipes",
             validator: schema__v0_3_0
         })
+        //
+        // // add "section to each ingredient" if the section does not already exist
+        // const recipes = await db.collection('recipes').find({}).toArray()
+        // const updated = recipes.map(recipe => {
+        //     const update = {
+        //         ...recipe,
+        //         ingredients: recipe.ingredients.map(ingredient => ({
+        //             ...ingredient,
+        //             section: ingredient.section || null
+        //         }))
+        //     }
+        //     console.log(update)
+        //     return update
+        // })
+        // await Promise.all(updated.map(update => {
+        //     const id = new ObjectId(update._id)
+        //     delete update._id
+        //     db.collection('recipes').replaceOne({_id: id}, update)
+        // }))
     },
 
     async down(db, client) {
@@ -57,5 +77,20 @@ module.exports = {
             collMod: "recipes",
             validator: schema__v0_2_0
         })
+        // // remove "section" from each ingredient
+        // const recipes = await db.collection('recipes').find({}).toArray()
+        // const updated = recipes.map(recipe => ({
+        //     ...recipe,
+        //     ingredients: recipe.ingredients.map(ingredient => {
+        //         const update = {...ingredient}
+        //         delete update.section
+        //         return update
+        //     })
+        // }))
+        // await Promise.all(updated.map(update => {
+        //     const id = new ObjectId(update._id)
+        //     delete update._id
+        //     db.collection('recipes').replaceOne({_id: id}, update)
+        // }))
     }
 };
