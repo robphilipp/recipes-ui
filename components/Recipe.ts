@@ -197,6 +197,15 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     ]]
 ])
 
+export const measurementUnits = Array.from(unitsByCategory.values()).flat()
+
+/**
+ * Calculates the unit-category for each unit
+ */
+export const categoriesByUnits = new Map<Units, UnitCategories>(
+    Array.from(unitsByCategory.entries())
+        .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
+)
 
 /*
  | RECIPES
