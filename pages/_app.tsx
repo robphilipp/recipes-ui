@@ -13,7 +13,7 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
-    Paper,
+    Paper, Stack,
     Toolbar,
     Typography
 } from "@mui/material";
@@ -78,7 +78,14 @@ export default function App(props: AppProps) {
     function navbarContents() {
         return (
             <div>
-                <Toolbar/>
+                <Toolbar>
+                    <Stack>
+                        <Typography sx={{fontSize: '1em'}}>{process.env.siteName}</Typography>
+                        <Typography sx={{fontSize: '0.7em', textAlign: 'center'}}>
+                            version {process.env.version}
+                        </Typography>
+                    </Stack>
+                </Toolbar>
                 <Divider/>
                 <List>
                     <ListItem
