@@ -1,7 +1,9 @@
 module.exports = {
     env: {
+        version: '0.1.0',
+
         siteName: 'City Recipes',
-        bookTitle: "City Recipes",
+        bookTitle: "B&R Recipes",
 
         recipesApi: 'http://localhost:9090/rest/v1/recipes',
 

@@ -22,6 +22,8 @@ import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import {formatQuantityFor} from "../../lib/utils";
+import {jsx} from "@emotion/react";
+import JSX = jsx.JSX;
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,
@@ -87,6 +89,83 @@ export default function RecipeView(props: Props): JSX.Element {
             })
     }
 
+    function Ingredients(): JSX.Element {
+        // organize ingredients by section. any ingredient without a section takes on the current
+        // section, any ingredient with a section gets added to that section
+        type Accumulator = { currentSection: string, accumulated: Map<string, Array<Ingredient>> }
+        const initial: Accumulator = {currentSection: "", accumulated: new Map<string, Array<Ingredient>>()}
+        const organizedIngredients = recipe.ingredients.reduce(
+            (accum, ingredient) => {
+                // when the ingredient has an explicit section, then add the ingredient to the ingredients
+                // in that section and update the current section to the new section,
+                // otherwise add it to the current section
+                if (ingredient.section !== null && ingredient.section !== '') {
+                    accum.currentSection = ingredient.section;
+                    const accumIngredients = accum.accumulated.get(ingredient.section) || []
+                    accumIngredients.push(ingredient)
+                    accum.accumulated.set(ingredient.section, accumIngredients)
+                } else {
+                    const accumIngredients = accum.accumulated.get(accum.currentSection) || []
+                    accumIngredients.push(ingredient)
+                    accum.accumulated.set(accum.currentSection, accumIngredients)
+                }
+                return accum
+            },
+            initial
+        )
+
+        return (
+            <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
+                {Array.from(organizedIngredients.accumulated).map(([section, ingredients]) => {
+                    return <>
+                        {section !== null && section !== '' ?
+                            <ListItemText
+                                key={`step-list-section-${section}`}
+                                sx={{marginBottom: -1, fontWeight: 550, marginLeft: 2}}
+                            >
+                                <Typography sx={{fontSize: `1.1em`, marginTop: 2, marginBottom: 1}}>
+                                    {section}
+                                </Typography>
+                            </ListItemText> :
+                            <span/>
+                        }
+                        {ingredients.map(ingredient => {
+                            const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}-${ingredient.section || ''}`
+                            return (
+                                <ListItem key={labelId} disablePadding>
+                                    <ListItemButton
+                                        role={undefined}
+                                        onClick={() => handleToggleStepStatus(ingredient.name)}
+                                        dense
+                                    >
+                                        <ListItemIcon>
+                                            <Checkbox
+                                                edge="start"
+                                                checked={isStepSelected(recipeId, ingredient.name)}
+                                                tabIndex={-1}
+                                                disableRipple
+                                                size="small"
+                                                inputProps={{'aria-labelledby': labelId}}
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText id={labelId}>
+                                            {ingredientAsText(ingredient)}
+                                        </ListItemText>
+                                    </ListItemButton>
+                                </ListItem>
+                            )
+                        })}
+                    </>
+                })}
+            </List>
+        )
+    }
+
+    /**
+     * Renders the list of steps, organizing them by sections, if specified, and returns the
+     * list as a component
+     * @constructor
+     */
     function Steps(): JSX.Element {
         // organize steps by section. any step without a section takes on the current
         // section, any step with a section gets added to that section
@@ -111,6 +190,7 @@ export default function RecipeView(props: Props): JSX.Element {
             },
             initial
         )
+
         return (
             <List sx={{width: '100%', maxWidth: 650, marginTop: -1}}>
                 {Array.from(organizedSteps.accumulated).map(([section, steps]) => {
@@ -228,35 +308,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 </Typography>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
-                <List sx={{width: '100%', maxWidth: 360, marginTop: -1}}>
-                    {recipe.ingredients.map((ingredient: Ingredient) => {
-                        const labelId = `${recipe.name}-ingredient-list-item-${ingredient.name}`
-                        return (
-                            <ListItem key={labelId} disablePadding>
-                                <ListItemButton
-                                    role={undefined}
-                                    onClick={() => handleToggleIngredientStatus(ingredient.name)}
-                                    dense
-                                >
-                                    <ListItemIcon>
-                                        <Checkbox
-                                            edge="start"
-                                            checked={isIngredientSelected(recipeId, ingredient.name)}
-                                            tabIndex={-1}
-                                            disableRipple
-                                            size="small"
-                                            inputProps={{'aria-labelledby': labelId}}
-                                        />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        id={labelId}
-                                        primary={ingredientAsText(ingredient)}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
-                        )
-                    })}
-                </List>
+                <Ingredients/>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
                 <Steps/>

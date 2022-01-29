@@ -1,25 +1,15 @@
-import React, {ChangeEvent, useRef, useState} from 'react'
-import {
-    Box,
-    Grid,
-    IconButton,
-    ListItem,
-    ListItemText,
-    ListSubheader,
-    MenuItem,
-    Select,
-    SelectChangeEvent,
-    TextField
-} from "@mui/material";
+import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
+import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import {
     Amount,
+    categoriesByUnits,
     copyIngredient,
     emptyIngredient,
     Ingredient,
     ingredientAsText,
     isEmptyIngredient,
-    UnitCategories,
-    unitsByCategory,
+    measurementUnits,
+    Units,
     unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -34,6 +24,8 @@ import MoveDownIcon from "@mui/icons-material/MoveDown";
 
 function noop() {
 }
+
+type UnitOption = { label: string, value: Units }
 
 type Props = {
     position?: ItemPosition
@@ -60,8 +52,9 @@ export function IngredientForm(props: Props): JSX.Element {
 
     const [mode, setMode] = useState<DisplayMode>(initialMode)
 
-    function handleIngredientUnitSelect(event: SelectChangeEvent): void {
-        const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
+    function handleIngredientUnitSelect(value: UnitOption): void {
+        if (value === null) return
+        const amount: Amount = {...ingredient.amount, unit: unitsFrom(value.value)}
         setIngredient(current => ({...current, amount}))
     }
 
@@ -163,7 +156,29 @@ export function IngredientForm(props: Props): JSX.Element {
                     }
                 }}
             >
-                <ListItemText>{ingredientAsText(ingredient)}</ListItemText>
+                <ListItemText
+                    sx={{
+                        maxWidth: {
+                            xs: 250,
+                            sm: 250,
+                            md: 800,
+                        }
+                    }}
+                >
+                    {ingredient.section !== null ?
+                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :
+                        <span/>
+                    }
+                    <div>{ingredientAsText(ingredient)}</div>
+                </ListItemText>
+
+                {/*<ListItemText>*/}
+                {/*    {ingredient.section !== null ?*/}
+                {/*        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :*/}
+                {/*        <span/>*/}
+                {/*    }*/}
+                {/*    <div>{ingredientAsText(ingredient)}</div>*/}
+                {/*</ListItemText>*/}
             </ListItem>
         )
     }
@@ -173,6 +188,17 @@ export function IngredientForm(props: Props): JSX.Element {
             <Grid container sx={{
                 maxWidth: {xs: 500, sm: 500, md: 800}
             }}>
+                <Grid item xs={12} md={2}>
+                    <TextField
+                        id="recipe-ingredient-section-value"
+                        label="Section"
+                        size='small'
+                        required
+                        autoFocus={true}
+                        value={ingredient.section}
+                        onChange={event => setIngredient(current => ({...current, section: event.target.value}))}
+                    />
+                </Grid>
                 <Grid item xs={6} md={2}>
                     <TextField
                         id="recipe-ingredient-amount-value"
@@ -180,45 +206,25 @@ export function IngredientForm(props: Props): JSX.Element {
                         size='small'
                         type="number"
                         required
-                        autoFocus={true}
+                        autoFocus={false}
                         value={ingredient.amount.value}
                         onChange={handleIngredientAmountChange}
                     />
                 </Grid>
                 <Grid item xs={6} md={2}>
-                    {/*todo replace select with autocomplete*/}
-                    {/*<Autocomplete*/}
-                    {/*    renderInput={(params) => <TextField {...params} label="units" />}*/}
-                    {/*    options={Object.entries(Units).map(([label, unit]) => ({label, id: unit}))}*/}
-                    {/*    sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}*/}
-                    {/*    size='small'*/}
-                    {/*/>*/}
-                    <Select
-                        id="recipe-ingredient-amount-unit"
-                        label="Units"
+                    <Autocomplete
+                        renderInput={(params) => (
+                            <TextField {...params} label="units" />
+                        )}
+                        options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
+                        groupBy={option => categoriesByUnits.get(option.value as Units)}
+                        sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
-                        required
                         value={ingredient.amount.unit}
-                        onChange={handleIngredientUnitSelect}
-                        sx={{mt: 1.2, mr: 0.5, minWidth: 100}}
-                    >
-                        <ListSubheader>Mass</ListSubheader>
-                        {unitsByCategory.get(UnitCategories.MASS).map((unit) => (
-                            <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
-                        ))}
-                        <ListSubheader>Weight</ListSubheader>
-                        {unitsByCategory.get(UnitCategories.WEIGHT).map((unit) => (
-                            <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
-                        ))}
-                        <ListSubheader>Volume</ListSubheader>
-                        {unitsByCategory.get(UnitCategories.VOLUME).map((unit) => (
-                            <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
-                        ))}
-                        <ListSubheader>Piece</ListSubheader>
-                        {unitsByCategory.get(UnitCategories.PIECE).map((unit) => (
-                            <MenuItem key={unit.value} value={unit.value}>{unit.value.toLowerCase()}</MenuItem>
-                        ))}
-                    </Select>
+                        // @ts-ignore
+                        isOptionEqualToValue={(option, value) => option !== null && option.value === value}
+                        onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
+                    />
                 </Grid>
                 <Grid item xs={6} md={3}>
                     <TextField

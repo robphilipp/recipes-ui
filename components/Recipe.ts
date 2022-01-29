@@ -107,6 +107,7 @@ export type Amount = {
  */
 export type Ingredient = {
     id: string
+    section: string | null
     name: string
     brand: string | null
     amount: Amount
@@ -117,6 +118,7 @@ export type Ingredient = {
  */
 export type Step = {
     id: string
+    // section title that allows steps to be organized into sections
     title: string | null
     text: string
 }
@@ -195,6 +197,15 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     ]]
 ])
 
+export const measurementUnits = Array.from(unitsByCategory.values()).flat()
+
+/**
+ * Calculates the unit-category for each unit
+ */
+export const categoriesByUnits = new Map<Units, UnitCategories>(
+    Array.from(unitsByCategory.entries())
+        .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
+)
 
 /*
  | RECIPES
@@ -304,6 +315,7 @@ export function isEmptyYield(yielded: Yield): boolean {
 export function emptyIngredient(): Ingredient {
     return {
         id: (new UUID()).toString('hex'),
+        section: null,
         amount: {value: NaN, unit: Units.PIECE},
         name: '',
         brand: null
@@ -318,6 +330,7 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
 export function copyIngredient(ingredient: Ingredient): Ingredient {
     return {
         id: ingredient.id,
+        section: ingredient.section,
         amount: {...ingredient.amount},
         name: ingredient.name,
         brand: ingredient.brand

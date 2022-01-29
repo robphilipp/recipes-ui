@@ -1,6 +1,5 @@
-
 /**
- * I goofed, so this is just an empty migration
+ * I goofed, again, so this is just an empty migration
  * @type {{up(*, *): Promise<*>, down(*, *): Promise<*>}}
  */
 module.exports = {
