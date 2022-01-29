@@ -1,5 +1,6 @@
 const {schema__v0_3_0} = require("./20220123143820-add_sections_to_ingredients");
 const {ObjectId, Long, Double} = require("mongodb");
+const {schema__v0_2_0} = require("./20211226170747-author-ratings");
 
 function addIngredientsSection(recipe) {
     return {
@@ -61,6 +62,13 @@ module.exports = {
     },
 
     async down(db, client) {
+        // remove the ingredient's "section" from the schema (which will also
+        // be done in the previous migration, I goofed here as well)
+        await db.command({
+            collMod: "recipes",
+            validator: schema__v0_2_0
+        })
+
         // remove "section" from each ingredient
         const recipes = await db.collection('recipes').find({}).toArray()
         const updated = recipes.map(removeIngredientsSection)
