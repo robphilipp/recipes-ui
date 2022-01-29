@@ -57,10 +57,6 @@ export function IngredientForm(props: Props): JSX.Element {
         const amount: Amount = {...ingredient.amount, unit: unitsFrom(value.value)}
         setIngredient(current => ({...current, amount}))
     }
-    // function handleIngredientUnitSelect(event: SelectChangeEvent): void {
-    //     const amount: Amount = {...ingredient.amount, unit: unitsFrom(event.target.value)}
-    //     setIngredient(current => ({...current, amount}))
-    // }
 
     function handleIngredientAmountChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
         const amount: Amount = {...ingredient.amount, value: Math.max(0, parseFloat(event.target.value))}
@@ -216,9 +212,10 @@ export function IngredientForm(props: Props): JSX.Element {
                     />
                 </Grid>
                 <Grid item xs={6} md={2}>
-                    {/*todo replace select with autocomplete*/}
                     <Autocomplete
-                        renderInput={(params) => <TextField {...params} label="units" />}
+                        renderInput={(params) => (
+                            <TextField {...params} label="units" />
+                        )}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
                         groupBy={option => categoriesByUnits.get(option.value as Units)}
                         sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
@@ -228,35 +225,6 @@ export function IngredientForm(props: Props): JSX.Element {
                         isOptionEqualToValue={(option, value) => option !== null && option.value === value}
                         onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
                     />
-                    {/*<Select*/}
-                    {/*    id="recipe-ingredient-amount-unit"*/}
-                    {/*    label="Units"*/}
-                    {/*    size='small'*/}
-                    {/*    required*/}
-                    {/*    value={ingredient.amount.unit}*/}
-                    {/*    onChange={handleIngredientUnitSelect}*/}
-                    {/*    sx={{mt: 1.2, mr: 0.5, minWidth: 100}}*/}
-                    {/*>*/}
-                    {/*    <ListSubheader>Mass</ListSubheader>*/}
-                    {/*    {unitsByCategory.get(UnitCategories.MASS).map((unit) => (*/}
-                    {/*        <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>*/}
-                    {/*    ))}*/}
-                    {/*    <ListSubheader>Weight</ListSubheader>*/}
-                    {/*    {unitsByCategory.get(UnitCategories.WEIGHT).map((unit) => (*/}
-                    {/*        <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>*/}
-                    {/*    ))}*/}
-                    {/*    <ListSubheader>Volume</ListSubheader>*/}
-                    {/*    {unitsByCategory.get(UnitCategories.VOLUME).map((unit) => (*/}
-                    {/*        <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>*/}
-                    {/*    ))}*/}
-                    {/*    <ListSubheader>Piece</ListSubheader>*/}
-                    {/*    {unitsByCategory.get(UnitCategories.PIECE).map((unit) => (*/}
-                    {/*        <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>*/}
-                    {/*    ))}*/}
-                    {/*    /!*{measurementUnits.map(unit => (*!/*/}
-                    {/*    /!*    <MenuItem key={unit.value} value={unit.value}>{unit.label.toLowerCase()}</MenuItem>*!/*/}
-                    {/*    /!*))}*!/*/}
-                    {/*</Select>*/}
                 </Grid>
                 <Grid item xs={6} md={3}>
                     <TextField
