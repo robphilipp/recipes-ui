@@ -2,14 +2,14 @@ import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import {
     Amount,
-    categoriesByUnits,
+    // categoriesByUnits,
     copyIngredient,
     emptyIngredient,
     Ingredient,
     ingredientAsText,
-    isEmptyIngredient,
-    measurementUnits,
-    Units,
+    isEmptyIngredient, Units,
+    // measurementUnits,
+    // Units,
     unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -21,11 +21,13 @@ import {DisplayMode} from "./FormMode";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import MoveUpIcon from "@mui/icons-material/MoveUp";
 import MoveDownIcon from "@mui/icons-material/MoveDown";
+import {categoriesByUnits, measurementUnits, UnitName} from "../lib/measurements";
 
 function noop() {
 }
 
-type UnitOption = { label: string, value: Units }
+type UnitOption = { label: UnitName, value: Units }
+// type UnitOption = { label: string, value: Units }
 
 type Props = {
     position?: ItemPosition

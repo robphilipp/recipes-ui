@@ -2,6 +2,7 @@ import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
+import { UnitName } from "../lib/measurements";
 
 /*
     This file contains:
@@ -91,7 +92,8 @@ export type Unit = {
     // the unit name
     value: string
     // the human-readable value
-    label: string
+    // label: string
+    label: UnitName
 }
 
 /**
@@ -153,59 +155,6 @@ export type Recipe = RecipeSummary & {
     steps: Array<Step>
     notes: string
 }
-
-/*************************************************************************
-|                         HELPER FUNCTIONS
-+**************************************************************************/
-
-/**
- * Constructs a {@link Unit} from the unit and its human-readable label
- * @param unit The unit
- * @param label The human-readable label
- */
-const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
-
-/**
- * Map that holds the units that belong to each category. For example,
- * kg, mg are mass, and pounds, and ounces are weights, and liter
- * and gallon are volume, etc.
- */
-export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
-    [UnitCategories.MASS, [
-        unitFrom(Units.MILLIGRAM, 'milligram'),
-        unitFrom(Units.GRAM, 'gram'),
-        unitFrom(Units.KILOGRAM, 'kilogram')
-    ]],
-    [UnitCategories.WEIGHT, [
-        unitFrom(Units.OUNCE, 'ounce'),
-        unitFrom(Units.POUND, 'pound')
-    ]],
-    [UnitCategories.VOLUME, [
-        unitFrom(Units.MILLILITER, 'milliliter'),
-        unitFrom(Units.LITER, 'liter'),
-        unitFrom(Units.TEASPOON, 'teaspoon'),
-        unitFrom(Units.TABLESPOON, 'tablespoon'),
-        unitFrom(Units.FLUID_OUNCE, 'fluid ounce'),
-        unitFrom(Units.CUP, 'cup'),
-        unitFrom(Units.PINT, 'pint'),
-        unitFrom(Units.QUART, 'quart'),
-        unitFrom(Units.GALLON, 'gallon')
-    ]],
-    [UnitCategories.PIECE, [
-        unitFrom(Units.PIECE, 'piece'),
-        unitFrom(Units.PINCH, 'pinch')
-    ]]
-])
-
-export const measurementUnits = Array.from(unitsByCategory.values()).flat()
-
-/**
- * Calculates the unit-category for each unit
- */
-export const categoriesByUnits = new Map<Units, UnitCategories>(
-    Array.from(unitsByCategory.entries())
-        .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
-)
 
 /*
  | RECIPES
