@@ -15,7 +15,7 @@ import {
     ListItemText,
     Paper, Stack,
     Toolbar,
-    Typography
+    Typography, useTheme
 } from "@mui/material";
 import React, {useState} from "react";
 import {useRouter} from "next/router";
@@ -47,6 +47,7 @@ const TitleImage = styled('img')({
 export default function App(props: AppProps) {
     const {Component, pageProps} = props
     const router = useRouter()
+    const theme = useTheme()
 
     const [navItem, setNavItem] = useState<number>(0)
 
@@ -80,8 +81,16 @@ export default function App(props: AppProps) {
             <div>
                 <Toolbar>
                     <Stack>
-                        <Typography sx={{fontSize: '1em'}}>{process.env.siteName}</Typography>
-                        <Typography sx={{fontSize: '0.7em', textAlign: 'center'}}>
+                        <Typography
+                            color={theme.palette.text.disabled}
+                            sx={{fontSize: '1em'}}
+                        >
+                            {process.env.siteName}
+                        </Typography>
+                        <Typography
+                            color={theme.palette.text.disabled}
+                            sx={{fontSize: '0.7em', textAlign: 'center'}}
+                        >
                             version {process.env.version}
                         </Typography>
                     </Stack>
