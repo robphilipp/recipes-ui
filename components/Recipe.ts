@@ -2,7 +2,7 @@ import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
-import { UnitName } from "../lib/measurements";
+import {convertAmount, UnitName} from "../lib/measurements";
 
 /*
     This file contains:
@@ -102,6 +102,26 @@ export type Unit = {
 export type Amount = {
     value: number
     unit: Units
+}
+
+export function amountFor(value: number, unit: Units): Amount {
+    return {value, unit}
+}
+
+/**
+ * Determines whether the two amounts are equal to within the specified
+ * tolerance, which is in the units of the first amount (a).
+ * @param a The first amount
+ * @param b The second amount
+ * @param tolerance The tolerance in units of the first amount
+ * @return `true` if the amounts are within tolerance; `false` otherwise
+ */
+export function equalWithin(a: Amount, b: Amount, tolerance: number): boolean {
+    return convertAmount(b, a.unit)
+        .map(bPrime => Math.abs(bPrime.value - a.value) <= tolerance)
+        .getOrDefault(false)
+    // const bPrime = convertAmount(b, a.unit)
+    // return Math.abs(bPrime.value - a.value) <= tolerance
 }
 
 /**

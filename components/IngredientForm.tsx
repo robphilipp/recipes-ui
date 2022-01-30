@@ -94,6 +94,9 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+        // @ts-ignore
+        if (event.target.id === "ingredient-amount-unit-select") return;
+
         switch (event.key) {
             case 'Enter':
                 if (canSubmit()) {
@@ -173,14 +176,6 @@ export function IngredientForm(props: Props): JSX.Element {
                     }
                     <div>{ingredientAsText(ingredient)}</div>
                 </ListItemText>
-
-                {/*<ListItemText>*/}
-                {/*    {ingredient.section !== null ?*/}
-                {/*        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :*/}
-                {/*        <span/>*/}
-                {/*    }*/}
-                {/*    <div>{ingredientAsText(ingredient)}</div>*/}
-                {/*</ListItemText>*/}
             </ListItem>
         )
     }
@@ -215,9 +210,8 @@ export function IngredientForm(props: Props): JSX.Element {
                 </Grid>
                 <Grid item xs={6} md={2}>
                     <Autocomplete
-                        renderInput={(params) => (
-                            <TextField {...params} label="units" />
-                        )}
+                        id="ingredient-amount-unit-select"
+                        renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
                         groupBy={option => categoriesByUnits.get(option.value as Units)}
                         sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
