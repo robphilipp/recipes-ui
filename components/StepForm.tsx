@@ -132,7 +132,11 @@ export function StepForm(props: Props): JSX.Element {
                 }}
             >
                 {position ?
-                    <ListItemAvatar><Avatar>{position.itemNumber}/{position.numItems}</Avatar></ListItemAvatar> :
+                    <ListItemAvatar>
+                        <Avatar sx={{fontSize: 12, fontWeight: 700}}>
+                            {position.itemNumber}/{position.numItems}
+                        </Avatar>
+                    </ListItemAvatar> :
                     <span/>
                 }
                 <ListItemText

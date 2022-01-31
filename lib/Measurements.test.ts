@@ -1,5 +1,4 @@
-import {convertTo} from './measurements'
-import {amountFor, Units} from "../components/Recipe";
+import {amountFor, convertTo, Units} from './Measurements'
 
 describe('when converting like units', () => {
     it('should be able to convert to teaspoons', () => {

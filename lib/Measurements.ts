@@ -1,4 +1,3 @@
-import {Amount, Unit, UnitCategories, Units, unitsFrom} from "../components/Recipe";
 import convert, {Force, Mass, Volume} from "convert";
 import {failureResult, Result, successResult} from "./Result";
 
@@ -31,6 +30,55 @@ export enum UnitName {
  */
 function unitFrom(unit: Units, label: UnitName): Unit {
     return {value: unit, label}
+}
+
+export function unitsFrom(unit: string): Units {
+    const [, key] = Object.entries(Units).find(([, value]) => value === unit)
+    return key
+}
+
+/**
+ * The units for the ingredients
+ */
+export enum Units {
+    MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
+    OUNCE = 'oz', POUND = 'lb',
+    MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
+    CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
+    PIECE = 'piece', PINCH = 'pinch'
+}
+
+/**
+ * The categories for the units used by the ingredients
+ */
+export enum UnitCategories {
+    MASS = 'Mass',
+    WEIGHT = 'Weight',
+    VOLUME = 'Volume',
+    PIECE = 'Piece'
+}
+
+/**
+ * The unit name and its associated human-readable value
+ */
+export type Unit = {
+    // the unit name
+    value: string
+    // the human-readable value
+    // label: string
+    label: UnitName
+}
+
+/**
+ * The amount of the ingredient
+ */
+export type Amount = {
+    value: number
+    unit: Units
+}
+
+export function amountFor(value: number, unit: Units): Amount {
+    return {value, unit}
 }
 
 /**
@@ -67,18 +115,15 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
 
 export const measurementUnits = Array.from(unitsByCategory.values()).flat()
 
-// const measurementMap = new Map(measurementUnits.map(unit => [unit.value, unit.label]))
-
 /**
  * Calculates the unit-category for each unit
  */
 export const categoriesByUnits = new Map<Units, UnitCategories>(
-    Array.from(unitsByCategory.entries())
+    Array
+        .from(unitsByCategory.entries())
         .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
 )
 
-
-// function category(unit: Units): Mass | Force |
 type Conversions = 'mg' | 'g' | 'kg' |
     'ounce' | 'pounds' |
     'ml' | 'liter' | 'tsp' | 'tbsp' | 'cup' | 'fl oz' | 'pint' | 'quart' | 'gallon'
@@ -101,37 +146,63 @@ const conversionMap = new Map<Units, Conversions>([
     [Units.GALLON, 'gallon']
 ])
 
+/**
+ * Attempts to convert the specified amount to the specified `toUnit`.
+ * @param amount The amount to convert
+ * @param toUnit The target units
+ * @return A {@link Result} holding the converted {@link Amount} when successful. Otherwise,
+ * a failure.
+ */
 export function convertAmount(amount: Amount, toUnit: Units): Result<Amount, string> {
     const fromUnits: Conversions = conversionMap.get(amount.unit)
     const toUnits: Conversions = conversionMap.get(toUnit)
     if (fromUnits && toUnits) {
         const category = categoriesByUnits.get(amount.unit)
-        let value: number
         try {
             switch (category) {
                 case UnitCategories.MASS:
-                    value = convert(amount.value, fromUnits as Mass).to(toUnits as Mass)
-                    break
+                    return successResult({
+                        value: convert(amount.value, fromUnits as Mass).to(toUnits as Mass),
+                        unit: toUnit
+                    })
                 case UnitCategories.WEIGHT:
-                    value = convert(amount.value, fromUnits as Force).to(toUnits as Force)
-                    break
+                    return successResult({
+                        value: convert(amount.value, fromUnits as Force).to(toUnits as Force),
+                        unit: toUnit
+                    })
                 case UnitCategories.VOLUME:
-                    value = convert(amount.value, fromUnits as Volume).to(toUnits as Volume)
-                    break
+                    return successResult({
+                        value: convert(amount.value, fromUnits as Volume).to(toUnits as Volume),
+                        unit: toUnit
+                    })
                 default:
-                    value = amount.value
+                    return successResult(amount)
             }
-            return successResult({value, unit: toUnit})
         } catch (reason) {
             return failureResult(reason)
         }
     }
 }
 
+/**
+ * Currying function that accepts an {@link Amount} and returns a function that accepts the
+ * target {@link Units} and returns the {@link Result} holding the {@link Amount} or a failure
+ * @param amount The amount to convert
+ * @return A function that accepts the target {@link Units} and returns the {@link Result} holding
+ * the {@link Amount} or a failure
+ */
 export function convertFrom(amount: Amount): (unit: Units) => Result<Amount, string> {
     return unit => convertAmount(amount, unit)
 }
 
+/**
+ * Currying function that accepts a target {@link Units} and returns a function that accepts the
+ * {@link Amount} to convert and returns a {@link Result} that holds the converted {@link Amount}
+ * or a failure
+ * @param unit The target units
+ * @return a function that accepts the {@link Amount} to convert and returns a {@link Result} that
+ * holds the converted {@link Amount} or a failure
+ */
 export function convertTo(unit: Units): (amount: Amount) => Result<Amount, string> {
     return amount => convertAmount(amount, unit)
 }

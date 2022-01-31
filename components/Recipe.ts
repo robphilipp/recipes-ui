@@ -2,7 +2,7 @@ import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
-import {convertAmount, UnitName} from "../lib/measurements";
+import {Amount, convertAmount, UnitName, Units} from "../lib/Measurements";
 
 /*
     This file contains:
@@ -64,50 +64,50 @@ export type RequiredTime = {
     active: Time
 }
 
-/**
- * The units for the ingredients
- */
-export enum Units {
-    MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
-    OUNCE = 'oz', POUND = 'lb',
-    MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
-    CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = 'piece', PINCH = 'pinch'
-}
+// /**
+//  * The units for the ingredients
+//  */
+// export enum Units {
+//     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
+//     OUNCE = 'oz', POUND = 'lb',
+//     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
+//     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
+//     PIECE = 'piece', PINCH = 'pinch'
+// }
+//
+// /**
+//  * The categories for the units used by the ingredients
+//  */
+// export enum UnitCategories {
+//     MASS = 'Mass',
+//     WEIGHT = 'Weight',
+//     VOLUME = 'Volume',
+//     PIECE = 'Piece'
+// }
 
-/**
- * The categories for the units used by the ingredients
- */
-export enum UnitCategories {
-    MASS = 'Mass',
-    WEIGHT = 'Weight',
-    VOLUME = 'Volume',
-    PIECE = 'Piece'
-}
-
-/**
- * The unit name and its associated human-readable value
- */
-export type Unit = {
-    // the unit name
-    value: string
-    // the human-readable value
-    // label: string
-    label: UnitName
-}
-
-/**
- * The amount of the ingredient
- */
-export type Amount = {
-    value: number
-    unit: Units
-}
-
-export function amountFor(value: number, unit: Units): Amount {
-    return {value, unit}
-}
-
+// /**
+//  * The unit name and its associated human-readable value
+//  */
+// export type Unit = {
+//     // the unit name
+//     value: string
+//     // the human-readable value
+//     // label: string
+//     label: UnitName
+// }
+//
+// /**
+//  * The amount of the ingredient
+//  */
+// export type Amount = {
+//     value: number
+//     unit: Units
+// }
+//
+// export function amountFor(value: number, unit: Units): Amount {
+//     return {value, unit}
+// }
+//
 /**
  * Determines whether the two amounts are equal to within the specified
  * tolerance, which is in the units of the first amount (a).
@@ -306,11 +306,11 @@ export function copyIngredient(ingredient: Ingredient): Ingredient {
     }
 }
 
-export function unitsFrom(unit: string): Units {
-    const [, key] = Object.entries(Units).find(([, value]) => value === unit)
-    return key
-}
-
+// export function unitsFrom(unit: string): Units {
+//     const [, key] = Object.entries(Units).find(([, value]) => value === unit)
+//     return key
+// }
+//
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
         return `${formatQuantityFor(ingredient.amount.value, ingredient.name)}`

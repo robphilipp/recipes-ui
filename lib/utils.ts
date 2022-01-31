@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import formatQuantity from "format-quantity";
-import {Units} from "../components/Recipe";
+import {Units} from "./Measurements";
 
 /**
  * Converts the quantity to a fraction and pluralizes the units for display.
