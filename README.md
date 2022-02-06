@@ -79,6 +79,26 @@ The [Raspberry Pi Imager](https://www.raspberrypi.com/software) can be used to i
 
 [binaries and instructions for 4.4.8](https://andyfelong.com/2021/08/mongodb-4-4-under-raspberry-pi-os-64-bit-raspbian64/#more-1797)
 
+Once installed, you can start the mongo database with:
+
+```shell
+sudo systemctl start mongodb
+```
+
+To see the status of the service:
+```shell
+sudo systemctl status mongodb
+```
+
+To stop the service:
+```shell
+sudo systemctl stop mongodb
+```
+
+To enable the service to start automatically at boot:
+```shell
+sudo systemctl enable mongodb
+```
 
 ### pm2 (process manager)
 
@@ -123,11 +143,13 @@ For more details about the process:
 pm2 show recipes
 ```
 
+To have `pm2` maintain the list of processes and start-up when the server restarts see the [pm2 persistent application docs](https://pm2.keymetrics.io/docs/usage/startup/).
+
 ### setting up nginx
 
 > A good starting point is [nginx beginners guide](https://nginx.org/en/docs/beginners_guide.html) and [nginx reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/).
 
-On debian (works on `raspian`) us apt and the default debian repository
+On debian (works on `raspian`) use `apt` and the default debian repository
 
 ```shell
 sudo apt update

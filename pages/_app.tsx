@@ -134,16 +134,16 @@ export default function App(props: AppProps) {
                 <Divider/>
                 <List sx={{padding: 0}}>
                     <ListItem>
-                        <Typography sx={{fontSize: 14, fontWeight: 700}}>Conversions</Typography>
+                        <Typography sx={{fontSize: 14, fontWeight: 700}}>Quick Reference</Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.TEASPOON), Units.MILLILITER).map(amount => `1 tsp = ${Math.round(amount.value)} ml`).getOrDefault('')}
+                            {convertAmount(amountFor(1, Units.TEASPOON), Units.MILLILITER).map(amount => `1 tsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.TABLESPOON), Units.MILLILITER).map(amount => `1 tbsp = ${Math.round(amount.value)} ml`).getOrDefault('')}
+                            {convertAmount(amountFor(1, Units.TABLESPOON), Units.MILLILITER).map(amount => `1 tbsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
