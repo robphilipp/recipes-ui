@@ -63,9 +63,9 @@ export default function DraggableDialog(props: Props): JSX.Element {
                 </DialogContent>
                 <DialogActions>
                     <Button autoFocus onClick={handleClose}>
-                        Cancel
+                        Done
                     </Button>
-                    <Button onClick={handleClose}>Subscribe</Button>
+                    {/*<Button onClick={handleClose}>Subscribe</Button>*/}
                 </DialogActions>
             </Dialog>
         </div>

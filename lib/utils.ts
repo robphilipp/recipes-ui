@@ -30,7 +30,7 @@ export function formatQuantityFor(quantity: number, units?: string): string {
 export function formatNumber(
     value: number,
     locale: string = 'en-US',
-    options: Intl.NumberFormatOptions = {maximumSignificantDigits: 3}
+    options: Intl.NumberFormatOptions = {maximumSignificantDigits: 4}
 ): string {
-    return new Intl.NumberFormat('en-US', {maximumSignificantDigits: 3}).format(value)
+    return new Intl.NumberFormat(locale, options).format(value)
 }
