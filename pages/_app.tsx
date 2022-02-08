@@ -31,6 +31,8 @@ import {lightTheme} from "../theme/theme";
 import SearchIcon from '@mui/icons-material/Search';
 import {styled} from '@mui/system'
 import {amountFor, convertAmount, Units} from "../lib/Measurements";
+import AmountConverter from "../components/AmountConverter";
+import DraggableDialog from "../components/DraggableDialog";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -170,6 +172,14 @@ export default function App(props: AppProps) {
                         <Typography sx={{fontSize: 13}}>
                             {convertAmount(amountFor(1, Units.GALLON), Units.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
                         </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 2, paddingBottom: 0}}>
+                        <DraggableDialog
+                            buttonText="Conversion Calc"
+                            title="Conversion Calculator"
+                        >
+                            <AmountConverter/>
+                        </DraggableDialog>
                     </ListItem>
                 </List>
             </div>

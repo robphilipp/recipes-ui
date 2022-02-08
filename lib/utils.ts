@@ -13,16 +13,24 @@ import {Units} from "./Measurements";
  */
 export function formatQuantityFor(quantity: number, units?: string): string {
     if (units === undefined || units === '') {
-        return `${quantity}`
+        return `${formatNumber(quantity)}`
     }
-    if (quantity === 0) {
+    if (Math.abs(quantity) <= 0.00001) {
         return `0 ${pluralize(units, 0)}`
     }
     const unit = units === Units.LITER ? 'ℓ' : units
     if (units === Units.MILLIGRAM || units === Units.GRAM || units === Units.KILOGRAM ||
         units === Units.MILLILITER || units === Units.LITER
     ) {
-        return `${formatQuantity(quantity, true)} ${unit}`
+        return `${formatQuantity(formatNumber(quantity), true)} ${unit}`
     }
-    return `${formatQuantity(quantity, true)} ${pluralize(unit, Math.max(1, quantity))}`
+    return `${formatQuantity(formatNumber(quantity), true)} ${pluralize(unit, Math.max(1, quantity))}`
+}
+
+export function formatNumber(
+    value: number,
+    locale: string = 'en-US',
+    options: Intl.NumberFormatOptions = {maximumSignificantDigits: 3}
+): string {
+    return new Intl.NumberFormat('en-US', {maximumSignificantDigits: 3}).format(value)
 }
