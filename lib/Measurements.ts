@@ -6,7 +6,7 @@ export enum UnitName {
     gram = 'gram',
     kilogram = 'kilogram',
     
-    ounce = 'once',
+    ounce = 'ounce',
     pound = 'pound',
     
     milliliter = 'milliliter',
