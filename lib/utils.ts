@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import formatQuantity from "format-quantity";
-import {RequiredTime, Time, Units} from "../components/Recipe";
+import {UnitType} from "./Measurements";
 
 /**
  * Converts the quantity to a fraction and pluralizes the units for display.
@@ -13,16 +13,24 @@ import {RequiredTime, Time, Units} from "../components/Recipe";
  */
 export function formatQuantityFor(quantity: number, units?: string): string {
     if (units === undefined || units === '') {
-        return `${quantity}`
+        return `${formatNumber(quantity)}`
     }
-    if (quantity === 0) {
+    if (Math.abs(quantity) <= 0.00001) {
         return `0 ${pluralize(units, 0)}`
     }
-    const unit = units === Units.LITER ? 'ℓ' : units
-    if (units === Units.MILLIGRAM || units === Units.GRAM || units === Units.KILOGRAM ||
-        units === Units.MILLILITER || units === Units.LITER
+    const unit = units === UnitType.LITER ? 'ℓ' : units
+    if (units === UnitType.MILLIGRAM || units === UnitType.GRAM || units === UnitType.KILOGRAM ||
+        units === UnitType.MILLILITER || units === UnitType.LITER
     ) {
-        return `${formatQuantity(quantity, true)} ${unit}`
+        return `${formatQuantity(formatNumber(quantity), true)} ${unit}`
     }
-    return `${formatQuantity(quantity, true)} ${pluralize(unit, Math.max(1, quantity))}`
+    return `${formatQuantity(formatNumber(quantity), true)} ${pluralize(unit, Math.max(1, quantity))}`
+}
+
+export function formatNumber(
+    value: number,
+    locale: string = 'en-US',
+    options: Intl.NumberFormatOptions = {maximumSignificantDigits: 4}
+): string {
+    return new Intl.NumberFormat(locale, options).format(value)
 }

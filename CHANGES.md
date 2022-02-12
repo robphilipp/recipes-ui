@@ -1,5 +1,8 @@
 # City Recipes Change History
 
+## version 0.2.0 (basic conversions)
+Added basic conversions and conversion calculator.
+
 ## version 0.1.0 (first tagged version)
 **Requires mongo database migration to `20220124232636-ingredient_sections_null.js`**
 

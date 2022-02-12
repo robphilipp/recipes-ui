@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {useDropzone} from "react-dropzone";
 import Tesseract, {createWorker} from "tesseract.js";
-import {Box, lighten, LinearProgress, LinearProgressProps, Typography, useTheme} from "@mui/material";
+import {Box, Icon, lighten, LinearProgress, LinearProgressProps, Stack, Typography, useTheme} from "@mui/material";
+import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
 
 export default function ImportRecipeOcr(): JSX.Element {
 
@@ -84,22 +85,31 @@ export default function ImportRecipeOcr(): JSX.Element {
                 {...getRootProps()}
                 sx={{
                     minWidth: 35,
-                    height: 50,
-                    width: 300,
+                    height: 150,
+                    width: 350,
                     borderRadius: 3,
-                    backgroundColor: isDragActive ? theme.palette.secondary.main : lighten(theme.palette.primary.light, 0.5),
-                    marginBottom: 2
+                    backgroundColor: isDragActive ? lighten(theme.palette.primary.main, 0.5) : theme.palette.background.default,
+                    marginBottom: 2,
+                    borderStyle: 'solid',
+                    borderColor: theme.palette.secondary.light,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
             >
-                <input {...getInputProps()}/>
-                <Typography
-                    style={{fontSize: '0.9em', paddingLeft: 12, paddingTop: 15}}
-                    color={theme.palette.primary.contrastText}
-                >{
-                    isDragActive ?
-                        "Drop files here..." :
-                        "Click here to load file, or drag file to here"
-                }</Typography>
+                <Stack spacing={2}>
+                    <input {...getInputProps()}/>
+                    <Typography
+                        // style={{fontSize: '0.9em', paddingLeft: 12, paddingTop: 13}}
+                        color={theme.palette.primary.main}
+                        sx={{alignSelf: 'center'}}
+                    >{
+                        isDragActive ?
+                            "Drop files here..." :
+                            "Click here to load file, or drag file to here"
+                    }</Typography>
+                    <Icon sx={{alignSelf: 'center'}}><DocumentScannerIcon/></Icon>
+                </Stack>
             </Box> :
             <div/>
         }

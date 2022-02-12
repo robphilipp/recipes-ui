@@ -15,7 +15,7 @@ import {
     ListItemText,
     Paper, Stack,
     Toolbar,
-    Typography
+    Typography, useTheme
 } from "@mui/material";
 import React, {useState} from "react";
 import {useRouter} from "next/router";
@@ -30,6 +30,10 @@ import {ThemeProvider} from '@mui/material/styles';
 import {lightTheme} from "../theme/theme";
 import SearchIcon from '@mui/icons-material/Search';
 import {styled} from '@mui/system'
+import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
+import AmountConverter from "../components/AmountConverter";
+import QuantityConverterDialog from "../components/QuantityConverterDialog";
+import {Calculate} from "@mui/icons-material";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -47,6 +51,7 @@ const TitleImage = styled('img')({
 export default function App(props: AppProps) {
     const {Component, pageProps} = props
     const router = useRouter()
+    const theme = useTheme()
 
     const [navItem, setNavItem] = useState<number>(0)
 
@@ -80,8 +85,16 @@ export default function App(props: AppProps) {
             <div>
                 <Toolbar>
                     <Stack>
-                        <Typography sx={{fontSize: '1em'}}>{process.env.siteName}</Typography>
-                        <Typography sx={{fontSize: '0.7em', textAlign: 'center'}}>
+                        <Typography
+                            color={theme.palette.text.disabled}
+                            sx={{fontSize: '1em'}}
+                        >
+                            {process.env.siteName}
+                        </Typography>
+                        <Typography
+                            color={theme.palette.text.disabled}
+                            sx={{fontSize: '0.7em', textAlign: 'center'}}
+                        >
                             version {process.env.version}
                         </Typography>
                     </Stack>
@@ -120,6 +133,56 @@ export default function App(props: AppProps) {
                         <ListItemIcon><SearchIcon/></ListItemIcon>
                         <ListItemText primary="Search"/>
                     </ListItem>
+                </List>
+                <Divider/>
+                <List sx={{padding: 0}}>
+                    <ListItem>
+                        <Typography sx={{fontSize: 14, fontWeight: 700}}>Quick Reference</Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.TEASPOON), UnitType.MILLILITER).map(amount => `1 tsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.MILLILITER).map(amount => `1 tbsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.TEASPOON).map(amount => `1 tbsp = ${Math.round(amount.value)} tsps`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.FLUID_OUNCE), UnitType.TABLESPOON).map(amount => `1 fl oz = ${Math.round(amount.value)} tbsps`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.CUP), UnitType.FLUID_OUNCE).map(amount => `1 cup = ${Math.round(amount.value)} fl ozs`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.QUART), UnitType.PINT).map(amount => `1 qt = ${Math.round(amount.value)} pts`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
+                        <Typography sx={{fontSize: 13}}>
+                            {convertAmount(amountFor(1, UnitType.GALLON), UnitType.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
+                        </Typography>
+                    </ListItem>
+                    <div>
+                        <QuantityConverterDialog
+                            buttonText="Converter"
+                            title="Converter"
+                            icon={<Calculate/>}
+                        >
+                            <AmountConverter/>
+                        </QuantityConverterDialog>
+                    </div>
                 </List>
             </div>
         );

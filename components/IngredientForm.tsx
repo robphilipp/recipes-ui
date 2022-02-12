@@ -1,16 +1,16 @@
 import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import {
-    Amount,
-    categoriesByUnits,
+    // Amount,
+    // categoriesByUnits,
     copyIngredient,
     emptyIngredient,
     Ingredient,
     ingredientAsText,
     isEmptyIngredient,
-    measurementUnits,
-    Units,
-    unitsFrom
+    // measurementUnits,
+    // Units,
+    // unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -21,11 +21,13 @@ import {DisplayMode} from "./FormMode";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import MoveUpIcon from "@mui/icons-material/MoveUp";
 import MoveDownIcon from "@mui/icons-material/MoveDown";
+import {Amount, categoriesByUnits, measurementUnits, UnitName, UnitType, unitTypeFrom} from "../lib/Measurements";
 
 function noop() {
 }
 
-type UnitOption = { label: string, value: Units }
+type UnitOption = { label: UnitName, value: UnitType }
+// type UnitOption = { label: string, value: Units }
 
 type Props = {
     position?: ItemPosition
@@ -54,7 +56,7 @@ export function IngredientForm(props: Props): JSX.Element {
 
     function handleIngredientUnitSelect(value: UnitOption): void {
         if (value === null) return
-        const amount: Amount = {...ingredient.amount, unit: unitsFrom(value.value)}
+        const amount: Amount = {...ingredient.amount, unit: unitTypeFrom(value.value)}
         setIngredient(current => ({...current, amount}))
     }
 
@@ -92,6 +94,9 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
+        // @ts-ignore
+        if (event.target.id === "ingredient-amount-unit-select") return;
+
         switch (event.key) {
             case 'Enter':
                 if (canSubmit()) {
@@ -171,14 +176,6 @@ export function IngredientForm(props: Props): JSX.Element {
                     }
                     <div>{ingredientAsText(ingredient)}</div>
                 </ListItemText>
-
-                {/*<ListItemText>*/}
-                {/*    {ingredient.section !== null ?*/}
-                {/*        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :*/}
-                {/*        <span/>*/}
-                {/*    }*/}
-                {/*    <div>{ingredientAsText(ingredient)}</div>*/}
-                {/*</ListItemText>*/}
             </ListItem>
         )
     }
@@ -213,11 +210,10 @@ export function IngredientForm(props: Props): JSX.Element {
                 </Grid>
                 <Grid item xs={6} md={2}>
                     <Autocomplete
-                        renderInput={(params) => (
-                            <TextField {...params} label="units" />
-                        )}
+                        id="ingredient-amount-unit-select"
+                        renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
-                        groupBy={option => categoriesByUnits.get(option.value as Units)}
+                        groupBy={option => categoriesByUnits.get(option.value as UnitType)}
                         sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
                         value={ingredient.amount.unit}

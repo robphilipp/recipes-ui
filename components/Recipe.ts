@@ -2,6 +2,7 @@ import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
+import {Amount, convertAmount, UnitName, UnitType} from "../lib/Measurements";
 
 /*
     This file contains:
@@ -63,43 +64,64 @@ export type RequiredTime = {
     active: Time
 }
 
-/**
- * The units for the ingredients
- */
-export enum Units {
-    MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
-    OUNCE = 'oz', POUND = 'lb',
-    MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
-    CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = 'piece', PINCH = 'pinch'
-}
+// /**
+//  * The units for the ingredients
+//  */
+// export enum Units {
+//     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
+//     OUNCE = 'oz', POUND = 'lb',
+//     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
+//     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
+//     PIECE = 'piece', PINCH = 'pinch'
+// }
+//
+// /**
+//  * The categories for the units used by the ingredients
+//  */
+// export enum UnitCategories {
+//     MASS = 'Mass',
+//     WEIGHT = 'Weight',
+//     VOLUME = 'Volume',
+//     PIECE = 'Piece'
+// }
 
+// /**
+//  * The unit name and its associated human-readable value
+//  */
+// export type Unit = {
+//     // the unit name
+//     value: string
+//     // the human-readable value
+//     // label: string
+//     label: UnitName
+// }
+//
+// /**
+//  * The amount of the ingredient
+//  */
+// export type Amount = {
+//     value: number
+//     unit: Units
+// }
+//
+// export function amountFor(value: number, unit: Units): Amount {
+//     return {value, unit}
+// }
+//
 /**
- * The categories for the units used by the ingredients
+ * Determines whether the two amounts are equal to within the specified
+ * tolerance, which is in the units of the first amount (a).
+ * @param a The first amount
+ * @param b The second amount
+ * @param tolerance The tolerance in units of the first amount
+ * @return `true` if the amounts are within tolerance; `false` otherwise
  */
-export enum UnitCategories {
-    MASS = 'Mass',
-    WEIGHT = 'Weight',
-    VOLUME = 'Volume',
-    PIECE = 'Piece'
-}
-
-/**
- * The unit name and its associated human-readable value
- */
-export type Unit = {
-    // the unit name
-    value: string
-    // the human-readable value
-    label: string
-}
-
-/**
- * The amount of the ingredient
- */
-export type Amount = {
-    value: number
-    unit: Units
+export function equalWithin(a: Amount, b: Amount, tolerance: number): boolean {
+    return convertAmount(b, a.unit)
+        .map(bPrime => Math.abs(bPrime.value - a.value) <= tolerance)
+        .getOrDefault(false)
+    // const bPrime = convertAmount(b, a.unit)
+    // return Math.abs(bPrime.value - a.value) <= tolerance
 }
 
 /**
@@ -153,59 +175,6 @@ export type Recipe = RecipeSummary & {
     steps: Array<Step>
     notes: string
 }
-
-/*************************************************************************
-|                         HELPER FUNCTIONS
-+**************************************************************************/
-
-/**
- * Constructs a {@link Unit} from the unit and its human-readable label
- * @param unit The unit
- * @param label The human-readable label
- */
-const unitFrom = (unit: Units, label: string): Unit => ({value: unit, label})
-
-/**
- * Map that holds the units that belong to each category. For example,
- * kg, mg are mass, and pounds, and ounces are weights, and liter
- * and gallon are volume, etc.
- */
-export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
-    [UnitCategories.MASS, [
-        unitFrom(Units.MILLIGRAM, 'milligram'),
-        unitFrom(Units.GRAM, 'gram'),
-        unitFrom(Units.KILOGRAM, 'kilogram')
-    ]],
-    [UnitCategories.WEIGHT, [
-        unitFrom(Units.OUNCE, 'ounce'),
-        unitFrom(Units.POUND, 'pound')
-    ]],
-    [UnitCategories.VOLUME, [
-        unitFrom(Units.MILLILITER, 'milliliter'),
-        unitFrom(Units.LITER, 'liter'),
-        unitFrom(Units.TEASPOON, 'teaspoon'),
-        unitFrom(Units.TABLESPOON, 'tablespoon'),
-        unitFrom(Units.FLUID_OUNCE, 'fluid ounce'),
-        unitFrom(Units.CUP, 'cup'),
-        unitFrom(Units.PINT, 'pint'),
-        unitFrom(Units.QUART, 'quart'),
-        unitFrom(Units.GALLON, 'gallon')
-    ]],
-    [UnitCategories.PIECE, [
-        unitFrom(Units.PIECE, 'piece'),
-        unitFrom(Units.PINCH, 'pinch')
-    ]]
-])
-
-export const measurementUnits = Array.from(unitsByCategory.values()).flat()
-
-/**
- * Calculates the unit-category for each unit
- */
-export const categoriesByUnits = new Map<Units, UnitCategories>(
-    Array.from(unitsByCategory.entries())
-        .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
-)
 
 /*
  | RECIPES
@@ -316,14 +285,14 @@ export function emptyIngredient(): Ingredient {
     return {
         id: (new UUID()).toString('hex'),
         section: null,
-        amount: {value: NaN, unit: Units.PIECE},
+        amount: {value: NaN, unit: UnitType.PIECE},
         name: '',
         brand: null
     }
 }
 
 export function isEmptyIngredient(ingredient: Ingredient): boolean {
-    return isNaN(ingredient.amount.value) && ingredient.amount.unit === Units.PIECE &&
+    return isNaN(ingredient.amount.value) && ingredient.amount.unit === UnitType.PIECE &&
         ingredient.name === '' && ingredient.brand === null
 }
 
@@ -337,11 +306,11 @@ export function copyIngredient(ingredient: Ingredient): Ingredient {
     }
 }
 
-export function unitsFrom(unit: string): Units {
-    const [, key] = Object.entries(Units).find(([, value]) => value === unit)
-    return key
-}
-
+// export function unitsFrom(unit: string): Units {
+//     const [, key] = Object.entries(Units).find(([, value]) => value === unit)
+//     return key
+// }
+//
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
         return `${formatQuantityFor(ingredient.amount.value, ingredient.name)}`

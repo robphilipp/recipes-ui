@@ -288,7 +288,7 @@ export default function RecipeView(props: Props): JSX.Element {
                         onChange={(event, newValue) => handleRatingChange(newValue)}
                     />
                     <Typography sx={{marginTop: -1, fontSize: '0.7em'}}>
-                        {ratingFormatter.format(rating.mean)} with {numRatingsFormatter.format(rating.ratings)} ratings
+                        {ratingFormatter.format(isNaN(rating.mean) ? 0 : rating.mean)} with {numRatingsFormatter.format(rating.ratings)} ratings
                     </Typography>
                 </Typography>
                 <Typography sx={{marginTop: 1.75}}>
