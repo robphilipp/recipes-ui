@@ -2,7 +2,7 @@ import {Long, ObjectId, WithId} from "mongodb";
 import {getTime} from "date-fns/fp";
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
-import {Amount, convertAmount, UnitName, Units} from "../lib/Measurements";
+import {Amount, convertAmount, UnitName, UnitType} from "../lib/Measurements";
 
 /*
     This file contains:
@@ -285,14 +285,14 @@ export function emptyIngredient(): Ingredient {
     return {
         id: (new UUID()).toString('hex'),
         section: null,
-        amount: {value: NaN, unit: Units.PIECE},
+        amount: {value: NaN, unit: UnitType.PIECE},
         name: '',
         brand: null
     }
 }
 
 export function isEmptyIngredient(ingredient: Ingredient): boolean {
-    return isNaN(ingredient.amount.value) && ingredient.amount.unit === Units.PIECE &&
+    return isNaN(ingredient.amount.value) && ingredient.amount.unit === UnitType.PIECE &&
         ingredient.name === '' && ingredient.brand === null
 }
 

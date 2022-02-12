@@ -28,24 +28,55 @@ export enum UnitName {
  * @param unit The unit
  * @param label The human-readable label
  */
-function unitFrom(unit: Units, label: UnitName): Unit {
+function unitFrom(unit: UnitType, label: UnitName): Unit {
     return {value: unit, label}
 }
 
-export function unitsFrom(unit: string): Units {
-    const [, key] = Object.entries(Units).find(([, value]) => value === unit)
+/**
+ * Returns the {@link UnitType} associated with the shorthand (e.g. mg, g, oz, etc)
+ * @param shorthand the shorthand (e.g. mg, g, oz, etc)
+ * @return The {@link UnitType} associated with the shorthand
+ */
+export function unitTypeFrom(shorthand: string): UnitType {
+    const [, key] = Object.entries(UnitType).find(([, value]) => value === shorthand)
     return key
 }
 
 /**
  * The units for the ingredients
  */
-export enum Units {
+export enum UnitType {
     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
     OUNCE = 'oz', POUND = 'lb',
     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
     PIECE = 'piece', PINCH = 'pinch'
+}
+
+const units = new Map<UnitName, UnitType>([
+    [UnitName.milligram, UnitType.MILLIGRAM],
+    [UnitName.gram, UnitType.GRAM],
+    [UnitName.kilogram, UnitType.KILOGRAM],
+
+    [UnitName.ounce, UnitType.OUNCE],
+    [UnitName.pound, UnitType.POUND],
+
+    [UnitName.milliliter, UnitType.MILLILITER],
+    [UnitName.liter, UnitType.LITER],
+    [UnitName.teaspoon, UnitType.TEASPOON],
+    [UnitName.tablespoon, UnitType.TABLESPOON],
+    [UnitName.fluid_ounce, UnitType.FLUID_OUNCE],
+    [UnitName.cup, UnitType.CUP],
+    [UnitName.pint, UnitType.PINT],
+    [UnitName.quart, UnitType.QUART],
+    [UnitName.gallon, UnitType.GALLON],
+
+    [UnitName.piece, UnitType.PIECE],
+    [UnitName.pint, UnitType.PINCH],
+])
+
+export function unitFor(unitName: UnitName): Unit {
+    return unitFrom(units.get(unitName), unitName)
 }
 
 /**
@@ -63,9 +94,9 @@ export enum UnitCategories {
  */
 export type Unit = {
     // the unit name
-    value: string
+    value: UnitType
+    // value: string
     // the human-readable value
-    // label: string
     label: UnitName
 }
 
@@ -74,10 +105,10 @@ export type Unit = {
  */
 export type Amount = {
     value: number
-    unit: Units
+    unit: UnitType
 }
 
-export function amountFor(value: number, unit: Units): Amount {
+export function amountFor(value: number, unit: UnitType): Amount {
     return {value, unit}
 }
 
@@ -88,28 +119,28 @@ export function amountFor(value: number, unit: Units): Amount {
  */
 export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     [UnitCategories.MASS, [
-        unitFrom(Units.MILLIGRAM, UnitName.milligram),
-        unitFrom(Units.GRAM, UnitName.gram),
-        unitFrom(Units.KILOGRAM, UnitName.kilogram)
+        unitFrom(UnitType.MILLIGRAM, UnitName.milligram),
+        unitFrom(UnitType.GRAM, UnitName.gram),
+        unitFrom(UnitType.KILOGRAM, UnitName.kilogram)
     ]],
     [UnitCategories.WEIGHT, [
-        unitFrom(Units.OUNCE, UnitName.ounce),
-        unitFrom(Units.POUND, UnitName.pound)
+        unitFrom(UnitType.OUNCE, UnitName.ounce),
+        unitFrom(UnitType.POUND, UnitName.pound)
     ]],
     [UnitCategories.VOLUME, [
-        unitFrom(Units.MILLILITER, UnitName.milliliter),
-        unitFrom(Units.LITER, UnitName.liter),
-        unitFrom(Units.TEASPOON, UnitName.teaspoon),
-        unitFrom(Units.TABLESPOON, UnitName.tablespoon),
-        unitFrom(Units.FLUID_OUNCE, UnitName.fluid_ounce),
-        unitFrom(Units.CUP, UnitName.cup),
-        unitFrom(Units.PINT, UnitName.pint),
-        unitFrom(Units.QUART, UnitName.quart),
-        unitFrom(Units.GALLON, UnitName.gallon)
+        unitFrom(UnitType.MILLILITER, UnitName.milliliter),
+        unitFrom(UnitType.LITER, UnitName.liter),
+        unitFrom(UnitType.TEASPOON, UnitName.teaspoon),
+        unitFrom(UnitType.TABLESPOON, UnitName.tablespoon),
+        unitFrom(UnitType.FLUID_OUNCE, UnitName.fluid_ounce),
+        unitFrom(UnitType.CUP, UnitName.cup),
+        unitFrom(UnitType.PINT, UnitName.pint),
+        unitFrom(UnitType.QUART, UnitName.quart),
+        unitFrom(UnitType.GALLON, UnitName.gallon)
     ]],
     [UnitCategories.PIECE, [
-        unitFrom(Units.PIECE, UnitName.piece),
-        unitFrom(Units.PINCH, UnitName.pinch)
+        unitFrom(UnitType.PIECE, UnitName.piece),
+        unitFrom(UnitType.PINCH, UnitName.pinch)
     ]]
 ])
 
@@ -118,32 +149,32 @@ export const measurementUnits = Array.from(unitsByCategory.values()).flat()
 /**
  * Calculates the unit-category for each unit
  */
-export const categoriesByUnits = new Map<Units, UnitCategories>(
+export const categoriesByUnits = new Map<UnitType, UnitCategories>(
     Array
         .from(unitsByCategory.entries())
-        .flatMap(([category, units]) => units.map(unit => [unitsFrom(unit.value), category]))
+        .flatMap(([category, units]) => units.map(unit => [unitTypeFrom(unit.value), category]))
 )
 
 type Conversions = 'mg' | 'g' | 'kg' |
     'ounce' | 'pounds' |
     'ml' | 'liter' | 'tsp' | 'tbsp' | 'cup' | 'fl oz' | 'pint' | 'quart' | 'gallon'
-const conversionMap = new Map<Units, Conversions>([
-    [Units.MILLIGRAM, 'mg'],
-    [Units.GRAM, 'g'],
-    [Units.KILOGRAM, 'kg'],
+const conversionMap = new Map<UnitType, Conversions>([
+    [UnitType.MILLIGRAM, 'mg'],
+    [UnitType.GRAM, 'g'],
+    [UnitType.KILOGRAM, 'kg'],
 
-    [Units.OUNCE, 'ounce'],
-    [Units.POUND, 'pounds'],
+    [UnitType.OUNCE, 'ounce'],
+    [UnitType.POUND, 'pounds'],
 
-    [Units.MILLILITER, 'ml'],
-    [Units.LITER, 'liter'],
-    [Units.TEASPOON, 'tsp'],
-    [Units.TABLESPOON, 'tbsp'],
-    [Units.CUP, 'cup'],
-    [Units.FLUID_OUNCE, 'fl oz'],
-    [Units.PINT, 'pint'],
-    [Units.QUART, 'quart'],
-    [Units.GALLON, 'gallon']
+    [UnitType.MILLILITER, 'ml'],
+    [UnitType.LITER, 'liter'],
+    [UnitType.TEASPOON, 'tsp'],
+    [UnitType.TABLESPOON, 'tbsp'],
+    [UnitType.CUP, 'cup'],
+    [UnitType.FLUID_OUNCE, 'fl oz'],
+    [UnitType.PINT, 'pint'],
+    [UnitType.QUART, 'quart'],
+    [UnitType.GALLON, 'gallon']
 ])
 
 /**
@@ -153,7 +184,7 @@ const conversionMap = new Map<Units, Conversions>([
  * @return A {@link Result} holding the converted {@link Amount} when successful. Otherwise,
  * a failure.
  */
-export function convertAmount(amount: Amount, toUnit: Units): Result<Amount, string> {
+export function convertAmount(amount: Amount, toUnit: UnitType): Result<Amount, string> {
     const fromUnits: Conversions = conversionMap.get(amount.unit)
     const toUnits: Conversions = conversionMap.get(toUnit)
     if (fromUnits && toUnits) {
@@ -186,23 +217,23 @@ export function convertAmount(amount: Amount, toUnit: Units): Result<Amount, str
 
 /**
  * Currying function that accepts an {@link Amount} and returns a function that accepts the
- * target {@link Units} and returns the {@link Result} holding the {@link Amount} or a failure
+ * target {@link UnitType} and returns the {@link Result} holding the {@link Amount} or a failure
  * @param amount The amount to convert
- * @return A function that accepts the target {@link Units} and returns the {@link Result} holding
+ * @return A function that accepts the target {@link UnitType} and returns the {@link Result} holding
  * the {@link Amount} or a failure
  */
-export function convertFrom(amount: Amount): (unit: Units) => Result<Amount, string> {
+export function convertFrom(amount: Amount): (unit: UnitType) => Result<Amount, string> {
     return unit => convertAmount(amount, unit)
 }
 
 /**
- * Currying function that accepts a target {@link Units} and returns a function that accepts the
+ * Currying function that accepts a target {@link UnitType} and returns a function that accepts the
  * {@link Amount} to convert and returns a {@link Result} that holds the converted {@link Amount}
  * or a failure
  * @param unit The target units
  * @return a function that accepts the {@link Amount} to convert and returns a {@link Result} that
  * holds the converted {@link Amount} or a failure
  */
-export function convertTo(unit: Units): (amount: Amount) => Result<Amount, string> {
+export function convertTo(unit: UnitType): (amount: Amount) => Result<Amount, string> {
     return amount => convertAmount(amount, unit)
 }

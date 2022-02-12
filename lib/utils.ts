@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 import formatQuantity from "format-quantity";
-import {Units} from "./Measurements";
+import {UnitType} from "./Measurements";
 
 /**
  * Converts the quantity to a fraction and pluralizes the units for display.
@@ -18,9 +18,9 @@ export function formatQuantityFor(quantity: number, units?: string): string {
     if (Math.abs(quantity) <= 0.00001) {
         return `0 ${pluralize(units, 0)}`
     }
-    const unit = units === Units.LITER ? 'ℓ' : units
-    if (units === Units.MILLIGRAM || units === Units.GRAM || units === Units.KILOGRAM ||
-        units === Units.MILLILITER || units === Units.LITER
+    const unit = units === UnitType.LITER ? 'ℓ' : units
+    if (units === UnitType.MILLIGRAM || units === UnitType.GRAM || units === UnitType.KILOGRAM ||
+        units === UnitType.MILLILITER || units === UnitType.LITER
     ) {
         return `${formatQuantity(formatNumber(quantity), true)} ${unit}`
     }

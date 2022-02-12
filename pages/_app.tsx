@@ -30,7 +30,7 @@ import {ThemeProvider} from '@mui/material/styles';
 import {lightTheme} from "../theme/theme";
 import SearchIcon from '@mui/icons-material/Search';
 import {styled} from '@mui/system'
-import {amountFor, convertAmount, Units} from "../lib/Measurements";
+import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import AmountConverter from "../components/AmountConverter";
 import QuantityConverterDialog from "../components/QuantityConverterDialog";
 import {Calculate} from "@mui/icons-material";
@@ -141,37 +141,37 @@ export default function App(props: AppProps) {
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.TEASPOON), Units.MILLILITER).map(amount => `1 tsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.TEASPOON), UnitType.MILLILITER).map(amount => `1 tsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.TABLESPOON), Units.MILLILITER).map(amount => `1 tbsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.MILLILITER).map(amount => `1 tbsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.TABLESPOON), Units.TEASPOON).map(amount => `1 tbsp = ${Math.round(amount.value)} tsps`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.TEASPOON).map(amount => `1 tbsp = ${Math.round(amount.value)} tsps`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.FLUID_OUNCE), Units.TABLESPOON).map(amount => `1 fl oz = ${Math.round(amount.value)} tbsps`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.FLUID_OUNCE), UnitType.TABLESPOON).map(amount => `1 fl oz = ${Math.round(amount.value)} tbsps`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.CUP), Units.FLUID_OUNCE).map(amount => `1 cup = ${Math.round(amount.value)} fl ozs`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.CUP), UnitType.FLUID_OUNCE).map(amount => `1 cup = ${Math.round(amount.value)} fl ozs`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.QUART), Units.PINT).map(amount => `1 qt = ${Math.round(amount.value)} pts`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.QUART), UnitType.PINT).map(amount => `1 qt = ${Math.round(amount.value)} pts`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
                         <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, Units.GALLON), Units.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
+                            {convertAmount(amountFor(1, UnitType.GALLON), UnitType.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
                         </Typography>
                     </ListItem>
                     <div>

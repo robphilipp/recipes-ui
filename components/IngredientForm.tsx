@@ -21,12 +21,12 @@ import {DisplayMode} from "./FormMode";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import MoveUpIcon from "@mui/icons-material/MoveUp";
 import MoveDownIcon from "@mui/icons-material/MoveDown";
-import {Amount, categoriesByUnits, measurementUnits, UnitName, Units, unitsFrom} from "../lib/Measurements";
+import {Amount, categoriesByUnits, measurementUnits, UnitName, UnitType, unitTypeFrom} from "../lib/Measurements";
 
 function noop() {
 }
 
-type UnitOption = { label: UnitName, value: Units }
+type UnitOption = { label: UnitName, value: UnitType }
 // type UnitOption = { label: string, value: Units }
 
 type Props = {
@@ -56,7 +56,7 @@ export function IngredientForm(props: Props): JSX.Element {
 
     function handleIngredientUnitSelect(value: UnitOption): void {
         if (value === null) return
-        const amount: Amount = {...ingredient.amount, unit: unitsFrom(value.value)}
+        const amount: Amount = {...ingredient.amount, unit: unitTypeFrom(value.value)}
         setIngredient(current => ({...current, amount}))
     }
 
@@ -213,7 +213,7 @@ export function IngredientForm(props: Props): JSX.Element {
                         id="ingredient-amount-unit-select"
                         renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
-                        groupBy={option => categoriesByUnits.get(option.value as Units)}
+                        groupBy={option => categoriesByUnits.get(option.value as UnitType)}
                         sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
                         value={ingredient.amount.unit}
