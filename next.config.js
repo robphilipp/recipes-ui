@@ -1,6 +1,6 @@
 module.exports = {
     env: {
-        version: '0.1.1-snap',
+        version: '0.2.0',
 
         siteName: 'City Recipes',
         bookTitle: "B&R Recipes",
