@@ -131,6 +131,7 @@ export type Result<S, F extends ToString> = {
      * @param handler The callback that accepts the success value, but doesn't return anything.
      * @return This result.
      * @see onFailure
+     * @see always
      */
     onSuccess: (handler: (value: S) => void) => Result<S, F>
     /**
@@ -140,8 +141,17 @@ export type Result<S, F extends ToString> = {
      * @param handler The callback that accepts the error, but doesn't return anything.
      * @return This result.
      * @see onSuccess
+     * @see always
      */
     onFailure: (handler: (error: F) => void) => Result<S, F>
+    /**
+     * Calls the handler regardless whether the result is a success or failure
+     * @param handler The callback to perform
+     * @return This result
+     * @see onSuccess
+     * @see onFailure
+     */
+    always: (handler: () => void) => Result<S, F>
 
     /**
      * @return When this result is a success, then returns the value. Otherwise returns `undefined`.
@@ -249,6 +259,9 @@ function resultFrom<S, F extends ToString>(result: ResultType<S, F>): Result<S, 
 
         onSuccess: (handler: (value: S) => void) => onSuccess(handler, success, failure),
         onFailure: (handler: (error: F) => void) => onFailure(handler, success, failure),
+        always: function (this: Result<S, F>, handler: () => void) {
+            return onAlways(this, handler)
+        },
 
         getOrUndefined: () => success,
         getOrDefault: (value: S) => (success !== undefined && failure === undefined) ? success : value,
@@ -356,7 +369,7 @@ async function liftPromiseFromOrCreate<S, SP, F extends ToString>(success?: S, f
             if (hasAndThen<SP, F>(promisedValue)) {
                 return promisedValue
             }
-            // otherwise wrap it in a result
+            // otherwise, wrap it in a result
             return successResult<SP, F>(promisedValue)
         }
         return successResult<SP, F>(success as unknown as SP)
@@ -377,7 +390,11 @@ async function liftPromiseFromOrCreate<S, SP, F extends ToString>(success?: S, f
  */
 function onSuccess<S, F extends ToString>(handler: (value: S) => void, success?: S, failure?: F): Result<S, F> {
     if (success !== undefined) {
-        handler(success)
+        try {
+            handler(success)
+        } catch (error) {
+            return errorMessageResult('Result.onSuccess handler threw an error', error)
+        }
     }
     return resultFrom({success, failure})
 }
@@ -395,9 +412,42 @@ function onSuccess<S, F extends ToString>(handler: (value: S) => void, success?:
  */
 function onFailure<S, F extends ToString>(handler: (error: F) => void, success?: S, failure?: F): Result<S, F> {
     if (failure !== undefined) {
-        handler(failure)
+        try {
+            handler(failure)
+        } catch (error) {
+            return errorMessageResult('Result.onFailure handler threw an error', error)
+        }
     }
     return resultFrom({success, failure})
+}
+
+/**
+ * Calls the handler regardless of whether the specified result is a `success` or `failure`, and returns
+ * the specified result, unchanged. When the handler throws an exception, then returns a failure.
+ * @param result The result
+ * @param handler The handler
+ * @return The specified result
+ */
+function onAlways<S, F extends ToString>(result: Result<S, F>, handler: () => void): Result<S, F> {
+    try {
+        handler()
+    } catch (error) {
+        return errorMessageResult('Result.onAlways handler threw an error', error)
+    }
+    return result
+}
+
+/**
+ * Creates an error message result that is used when a function's handler throws an exception when
+ * called.
+ * @param message The error message
+ * @param error The error thrown by the handler
+ * @return A failure result with the error message describing why the handler failed
+ */
+function errorMessageResult<S, F extends ToString>(message: string, error: Error): Result<S, F> {
+    return failureResult({
+        toString: () => `${message}; error: ${error.message}`
+    } as F)
 }
 
 /**
@@ -457,6 +507,7 @@ export function forEachResult<SI, FI extends ToString, SO, FO extends ToString>(
     }
     return successResult<Array<SO>, Array<FO>>(succeeded)
 }
+
 /**
  * Applies the handler to the specified set of elements, lifting the result outside of the array.
  * Given an array of numbers to which we apply a {@link Result} returning operation, the overall result is a

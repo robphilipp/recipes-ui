@@ -134,6 +134,15 @@ export default function App(props: AppProps) {
                         <ListItemText primary="Search"/>
                     </ListItem>
                 </List>
+                <div>
+                    <QuantityConverterDialog
+                        buttonText="Converter"
+                        title="Converter"
+                        icon={<Calculate/>}
+                    >
+                        <AmountConverter/>
+                    </QuantityConverterDialog>
+                </div>
                 <Divider/>
                 <List sx={{padding: 0}}>
                     <ListItem>
@@ -174,15 +183,6 @@ export default function App(props: AppProps) {
                             {convertAmount(amountFor(1, UnitType.GALLON), UnitType.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
                         </Typography>
                     </ListItem>
-                    <div>
-                        <QuantityConverterDialog
-                            buttonText="Converter"
-                            title="Converter"
-                            icon={<Calculate/>}
-                        >
-                            <AmountConverter/>
-                        </QuantityConverterDialog>
-                    </div>
                 </List>
             </div>
         );
