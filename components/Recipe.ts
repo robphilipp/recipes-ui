@@ -1,8 +1,8 @@
 import {Long, ObjectId, WithId} from "mongodb";
-import {getTime} from "date-fns/fp";
+import {DateTime} from 'luxon';
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
-import {Amount, convertAmount, UnitName, UnitType} from "../lib/Measurements";
+import {Amount, convertAmount, UnitType} from "../lib/Measurements";
 
 /*
     This file contains:
@@ -64,50 +64,6 @@ export type RequiredTime = {
     active: Time
 }
 
-// /**
-//  * The units for the ingredients
-//  */
-// export enum Units {
-//     MILLIGRAM = 'mg', GRAM = 'g', KILOGRAM = 'kg',
-//     OUNCE = 'oz', POUND = 'lb',
-//     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
-//     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-//     PIECE = 'piece', PINCH = 'pinch'
-// }
-//
-// /**
-//  * The categories for the units used by the ingredients
-//  */
-// export enum UnitCategories {
-//     MASS = 'Mass',
-//     WEIGHT = 'Weight',
-//     VOLUME = 'Volume',
-//     PIECE = 'Piece'
-// }
-
-// /**
-//  * The unit name and its associated human-readable value
-//  */
-// export type Unit = {
-//     // the unit name
-//     value: string
-//     // the human-readable value
-//     // label: string
-//     label: UnitName
-// }
-//
-// /**
-//  * The amount of the ingredient
-//  */
-// export type Amount = {
-//     value: number
-//     unit: Units
-// }
-//
-// export function amountFor(value: number, unit: Units): Amount {
-//     return {value, unit}
-// }
-//
 /**
  * Determines whether the two amounts are equal to within the specified
  * tolerance, which is in the units of the first amount (a).
@@ -120,8 +76,6 @@ export function equalWithin(a: Amount, b: Amount, tolerance: number): boolean {
     return convertAmount(b, a.unit)
         .map(bPrime => Math.abs(bPrime.value - a.value) <= tolerance)
         .getOrDefault(false)
-    // const bPrime = convertAmount(b, a.unit)
-    // return Math.abs(bPrime.value - a.value) <= tolerance
 }
 
 /**
@@ -234,7 +188,7 @@ export function emptyRecipe(): Recipe {
         tags: [],
         author: null,
         addedBy: null,
-        createdOn: getTime(new Date()),
+        createdOn: DateTime.now().toMillis(),
         modifiedOn: null,
         ratings: [0, 0, 0, 0, 0],
         yield: {value: 0, unit: ''},
@@ -253,7 +207,7 @@ export function isValidRecipe(recipe: Recipe): boolean {
 export function updateModifiedTimestamp(recipe: Recipe): Recipe {
     return {
         ...recipe,
-        modifiedOn: getTime(new Date())
+        modifiedOn: DateTime.now().toMillis()
     }
 }
 
