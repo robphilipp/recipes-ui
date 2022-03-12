@@ -1,5 +1,5 @@
 import convert, {Force, Mass, Volume} from "convert";
-import {failureResult, Result, successResult} from "./Result";
+import {failureResult, Result, successResult} from "result-fn";
 
 export enum UnitName {
     milligram = 'milligram',

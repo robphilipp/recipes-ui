@@ -28,6 +28,7 @@
     "react-dropzone": "^11.5.1",
     "remark": "^14.0.2",
     "remark-html": "^15.0.0",
+    "result-fn": "^0.0.2",
     "swr": "^1.0.1",
     "tesseract.js": "^2.1.5",
     "ts-jest": "^27.1.3"
