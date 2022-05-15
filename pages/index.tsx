@@ -25,6 +25,19 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 
+import {ParseType, toRecipe} from "@saucie/recipe-parser"
+
+const {recipe, errors} = toRecipe(`dough
+            1 1/2 cp all-purpose flour
+            1 tsp vanilla extract,
+            sauce
+            1 cup milk
+            1 egg`,
+    {deDupSections: true, inputType: ParseType.INGREDIENTS}
+)
+
+console.log("recipe", recipe)
+
 type Props = {}
 
 export default function Home(props: Props): JSX.Element {

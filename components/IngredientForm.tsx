@@ -1,16 +1,11 @@
 import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import {
-    // Amount,
-    // categoriesByUnits,
     copyIngredient,
     emptyIngredient,
     Ingredient,
     ingredientAsText,
     isEmptyIngredient,
-    // measurementUnits,
-    // Units,
-    // unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -27,7 +22,6 @@ function noop() {
 }
 
 type UnitOption = { label: UnitName, value: UnitType }
-// type UnitOption = { label: string, value: Units }
 
 type Props = {
     position?: ItemPosition
