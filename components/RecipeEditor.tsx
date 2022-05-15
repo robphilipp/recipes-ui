@@ -1,17 +1,7 @@
 import Head from "next/head";
 import React, {ChangeEvent, useEffect, useState} from "react";
-import {Box, Button, ButtonGroup, List, ListItem, TextField, Typography} from "@mui/material";
-import {
-    emptyIngredient,
-    emptyRecipe,
-    emptyStep,
-    Ingredient,
-    isValidRecipe,
-    Recipe,
-    RequiredTime,
-    Step,
-    Yield
-} from "./Recipe";
+import {Box, Button, ButtonGroup, TextField, Typography} from "@mui/material";
+import {emptyRecipe, Ingredient, isValidRecipe, Recipe, RequiredTime, Step} from "./Recipe";
 import {IngredientForm} from "./IngredientForm";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import {StepForm} from "./StepForm";
@@ -21,6 +11,8 @@ import {useRouter} from "next/router";
 import {RequiredTimeForm} from "./RequiredTimeForm";
 import {DisplayMode} from "./FormMode";
 import {TagsForm} from "./TagsForm";
+import {IngredientsEditor} from "./IngredientsEditor";
+import {StepsEditor} from "./StepsEditor";
 
 /**
  * Represents the movement an item in the list (visually). Visually, the item list starts with the
@@ -44,20 +36,20 @@ export type ItemPosition = {
     isLast: boolean
 }
 
-/**
- * Factory function for creating {@link ItemPosition} objects
- * @param itemNumber The number of the item in the list (first item is 1 rather than 0)
- * @param numItems The number of items in the list
- * @return An {@link ItemPosition}
- */
-function itemPosition(itemNumber: number, numItems: number): ItemPosition {
-    return {
-        itemNumber,
-        numItems,
-        isFirst: itemNumber <= 1,
-        isLast: itemNumber >= numItems
-    }
-}
+// /**
+//  * Factory function for creating {@link ItemPosition} objects
+//  * @param itemNumber The number of the item in the list (first item is 1 rather than 0)
+//  * @param numItems The number of items in the list
+//  * @return An {@link ItemPosition}
+//  */
+// function itemPosition(itemNumber: number, numItems: number): ItemPosition {
+//     return {
+//         itemNumber,
+//         numItems,
+//         isFirst: itemNumber <= 1,
+//         isLast: itemNumber >= numItems
+//     }
+// }
 
 enum EditMode {ADD, UPDATE }
 
@@ -100,9 +92,6 @@ export function RecipeEditor(props: Props): JSX.Element {
         () => props.recipe ? `${props.recipe.yield.value}` : undefined
     )
 
-    const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
-    const [addingStep, setAddingStep] = useState<boolean>(false)
-
     useEffect(
         () => {
             // todo this works well when the recipe is initially empty, however, when the
@@ -137,88 +126,13 @@ export function RecipeEditor(props: Props): JSX.Element {
         }))
     }
 
-    function handleAddingIngredient(): void {
-        setAddingIngredient(true)
+
+    function onUpdateIngredients(ingredients: Array<Ingredient>): void {
+        setRecipe(current => ({...current, ingredients}))
     }
 
-    function handleSubmittedNewIngredient(ingredient: Ingredient, andAgain: boolean): void {
-        console.log("ingredient", ingredient)
-        setRecipe(current => ({...current, ingredients: [...current.ingredients, ingredient]}))
-        setAddingIngredient(andAgain)
-    }
-
-    function handleUpdatedIngredient(ingredient: Ingredient): void {
-        const index = recipe.ingredients.findIndex(item => item.id === ingredient.id)
-        if (index >= 0) {
-            setRecipe(current => {
-                const updated = current.ingredients.slice()
-                updated[index] = ingredient
-                return {...current, ingredients: updated}
-            })
-        }
-    }
-
-    function handleDeleteIngredient(id: string): void {
-        setRecipe(current => ({...current, ingredients: current.ingredients.filter(ing => ing.id !== id)}))
-    }
-
-    function handleCancelIngredient(): void {
-        setAddingIngredient(false)
-    }
-
-    function handleMoveIngredient(ingredient: Ingredient, ingredientNumber: number, direction: Movement): void {
-        const index = ingredientNumber - 1
-        if (index >= 0 && index < recipe.ingredients.length) {
-            setRecipe(current => ({
-                ...current,
-                ingredients: swapItem(current.ingredients, index, direction)
-            }))
-        }
-    }
-
-    function handleAddingStep(): void {
-        setAddingStep(true)
-    }
-
-    function handleSubmittedNewStep(step: Step, andAgain: boolean): void {
-        console.log("step", step)
-        setRecipe(current => ({...current, steps: [...current.steps, step]}))
-        setAddingStep(andAgain)
-    }
-
-    function handleUpdatedStep(step: Step): void {
-        const index = recipe.steps.findIndex(item => item.id === step.id)
-        if (index >= 0) {
-            setRecipe(current => {
-                const updated = current.steps.slice()
-                updated[index] = step
-                return {...current, steps: updated}
-            })
-        }
-    }
-
-    function handleDeleteStep(id: string): void {
-        setRecipe(current => ({...current, steps: current.steps.filter(ing => ing.id !== id)}))
-    }
-
-    function handleCancelStep(): void {
-        setAddingStep(false)
-    }
-
-    function handleMoveStep(step: Step, stepNumber: number, direction: Movement): void {
-        const index = stepNumber - 1
-        if (index >= 0 && index < recipe.steps.length) {
-            setRecipe(current => ({...current, steps: swapItem(current.steps, index, direction)}))
-        }
-    }
-
-    function swapItem<T>(items: Array<T>, index: number, direction: Movement): Array<T> {
-        const updated = items.slice()
-        const otherIndex = direction === Movement.UP ? index - 1 : index + 1
-        const item = updated[index]
-        updated[index] = updated[otherIndex]
-        updated[otherIndex] = item
-        return updated
+    function onUpdateSteps(steps: Array<Step>): void {
+        setRecipe(current => ({...current, steps}))
     }
 
     function handleSubmitRecipe(): void {
@@ -318,79 +232,10 @@ export function RecipeEditor(props: Props): JSX.Element {
                 </div>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Ingredients</Typography>
-                <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                    {recipe.ingredients.map((ingredient, index) => (
-                        <ListItem key={ingredient.name} disablePadding>
-                            <IngredientForm
-                                position={itemPosition(index + 1, recipe.ingredients.length)}
-                                ingredient={ingredient}
-                                onSubmit={handleUpdatedIngredient}
-                                onCancel={handleCancelIngredient}
-                                onDelete={handleDeleteIngredient}
-                                onMove={handleMoveIngredient}
-                            />
-                        </ListItem>))}
-                </List>
-                {addingIngredient ?
-                    <IngredientForm
-                        key={`new-ingredient-${recipe.ingredients.length+1}`}
-                        ingredient={emptyIngredient()}
-                        initialMode={DisplayMode.EDIT}
-                        onSubmit={handleSubmittedNewIngredient}
-                        onCancel={handleCancelIngredient}
-                    /> :
-                    <span/>}
-                {!addingIngredient ?
-                    <Button
-                        onClick={handleAddingIngredient}
-                        disabled={addingIngredient}
-                        startIcon={<AddCircleIcon/>}
-                        variant='outlined'
-                        size='small'
-                        sx={{textTransform: 'none'}}
-                    >
-                        Add Ingredient
-                    </Button> :
-                    <span/>
-                }
+                <IngredientsEditor ingredients={recipe.ingredients} onUpdateIngredients={onUpdateIngredients}/>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Steps</Typography>
-                <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                    {recipe.steps.map((step, index) => (
-                        <ListItem key={step.text} disablePadding>
-                            <StepForm
-                                position={itemPosition(index + 1, recipe.steps.length)}
-                                step={step}
-                                onSubmit={handleUpdatedStep}
-                                onCancel={handleCancelStep}
-                                onDelete={handleDeleteStep}
-                                onMove={handleMoveStep}
-                            />
-                        </ListItem>))}
-                </List>
-                {addingStep ?
-                    <StepForm
-                        key={`new-step-${recipe.steps.length+1}`}
-                        step={emptyStep()}
-                        initialMode={DisplayMode.EDIT}
-                        onSubmit={handleSubmittedNewStep}
-                        onCancel={handleCancelStep}
-                        onMove={handleMoveStep}
-                    /> :
-                    <span/>}
-                {!addingStep ?
-                    <Button
-                        onClick={handleAddingStep}
-                        disabled={addingStep}
-                        startIcon={<AddCircleIcon/>}
-                        variant='outlined'
-                        size='small'
-                        sx={{textTransform: 'none'}}
-                    >
-                        Add Step
-                    </Button> :
-                    <span/>
-                }
+                <StepsEditor steps={recipe.steps} onUpdateSteps={onUpdateSteps}/>
 
                 <Typography sx={{fontSize: `1.25em`, marginTop: 2}}>Notes</Typography>
                 <TextField

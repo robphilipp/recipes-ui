@@ -88,8 +88,7 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
-        // @ts-ignore
-        if (event.target.id === "ingredient-amount-unit-select") return;
+        if (event.currentTarget.id === "ingredient-amount-unit-select") return;
 
         switch (event.key) {
             case 'Enter':
