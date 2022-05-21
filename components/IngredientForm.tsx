@@ -150,7 +150,7 @@ export function IngredientForm(props: Props): JSX.Element {
                     maxWidth: {
                         xs: 500,
                         sm: 550,
-                        md: 600,
+                        md: 800,
                     }
                 }}
             >
@@ -158,13 +158,18 @@ export function IngredientForm(props: Props): JSX.Element {
                     sx={{
                         maxWidth: {
                             xs: 250,
-                            sm: 250,
+                            sm: 225,
                             md: 800,
                         }
                     }}
                 >
                     {ingredient.section !== null ?
-                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '1.1em'
+                        }}>
+                            {ingredient.section.toUpperCase()}
+                        </div> :
                         <span/>
                     }
                     <div>{ingredientAsText(ingredient)}</div>

@@ -1,6 +1,6 @@
 import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
-import React, {useEffect, useState} from "react";
-import {Button, List, ListItem, RadioGroup} from "@mui/material";
+import React, {useEffect, useRef, useState} from "react";
+import {Button, List, ListItem, RadioGroup, Typography} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
@@ -8,6 +8,12 @@ import {ItemPosition, Movement} from "./RecipeEditor";
 import {ParseType, toRecipe} from "@saucie/recipe-parser";
 import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
 import {TextareaAutosize} from "@mui/base";
+import CodeMirror from "@uiw/react-codemirror";
+import {ILexingError} from "chevrotain";
+import {ThumbDown, ThumbUp} from "@mui/icons-material";
+// import {EditorState} from "@codemirror/state";
+// import {EditorView, keymap} from "@codemirror/view";
+// import {defaultKeymap} from "@codemirror/commands";
 
 type Props = {
     /**
@@ -28,6 +34,9 @@ export function IngredientsEditor(props: Props): JSX.Element {
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.FORM_BASED)
 
+    // const editorStateRef = useRef<EditorState>()
+    // const editorViewRef = useRef<EditorView>()
+
     useEffect(
         () => {
             const {recipe: parsedRecipe, errors} = toRecipe(`dough
@@ -42,6 +51,22 @@ export function IngredientsEditor(props: Props): JSX.Element {
         },
         []
     )
+
+    // useEffect(
+    //     () => {
+    //         if (editorMode === EditorMode.FREE_FORM) {
+    //             editorStateRef.current = EditorState.create({
+    //                 doc: ingredients.map(ingredient => ingredientAsText(ingredient)).join("\n"),
+    //                 extensions: [keymap.of(defaultKeymap)]
+    //             })
+    //             editorViewRef.current = new EditorView({
+    //                 state: editorStateRef.current,
+    //                 parent: document.body
+    //             })
+    //         }
+    //     },
+    //     [editorMode]
+    // )
 
     function handleAddingIngredient(): void {
         setAddingIngredient(true)
@@ -122,9 +147,29 @@ export function IngredientsEditor(props: Props): JSX.Element {
     }
 
     function FreeFormEditor(): JSX.Element {
-        return <TextareaAutosize
-            value={ingredients.map(ingredient => ingredientAsText(ingredient)).join("\n")}
-        />
+        const [ingredientText, setIngredientText] = useState<string>(ingredientsToText(ingredients))
+        const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
+        useEffect(
+            () => {
+                const {recipe, errors} = toRecipe(ingredientText)
+                setParseErrors(errors)
+                console.log(recipe, errors)
+            },
+            [ingredientText]
+        )
+        return <>
+            {parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='warning'/>}
+            {/*<Typography>{parseErrors.map(error => error.message).join(";")}</Typography>*/}
+            <CodeMirror
+                value={ingredientText}
+                onChange={(value, viewUpdate) => {
+                    setIngredientText(value)
+                    // const {recipe, errors} = toRecipe(value)
+                    // setParseErrors(errors)
+                    // console.log(recipe, errors)
+                }}
+            />
+        </>
     }
 
     return (
@@ -174,4 +219,17 @@ function itemPosition(itemNumber: number, numItems: number): ItemPosition {
         isFirst: itemNumber <= 1,
         isLast: itemNumber >= numItems
     }
+}
+
+/**
+ * Converts the list of ingredients to text, and includes the section headers
+ * @param ingredients
+ */
+function ingredientsToText(ingredients: Array<Ingredient>): string {
+    return ingredients
+        .map(ingredient => ingredient.section !== null ?
+            `${ingredient.section}\n${ingredientAsText(ingredient)}` :
+            `${ingredientAsText(ingredient)}`
+        )
+        .join("\n")
 }

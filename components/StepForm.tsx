@@ -123,11 +123,12 @@ export function StepForm(props: Props): JSX.Element {
         return (
             <ListItem
                 key={`${props.step.id}-li`}
+                secondaryAction={renderControls(step)}
                 sx={{
                     maxWidth: {
                         xs: 500,
                         sm: 550,
-                        md: 600,
+                        md: 800,
                     }
                 }}
             >
@@ -142,21 +143,31 @@ export function StepForm(props: Props): JSX.Element {
                 <ListItemText
                     sx={{
                         maxWidth: {
+                            //
                             xs: 250,
-                            sm: 250,
-                            md: 800,
+                            // 600 px
+                            sm: 175,
+                            // 900 px
+                            md: 375,
+                            // 1200 px
+                            lg: 575
                         }
                     }}
                 >
                     {step.title !== null ?
-                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{step.title.toUpperCase()}</div> :
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '1.1em'
+                        }}>
+                            {step.title.toUpperCase()}
+                        </div> :
                         <span/>
                     }
                     <div>{step.text}</div>
                 </ListItemText>
-                <ListItemButton>
-                    {renderControls(step)}
-                </ListItemButton>
+                {/*<ListItemButton>*/}
+                {/*    {renderControls(step)}*/}
+                {/*</ListItemButton>*/}
             </ListItem>
         )
     }
@@ -173,12 +184,6 @@ export function StepForm(props: Props): JSX.Element {
                         size='small'
                         autoFocus={true}
                         value={step.title}
-                        // sx={{
-                        //     "& .MuiOutlinedInput-root": {
-                        //         minWidth: {xs: 200},
-                        //         maxWidth: {xs: 200}
-                        //     }
-                        // }}
                         onChange={event => setStep(current => ({...current, title: event.target.value}))}
                     />
                 </Grid>
@@ -201,12 +206,6 @@ export function StepForm(props: Props): JSX.Element {
                                 maxWidth: 500
                             }
                         }}
-                        // sx={{
-                        //     "& .MuiOutlinedInput-root": {
-                        //         minWidth: {xs: 300},
-                        //         width: {xs: 360}
-                        //     }
-                        // }}
                         onChange={event => setStep(current => ({...current, text: event.target.value}))}
                     />
                 </Grid>
