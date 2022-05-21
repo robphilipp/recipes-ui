@@ -7,12 +7,19 @@ import React, {useState} from "react";
 import {ItemPosition, Movement} from "./RecipeEditor";
 
 type Props = {
-    steps?: Array<Step>
+    /**
+     * The current steps in the recipe
+     */
+    steps: Array<Step>
+    /**
+     * The callback function to update the list of steps.
+     * @param steps The updated list of steps
+     */
     onUpdateSteps: (steps: Array<Step>) => void
 }
 
 export function StepsEditor(props: Props): JSX.Element {
-    const {steps = [], onUpdateSteps} = props
+    const {steps, onUpdateSteps} = props
 
     const [addingStep, setAddingStep] = useState<boolean>(false)
 

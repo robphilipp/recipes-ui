@@ -106,33 +106,30 @@ export function RecipeEditor(props: Props): JSX.Element {
     )
 
     function handleNameChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
-        setRecipe(rec => ({...rec, name: event.target.value}))
+        setRecipe(currentRecipe => ({...currentRecipe, name: event.target.value}))
     }
 
     function handleAddTag(tag: string): void {
         if (recipe.tags.findIndex(t => t === tag) < 0) {
-            setRecipe(current => ({...current, tags: [...current.tags, tag]}))
+            setRecipe(currentRecipe => ({...currentRecipe, tags: [...currentRecipe.tags, tag]}))
         }
     }
 
     function handleRemoveTag(tag: string): void {
-        setRecipe(current => ({...current, tags: current.tags.filter(t => t !== tag)}))
+        setRecipe(currentRecipe => ({...currentRecipe, tags: currentRecipe.tags.filter(t => t !== tag)}))
     }
 
     function handleUpdateRequiredTime(requiredTime: RequiredTime): void {
-        setRecipe(current => ({
-            ...current,
-            requiredTime: {...requiredTime}
-        }))
+        setRecipe(currentRecipe => ({...currentRecipe, requiredTime: {...requiredTime}}))
     }
 
 
     function onUpdateIngredients(ingredients: Array<Ingredient>): void {
-        setRecipe(current => ({...current, ingredients}))
+        setRecipe(currentRecipe => ({...currentRecipe, ingredients}))
     }
 
     function onUpdateSteps(steps: Array<Step>): void {
-        setRecipe(current => ({...current, steps}))
+        setRecipe(currentRecipe => ({...currentRecipe, steps}))
     }
 
     function handleSubmitRecipe(): void {

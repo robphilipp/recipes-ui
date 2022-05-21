@@ -250,15 +250,6 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
         ingredient.name === '' && ingredient.brand === null
 }
 
-// export function copyIngredient(ingredient: Ingredient): Ingredient {
-//     return {
-//         id: ingredient.id,
-//         section: ingredient.section,
-//         amount: {...ingredient.amount},
-//         name: ingredient.name,
-//         brand: ingredient.brand
-//     }
-// }
 export function copyIngredient(ingredient: Ingredient): Ingredient {
     return {...ingredient, amount: {...ingredient.amount}}
 }

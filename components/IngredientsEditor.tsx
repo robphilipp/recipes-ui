@@ -1,34 +1,32 @@
-import {copyIngredient, emptyIngredient, Ingredient, Recipe} from "./Recipe";
+import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
 import React, {useEffect, useState} from "react";
-import {Button, List, ListItem} from "@mui/material";
+import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import {ParseType, toRecipe} from "@saucie/recipe-parser";
+import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
+import {TextareaAutosize} from "@mui/base";
 
 type Props = {
     /**
-     * Optional ingredient list. When the ingredients are not specified (i.e. undefined),
-     * then signal to the editor that it should be in "add" mode. Otherwise, editor is in "update" mode.
+     * The current ingredients in the recipe. For new recipes, this should be an
+     * empty list.
      */
-    ingredients?: Array<Ingredient>
+    ingredients: Array<Ingredient>
+    /**
+     * Callback function used to update the ingredients list
+     * @param ingredients The updated list of ingredients
+     */
     onUpdateIngredients: (ingredients: Array<Ingredient>) => void
-    // /**
-    //  * Callback function when the recipe is submitted
-    //  * @param recipe The updated or new recipe
-    //  */
-    // onSubmit: (recipe: Recipe) => void
 }
 
 export function IngredientsEditor(props: Props): JSX.Element {
-    const {
-        ingredients = [],
-        onUpdateIngredients,
-        // onSubmit
-    } = props
+    const {ingredients, onUpdateIngredients} = props
 
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
+    const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.FORM_BASED)
 
     useEffect(
         () => {
@@ -40,7 +38,6 @@ export function IngredientsEditor(props: Props): JSX.Element {
             1 egg`,
                 {deDupSections: true, inputType: ParseType.INGREDIENTS}
             )
-            // setRecipe(parsedRecipe)
             console.log("parsed recipe", parsedRecipe, "parse errors", errors)
         },
         []
@@ -79,46 +76,79 @@ export function IngredientsEditor(props: Props): JSX.Element {
         }
     }
 
+    function FormBasedEditor(): JSX.Element {
+        return (
+            <>
+                <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
+                    {ingredients.map((ingredient, index) => (
+                        <ListItem key={ingredient.name} disablePadding>
+                            <IngredientForm
+                                position={itemPosition(index + 1, ingredients.length)}
+                                ingredient={ingredient}
+                                onSubmit={handleUpdatedIngredient}
+                                onCancel={handleCancelIngredient}
+                                onDelete={handleDeleteIngredient}
+                                onMove={handleMoveIngredient}
+                            />
+                        </ListItem>))}
+                </List>
+                {
+                    addingIngredient ?
+                        <IngredientForm
+                            key={`new-ingredient-${ingredients.length + 1}`}
+                            ingredient={emptyIngredient()}
+                            initialMode={DisplayMode.EDIT}
+                            onSubmit={handleSubmittedNewIngredient}
+                            onCancel={handleCancelIngredient}
+                        /> :
+                        <span/>
+                }
+                {
+                    !addingIngredient ?
+                        <Button
+                            onClick={handleAddingIngredient}
+                            disabled={addingIngredient}
+                            startIcon={<AddCircleIcon/>}
+                            variant='outlined'
+                            size='small'
+                            sx={{textTransform: 'none'}}
+                        >
+                            Add Ingredient
+                        </Button> :
+                        <span/>
+                }
+            </>
+        )
+    }
+
+    function FreeFormEditor(): JSX.Element {
+        return <TextareaAutosize
+            value={ingredients.map(ingredient => ingredientAsText(ingredient)).join("\n")}
+        />
+    }
+
     return (
         <>
-            <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                {ingredients.map((ingredient, index) => (
-                    <ListItem key={ingredient.name} disablePadding>
-                        <IngredientForm
-                            position={itemPosition(index + 1, ingredients.length)}
-                            ingredient={ingredient}
-                            onSubmit={handleUpdatedIngredient}
-                            onCancel={handleCancelIngredient}
-                            onDelete={handleDeleteIngredient}
-                            onMove={handleMoveIngredient}
-                        />
-                    </ListItem>))}
-            </List>
-            {
-                addingIngredient ?
-                    <IngredientForm
-                        key={`new-ingredient-${ingredients.length + 1}`}
-                        ingredient={emptyIngredient()}
-                        initialMode={DisplayMode.EDIT}
-                        onSubmit={handleSubmittedNewIngredient}
-                        onCancel={handleCancelIngredient}
-                    /> :
-                    <span/>
-            }
-            {
-                !addingIngredient ?
-                    <Button
-                        onClick={handleAddingIngredient}
-                        disabled={addingIngredient}
-                        startIcon={<AddCircleIcon/>}
-                        variant='outlined'
-                        size='small'
-                        sx={{textTransform: 'none'}}
-                    >
-                        Add Ingredient
-                    </Button> :
-                    <span/>
-            }
+            <RadioGroup
+                aria-labelledby="editor mode"
+                value={editorMode}
+                name="editor-mode-radio-buttons"
+                row={true}
+            >
+                <EditorModelLabel
+                    label="Form-Based"
+                    value={EditorMode.FORM_BASED}
+                    control={<EditorModeRadio/>}
+                    onClick={() => setEditorMode(EditorMode.FORM_BASED)}
+                />
+                <EditorModelLabel
+                    label="Free-Form"
+                    value={EditorMode.FREE_FORM}
+                    control={<EditorModeRadio/>}
+                    onClick={() => setEditorMode(EditorMode.FREE_FORM)}
+                />
+            </RadioGroup>
+            {editorMode === EditorMode.FORM_BASED ? <FormBasedEditor/> : <FreeFormEditor/>}
         </>)
 }
 
