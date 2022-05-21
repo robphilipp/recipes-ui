@@ -16,7 +16,7 @@
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.8.0",
     "@mui/material": "^5.8.0",
-    "@saucie/recipe-parser": "^0.1.0",
+    "@saucie/recipe-parser": "^0.1.1",
     "@uiw/react-codemirror": "^4.7.0",
     "axios": "^0.24.0",
     "chevrotain": "^10.1.2",
