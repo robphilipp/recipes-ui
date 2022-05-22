@@ -7,9 +7,10 @@ import {EditorState, StateEffect, StateField} from "@codemirror/state";
 import {basicSetup} from "@codemirror/basic-setup"
 import {Ingredient, ingredientAsText} from "./Recipe";
 import {formatQuantityFor} from "../lib/utils";
-import {unitFor, unitTypeFrom} from "../lib/Measurements";
+import {unitFor, unitNameFor, unitTypeFrom} from "../lib/Measurements";
 import {UUID} from "bson";
-import {Typography, useTheme} from "@mui/material";
+import {Theme, Typography, useTheme} from "@mui/material";
+import pluralize from 'pluralize'
 
 const underlineTheme = EditorView.baseTheme({
     ".cm-underline": {textDecoration: "wavy underline orange"}
@@ -102,7 +103,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
             const sectionHeader = ing.section ?
                 <Typography
                     key={ing.section}
-                    sx={{fontSize: '1.1em', fontWeight: 700, color: theme.palette.text.disabled}}
+                    sx={{fontSize: '1.1em', fontWeight: 700, color: theme.palette.text.disabled, textDecoration: 'underline', marginTop: 1}}
                 >
                     {ing.section}
                 </Typography> :
@@ -114,13 +115,36 @@ export function FreeFormEditor(props: Props): JSX.Element {
                         key={ing.id}
                         sx={{fontSize: '0.9em', color: theme.palette.text.disabled}}
                     >
-                        {ingredientAsText(ing)}
+                        {/*{ingredientAsText(ing)}*/}
+                        {renderIngredientAs(ing, theme)}
                     </Typography>
                 </>
             )
         })}
     </>
 }
+
+function renderIngredientAs(ingredient: Ingredient, theme: Theme): JSX.Element {
+    if (ingredient.amount.unit.toString() === 'piece') {
+        return <>
+            <span style={{textDecoration: "underline green", fontWeight: 500}}>
+                {`${formatQuantityFor(ingredient.amount.value)}`}
+            </span>
+            <span style={{fontStyle: "italic"}}>
+                {` ${pluralize(ingredient.name, Math.max(1, ingredient.amount.value))}`}
+            </span>
+        </>
+    }
+    return <>
+        <span style={{textDecoration: "dotted underline green", fontWeight: 500}}>
+            {`${formatQuantityFor(ingredient.amount.value, unitNameFor(ingredient.amount.unit))}`}
+        </span>
+        <span style={{fontStyle: "italic"}}>
+            {` ${ingredient.name}`}
+        </span>
+    </>
+}
+
 
 function convertIngredient(ingredient: ParsedIngredient): Ingredient {
     return {

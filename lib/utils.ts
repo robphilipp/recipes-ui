@@ -11,7 +11,7 @@ import {UnitType} from "./Measurements";
  * 0.25 cups => 1/4 cup
  * 2 pint => 2 pints
  */
-export function formatQuantityFor(quantity: number, units?: string): string {
+export function formatQuantityFor(quantity: number, units?: string, shortUnits: boolean = true): string {
     if (units === undefined || units === '') {
         return `${formatNumber(quantity)}`
     }
