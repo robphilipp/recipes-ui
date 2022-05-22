@@ -9,7 +9,19 @@ import {Ingredient, ingredientAsText} from "./Recipe";
 import {formatQuantityFor} from "../lib/utils";
 import {unitFor, unitNameFor, unitTypeFrom} from "../lib/Measurements";
 import {UUID} from "bson";
-import {Box, Divider, Grid, Radio, Theme, Typography, useTheme} from "@mui/material";
+import {
+    Box,
+    Button,
+    Divider,
+    Grid,
+    lighten,
+    Radio,
+    Stack,
+    Theme,
+    Typography,
+    useMediaQuery,
+    useTheme
+} from "@mui/material";
 import pluralize from 'pluralize'
 import {styled} from "@mui/system";
 
@@ -42,6 +54,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
     const {initialIngredients} = props
 
     const theme = useTheme()
+    const medium = useMediaQuery(theme.breakpoints.up('md'))
 
     const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
     const [ingredients, setIngredients] = useState<Array<ParsedIngredient>>()
@@ -96,20 +109,26 @@ export function FreeFormEditor(props: Props): JSX.Element {
         }
     }
 
+    const borderStyle = medium ?
+        {borderLeftStyle: 'solid', borderLeftWidth: '1px', borderLeftColor: lighten(theme.palette.primary.light, 0.7)} :
+        {borderTopStyle: 'solid', borderTopWidth: '1px', borderTopColor: lighten(theme.palette.primary.light, 0.7), marginTop: 1, paddingTop: 1}
+    // const borderStyle = medium ?
+    //     {borderRightStyle: 'solid', borderRightWidth: '1px', borderRightColor: lighten(theme.palette.primary.light, 0.7)} :
+    //     {borderBottomStyle: 'solid', borderBottomWidth: '1px', borderBottomColor: lighten(theme.palette.primary.light, 0.7), marginTop: 1, marginBottom: 1}
+
     return <>
         <div ref={editorRef}/>
         <Divider sx={{marginBottom: 1}}/>
         <Box>
-            <Grid container sx={{maxWidth: {xs: 500, sm: 500, md: 800}}}>
-                <Grid item xs={12} md={12} sx={{display: 'flex', justifyContent: 'center'}}>
+            <Grid container>
+                <Grid item xs={12} sm={12} md={12} lg={12} sx={{display: 'flex', justifyContent: 'center'}}>
                     <ArrowCircleDown/>
-                    <Typography sx={{marginTop: 0.5, marginLeft: 10, marginRight: 10}} component="span">Parsed Ingredient List</Typography>
+                    <Typography sx={{marginTop: 0.5, marginLeft: 2, marginRight: 2}} component="span">
+                        Parsed Ingredient List
+                    </Typography>
                     <ArrowCircleDown/>
                 </Grid>
-                <Grid item xs={12} md={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                    {parseErrors.length === 0 ? <ThumbUp color='primary'/> : <ThumbDown color='warning'/>}
-                </Grid>
-                <Grid item xs={12} md={10}>
+                <Grid item xs={12} sm={12} md={10} lg={10}>
                     {ingredients?.map(ingredient => {
                         const ing = convertIngredient(ingredient)
                         const sectionHeader = ing.section ?
@@ -133,6 +152,14 @@ export function FreeFormEditor(props: Props): JSX.Element {
                             </>
                         )
                     })}
+                </Grid>
+                <Grid item xs={12} sm={12} md={2} lg={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
+                    <Stack alignItems='center' spacing={1}>
+                        {parseErrors.length === 0 ? <ThumbUp color='primary'/> : <ThumbDown color='warning'/>}
+                        <Divider style={{width:'100%'}}/>
+                        <Button disabled={parseErrors.length > 0}>Ok</Button>
+                        <Button>Cancel</Button>
+                    </Stack>
                 </Grid>
             </Grid>
             <Divider sx={{marginTop: 1}}/>
