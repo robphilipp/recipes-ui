@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {ILexingError} from "chevrotain";
 import {Ingredient as ParsedIngredient, ParseType, Recipe as ParsedRecipe, toRecipe} from "@saucie/recipe-parser";
-import {ThumbDown, ThumbUp} from "@mui/icons-material";
+import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";
 import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
 import {EditorState, StateEffect, StateField} from "@codemirror/state";
 import {basicSetup} from "@codemirror/basic-setup"
@@ -9,8 +9,9 @@ import {Ingredient, ingredientAsText} from "./Recipe";
 import {formatQuantityFor} from "../lib/utils";
 import {unitFor, unitNameFor, unitTypeFrom} from "../lib/Measurements";
 import {UUID} from "bson";
-import {Theme, Typography, useTheme} from "@mui/material";
+import {Box, Divider, Grid, Radio, Theme, Typography, useTheme} from "@mui/material";
 import pluralize from 'pluralize'
+import {styled} from "@mui/system";
 
 const underlineTheme = EditorView.baseTheme({
     ".cm-underline": {textDecoration: "wavy underline orange"}
@@ -96,52 +97,82 @@ export function FreeFormEditor(props: Props): JSX.Element {
     }
 
     return <>
-        {parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='warning'/>}
         <div ref={editorRef}/>
-        {ingredients?.map(ingredient => {
-            const ing = convertIngredient(ingredient)
-            const sectionHeader = ing.section ?
-                <Typography
-                    key={ing.section}
-                    sx={{fontSize: '1.1em', fontWeight: 700, color: theme.palette.text.disabled, textDecoration: 'underline', marginTop: 1}}
-                >
-                    {ing.section}
-                </Typography> :
-                <></>
-            return (
-                <>
-                    {sectionHeader}
-                    <Typography
-                        key={ing.id}
-                        sx={{fontSize: '0.9em', color: theme.palette.text.disabled}}
-                    >
-                        {/*{ingredientAsText(ing)}*/}
-                        {renderIngredientAs(ing, theme)}
-                    </Typography>
-                </>
-            )
-        })}
+        <Divider sx={{marginBottom: 1}}/>
+        <Box>
+            <Grid container sx={{maxWidth: {xs: 500, sm: 500, md: 800}}}>
+                <Grid item xs={12} md={12} sx={{display: 'flex', justifyContent: 'center'}}>
+                    <ArrowCircleDown/>
+                    <Typography sx={{marginTop: 0.5, marginLeft: 10, marginRight: 10}} component="span">Parsed Ingredient List</Typography>
+                    <ArrowCircleDown/>
+                </Grid>
+                <Grid item xs={12} md={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                    {parseErrors.length === 0 ? <ThumbUp color='primary'/> : <ThumbDown color='warning'/>}
+                </Grid>
+                <Grid item xs={12} md={10}>
+                    {ingredients?.map(ingredient => {
+                        const ing = convertIngredient(ingredient)
+                        const sectionHeader = ing.section ?
+                            <Typography
+                                key={ing.section}
+                                sx={{
+                                    fontSize: '1.1em',
+                                    fontWeight: 700,
+                                    color: theme.palette.text.disabled,
+                                    textDecoration: 'underline',
+                                    marginTop: 1
+                                }}
+                            >
+                                {ing.section}
+                            </Typography> :
+                            <></>
+                        return (
+                            <>
+                                {sectionHeader}
+                                <Typography key={ing.id}>{renderIngredientAs(ing, theme)}</Typography>
+                            </>
+                        )
+                    })}
+                </Grid>
+            </Grid>
+            <Divider sx={{marginTop: 1}}/>
+        </Box>
     </>
 }
+
+export const RenderedQuantityUnit = styled(Typography)(({theme}) => ({
+    color: theme.palette.text.secondary,
+    textDecorationLine: 'underline',
+    textDecorationColor: theme.palette.text.secondary,
+    textDecorationStyle: 'dotted',
+    fontSize: '0.9em',
+    fontWeight: 500,
+})) as typeof Typography
+
+export const RenderedIngredient = styled(Typography)(({theme}) => ({
+    color: theme.palette.text.secondary,
+    fontSize: '0.9em',
+    fontWeight: 500,
+})) as typeof Typography
 
 function renderIngredientAs(ingredient: Ingredient, theme: Theme): JSX.Element {
     if (ingredient.amount.unit.toString() === 'piece') {
         return <>
-            <span style={{textDecoration: "underline green", fontWeight: 500}}>
+            <RenderedQuantityUnit component="span">
                 {`${formatQuantityFor(ingredient.amount.value)}`}
-            </span>
-            <span style={{fontStyle: "italic"}}>
+            </RenderedQuantityUnit>
+            <RenderedIngredient component="span">
                 {` ${pluralize(ingredient.name, Math.max(1, ingredient.amount.value))}`}
-            </span>
+            </RenderedIngredient>
         </>
     }
     return <>
-        <span style={{textDecoration: "dotted underline green", fontWeight: 500}}>
+        <RenderedQuantityUnit component="span">
             {`${formatQuantityFor(ingredient.amount.value, unitNameFor(ingredient.amount.unit))}`}
-        </span>
-        <span style={{fontStyle: "italic"}}>
+        </RenderedQuantityUnit>
+        <RenderedIngredient component="span">
             {` ${ingredient.name}`}
-        </span>
+        </RenderedIngredient>
     </>
 }
 
