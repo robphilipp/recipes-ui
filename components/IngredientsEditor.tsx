@@ -152,94 +152,6 @@ export function IngredientsEditor(props: Props): JSX.Element {
         )
     }
 
-    // function FreeFormEditor(): JSX.Element {
-    //     // const [ingredientText, setIngredientText] = useState<string>(ingredientsToText(ingredients))
-    //     const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
-    //     const editorRef = useRef<HTMLDivElement>()
-    //     const { setContainer, state, container, view, setView } = useCodeMirror({
-    //         container: editorRef.current,
-    //         value: ingredientsToText(ingredients),
-    //         // value: ingredientText,
-    //         onChange: handleChange
-    //         // onChange: (value, viewUpdate) => setIngredientText(value)
-    //     })
-    //     useEffect(
-    //         () => {
-    //             if (editorRef.current) {
-    //                 setContainer(editorRef.current)
-    //                 console.log("editorRef", editorRef.current)
-    //
-    //                 if (view && view.state) {
-    //                     const success = underlineRanges(view, [{from: 10, to: 20}])
-    //                     console.log("underlined:", success)
-    //                 }
-    //             }
-    //         },
-    //         [setContainer, view]
-    //     )
-    //
-    //     function handleChange(value: string, viewUpdate: ViewUpdate): void {
-    //         const {recipe, errors} = toRecipe(value, {deDupSections: true, inputType: ParseType.INGREDIENTS})
-    //         setParseErrors(errors)
-    //         console.log(
-    //             "parsed recipe:", recipe,
-    //             "parsing errors:", errors,
-    //             "editor view:", view
-    //         )
-    //
-    //         if (view && view.state) {
-    //         // if (viewUpdate.view && viewUpdate.view.state) {
-    //             const success = underlineRanges(view, [{from: 10, to: 20}])
-    //             // const success = underlineRanges(viewUpdate.view, [{from: 10, to: 20}])
-    //             // setView(viewUpdate.view)
-    //             console.log("underlined:", success)
-    //         }
-    //
-    //         // setIngredientText(value)
-    //     }
-    //
-    //     // useEffect(
-    //     //     () => {
-    //     //         const {recipe, errors} = toRecipe(ingredientText, {deDupSections: true, inputType: ParseType.INGREDIENTS})
-    //     //         setParseErrors(errors)
-    //     //         console.log(
-    //     //             "parsed recipe:", recipe,
-    //     //             "parsing errors:", errors,
-    //     //             // "editor state:", state,
-    //     //             // "editor container:", container,
-    //     //             "editor view:", view
-    //     //         )
-    //     //
-    //     //         if (view && view.state) {
-    //     //             const success = underlineRanges(view, [{from: 10, to: 20}])
-    //     //             setView(view)
-    //     //             console.log("underlined:", success)
-    //     //         }
-    //     //         // editorRef.current.state
-    //     //         // Decoration.mark({attributes: {color: 'red'}}).range(10, 20)
-    //     //         // const underline = Facet.define<EditorView, Decoration>()
-    //     //         // EditorView.decorations =
-    //     //         // EditorView.decorations = Facet.define(view, Decoration.mark({attributes: {color: 'red'}}).range(10, 20))
-    //     //     },
-    //     //     [ingredientText, view]
-    //     // )
-    //
-    //     return <>
-    //         {parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='warning'/>}
-    //         return <div ref={editorRef}/>
-    //         {/*<Typography>{parseErrors.map(error => error.message).join(";")}</Typography>*/}
-    //         {/*<CodeMirror*/}
-    //         {/*    value={ingredientText}*/}
-    //         {/*    onChange={(value, viewUpdate) => {*/}
-    //         {/*        setIngredientText(value)*/}
-    //         {/*        // const {recipe, errors} = toRecipe(value)*/}
-    //         {/*        // setParseErrors(errors)*/}
-    //         {/*        // console.log(recipe, errors)*/}
-    //         {/*    }}*/}
-    //         {/*/>*/}
-    //     </>
-    // }
-
     return (
         <>
             <RadioGroup
@@ -252,13 +164,15 @@ export function IngredientsEditor(props: Props): JSX.Element {
                     label="Form-Based"
                     value={EditorMode.FORM_BASED}
                     control={<EditorModeRadio/>}
-                    onClick={() => setEditorMode(EditorMode.FORM_BASED)}
+                    onChange={() => setEditorMode(EditorMode.FORM_BASED)}
+                    disabled={editorMode === EditorMode.FREE_FORM}
                 />
                 <EditorModelLabel
                     label="Free-Form"
                     value={EditorMode.FREE_FORM}
                     control={<EditorModeRadio/>}
-                    onClick={() => setEditorMode(EditorMode.FREE_FORM)}
+                    onChange={() => setEditorMode(EditorMode.FREE_FORM)}
+                    disabled={editorMode === EditorMode.FREE_FORM}
                 />
             </RadioGroup>
             {editorMode === EditorMode.FORM_BASED ?

@@ -157,8 +157,6 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 </Grid>
                 <Grid item xs={12} sm={12} md={2} lg={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
                     <Stack alignItems='center' spacing={1}>
-                        {/*{parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='error'/>}*/}
-                        {/*<Divider style={{width:'100%', marginBottom: 10}}/>*/}
                         <Button
                             disabled={parseErrors.length > 0}
                             color="primary"
