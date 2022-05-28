@@ -214,11 +214,10 @@ export function IngredientForm(props: Props): JSX.Element {
                         renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
                         groupBy={option => categoriesByUnits.get(option.value as UnitType)}
-                        sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
+                        sx={{mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
                         value={ingredient.amount.unit}
-                        // @ts-ignore
-                        isOptionEqualToValue={(option, value) => option !== null && option.value === value}
+                        isOptionEqualToValue={(option, value) => option !== null && option === value}
                         onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
                     />
                 </Grid>
