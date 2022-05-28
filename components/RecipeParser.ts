@@ -1,11 +1,18 @@
 import {emptyIngredient, emptyStep, Ingredient, Recipe, Step} from "./Recipe";
-import {Ingredient as ParsedIngredient, ParseType, Step as ParsedStep, toRecipe, Recipe as ParsedRecipe} from "@saucie/recipe-parser";
+import {
+    Ingredient as ParsedIngredient,
+    ParseType,
+    Step as ParsedStep,
+    toRecipe,
+    Recipe as ParsedRecipe,
+    toSteps, toIngredients
+} from "@saucie/recipe-parser";
 import {failureResult, Result, successResult} from "result-fn";
 import {ILexingError} from "chevrotain";
 import {unitTypeFrom} from "../lib/Measurements";
 
 export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
-    const {recipe, errors} = toRecipe(text)
+    const {result: recipe, errors} = toRecipe(text, {deDupSections: true})
     if (errors.length !== 0) {
         return failureResult(errors)
     }
@@ -20,11 +27,12 @@ export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
  * of {@link ILexingError} objects
  */
 export function parseIngredients(text: string): Result<Array<Ingredient>, Array<ILexingError>> {
-    const {recipe, errors} = toRecipe(text, {deDupSections: true, inputType: ParseType.INGREDIENTS})
+    const {result: ingredients, errors} = toIngredients(text, {deDupSections: true})
+    // const {recipe, errors} = toRecipe(text, {deDupSections: true, inputType: ParseType.INGREDIENTS})
     if (errors.length !== 0) {
         return failureResult(errors)
     }
-    return successResult(convertIngredients(recipe as ParsedIngredient[]))
+    return successResult(convertIngredients(ingredients as ParsedIngredient[]))
 }
 
 function convertIngredients(parsed: Array<ParsedIngredient>): Array<Ingredient> {
@@ -44,11 +52,12 @@ function convertIngredients(parsed: Array<ParsedIngredient>): Array<Ingredient> 
  * of {@link ILexingError} objects
  */
 export function parseSteps(text: string): Result<Array<Step>, Array<ILexingError>> {
-    const {recipe, errors} = toRecipe(text, {deDupSections: true, inputType: ParseType.STEPS})
+    // const {recipe, errors} = toRecipe(text, {deDupSections: true, inputType: ParseType.STEPS})
+    const {result: steps, errors} = toSteps(text, {deDupSections: true})
     if (errors.length !== 0) {
         return failureResult(errors)
     }
-    return successResult(convertSteps(recipe as ParsedStep[]))
+    return successResult(convertSteps(steps as ParsedStep[]))
 }
 
 function convertSteps(parsed: Array<ParsedStep>): Array<Step> {

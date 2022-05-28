@@ -25,18 +25,18 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 
-import {ParseType, toRecipe} from "@saucie/recipe-parser"
+import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 
-const {recipe, errors} = toRecipe(`dough
+const {result: ingredients, errors} = toIngredients(`dough
             1 1/2 cp all-purpose flour
             1 tsp vanilla extract,
             sauce
             1 cup milk
             1 egg`,
-    {deDupSections: true, inputType: ParseType.INGREDIENTS}
+    {deDupSections: true}
 )
 
-console.log("recipe", recipe)
+console.log("recipe", ingredients)
 
 type Props = {}
 

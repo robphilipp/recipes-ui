@@ -1,6 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {ILexingError} from "chevrotain";
-import {Ingredient as ParsedIngredient, ParseType, Recipe as ParsedRecipe, toRecipe} from "@saucie/recipe-parser";
+import {
+    Ingredient as ParsedIngredient,
+    ParseType,
+    Recipe as ParsedRecipe,
+    toIngredients,
+    toRecipe
+} from "@saucie/recipe-parser";
 import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";
 import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
 import {EditorState, StateEffect, StateField} from "@codemirror/state";
@@ -116,10 +122,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
     )
 
     function parseIngredients(text: string): Result<Array<ParsedIngredient>, Array<ILexingError>> {
-        const {recipe: ingredientList, errors} = toRecipe(text, {
-            deDupSections: true,
-            inputType: ParseType.INGREDIENTS
-        })
+        const {result: ingredientList, errors} = toIngredients(text, {deDupSections: true})
         if (editorViewRef.current && editorViewRef.current.state) {
             if (errors.length === 0) {
                 underlineRanges(editorViewRef.current, [])

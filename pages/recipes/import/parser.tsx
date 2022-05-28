@@ -23,7 +23,7 @@ export default function ImportRecipeParser(): JSX.Element {
     }
 
     function handleParse(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-        const {recipe: parsedRecipe, errors} = toRecipe(recipe)
+        const {result: parsedRecipe, errors} = toRecipe(recipe)
         setParsedRecipe(parsedRecipe as Recipe)
     }
 

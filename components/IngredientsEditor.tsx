@@ -5,7 +5,7 @@ import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import {ItemPosition, Movement} from "./RecipeEditor";
-import {ParseType, toRecipe} from "@saucie/recipe-parser";
+import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser";
 import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
 import {FreeFormEditor} from "./FreeFormEditor";
 // import {EditorState} from "@codemirror/state";
@@ -36,15 +36,15 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     useEffect(
         () => {
-            const {recipe: parsedRecipe, errors} = toRecipe(`dough
+            const {result: ingredients, errors} = toIngredients(`dough
             1 1/2 cp all-purpose flour
             1 tsp vanilla extract,
             sauce
             1 cup milk
             1 egg`,
-                {deDupSections: true, inputType: ParseType.INGREDIENTS}
+                {deDupSections: true}
             )
-            console.log("parsed recipe", parsedRecipe, "parse errors", errors)
+            console.log("parsed recipe", ingredients, "parse errors", errors)
         },
         []
     )
