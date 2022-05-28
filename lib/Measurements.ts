@@ -72,11 +72,37 @@ const units = new Map<UnitName, UnitType>([
     [UnitName.gallon, UnitType.GALLON],
 
     [UnitName.piece, UnitType.PIECE],
-    [UnitName.pint, UnitType.PINCH],
+    [UnitName.pinch, UnitType.PINCH],
+])
+
+const unitTypeToName = new Map<UnitType, UnitName>([
+    [UnitType.MILLIGRAM, UnitName.milligram],
+    [UnitType.GRAM, UnitName.gram],
+    [UnitType.KILOGRAM, UnitName.kilogram],
+
+    [UnitType.OUNCE, UnitName.ounce],
+    [UnitType.POUND, UnitName.pound],
+
+    [UnitType.MILLILITER, UnitName.milliliter],
+    [UnitType.LITER, UnitName.liter],
+    [UnitType.TEASPOON, UnitName.teaspoon],
+    [UnitType.TABLESPOON, UnitName.tablespoon],
+    [UnitType.FLUID_OUNCE, UnitName.fluid_ounce],
+    [UnitType.CUP, UnitName.cup],
+    [UnitType.PINT, UnitName.pint],
+    [UnitType.QUART, UnitName.quart],
+    [UnitType.GALLON, UnitName.gallon],
+
+    [UnitType.PIECE, UnitName.piece],
+    [UnitType.PINCH, UnitName.pinch]
 ])
 
 export function unitFor(unitName: UnitName): Unit {
     return unitFrom(units.get(unitName), unitName)
+}
+
+export function unitNameFor(unitType: UnitType): UnitName {
+    return unitTypeToName.get(unitType)
 }
 
 /**

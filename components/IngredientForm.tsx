@@ -88,8 +88,7 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
-        // @ts-ignore
-        if (event.target.id === "ingredient-amount-unit-select") return;
+        if (event.currentTarget.id === "ingredient-amount-unit-select") return;
 
         switch (event.key) {
             case 'Enter':
@@ -151,21 +150,28 @@ export function IngredientForm(props: Props): JSX.Element {
                     maxWidth: {
                         xs: 500,
                         sm: 550,
-                        md: 600,
-                    }
+                        md: 800,
+                    },
+                    borderBottomStyle: 'solid',
+                    borderColor: 'rgba(80,80,84,0.1)'
                 }}
             >
                 <ListItemText
                     sx={{
                         maxWidth: {
                             xs: 250,
-                            sm: 250,
+                            sm: 225,
                             md: 800,
                         }
                     }}
                 >
                     {ingredient.section !== null ?
-                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '1.1em'
+                        }}>
+                            {ingredient.section.toUpperCase()}
+                        </div> :
                         <span/>
                     }
                     <div>{ingredientAsText(ingredient)}</div>

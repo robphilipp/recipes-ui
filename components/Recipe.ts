@@ -251,23 +251,15 @@ export function isEmptyIngredient(ingredient: Ingredient): boolean {
 }
 
 export function copyIngredient(ingredient: Ingredient): Ingredient {
-    return {
-        id: ingredient.id,
-        section: ingredient.section,
-        amount: {...ingredient.amount},
-        name: ingredient.name,
-        brand: ingredient.brand
-    }
+    return {...ingredient, amount: {...ingredient.amount}}
 }
 
-// export function unitsFrom(unit: string): Units {
-//     const [, key] = Object.entries(Units).find(([, value]) => value === unit)
-//     return key
-// }
-//
+
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
-        return `${formatQuantityFor(ingredient.amount.value, ingredient.name)}`
+        const names = ingredient.name.split(" ")
+        const remaining = names.slice(1).join(" ")
+        return `${formatQuantityFor(ingredient.amount.value, names[0])} ${remaining}`
     }
     return `${formatQuantityFor(ingredient.amount.value, ingredient.amount.unit)} ${ingredient.name}`
 }
