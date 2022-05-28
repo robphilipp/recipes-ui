@@ -48,10 +48,12 @@ const underlineField = StateField.define<DecorationSet>({
 
 type Props = {
     initialIngredients: string
+    onApply: (ingredients: Array<Ingredient>) => void
+    onCancel: () => void
 }
 
 export function FreeFormEditor(props: Props): JSX.Element {
-    const {initialIngredients} = props
+    const {initialIngredients, onApply, onCancel} = props
 
     const theme = useTheme()
     const medium = useMediaQuery(theme.breakpoints.up('md'))
@@ -112,16 +114,16 @@ export function FreeFormEditor(props: Props): JSX.Element {
     const borderStyle = medium ?
         {borderLeftStyle: 'solid', borderLeftWidth: '1px', borderLeftColor: lighten(theme.palette.primary.light, 0.7)} :
         {borderTopStyle: 'solid', borderTopWidth: '1px', borderTopColor: lighten(theme.palette.primary.light, 0.7), marginTop: 1, paddingTop: 1}
-    // const borderStyle = medium ?
-    //     {borderRightStyle: 'solid', borderRightWidth: '1px', borderRightColor: lighten(theme.palette.primary.light, 0.7)} :
-    //     {borderBottomStyle: 'solid', borderBottomWidth: '1px', borderBottomColor: lighten(theme.palette.primary.light, 0.7), marginTop: 1, marginBottom: 1}
 
     return <>
         <div ref={editorRef}/>
         <Divider sx={{marginBottom: 1}}/>
         <Box>
             <Grid container>
-                <Grid item xs={12} sm={12} md={12} lg={12} sx={{display: 'flex', justifyContent: 'center'}}>
+                <Grid item xs={12} sm={4} md={4} lg={4}>
+                    {parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='error'/>}
+                </Grid>
+                <Grid item xs={12} sm={8} md={8} lg={8} sx={{display: 'flex', justifyContent: 'flex-start'}}>
                     <ArrowCircleDown/>
                     <Typography sx={{marginTop: 0.5, marginLeft: 2, marginRight: 2}} component="span">
                         Parsed Ingredient List
@@ -155,10 +157,21 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 </Grid>
                 <Grid item xs={12} sm={12} md={2} lg={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
                     <Stack alignItems='center' spacing={1}>
-                        {parseErrors.length === 0 ? <ThumbUp color='primary'/> : <ThumbDown color='warning'/>}
-                        <Divider style={{width:'100%'}}/>
-                        <Button disabled={parseErrors.length > 0}>Ok</Button>
-                        <Button>Cancel</Button>
+                        {/*{parseErrors.length === 0 ? <ThumbUp color='success'/> : <ThumbDown color='error'/>}*/}
+                        {/*<Divider style={{width:'100%', marginBottom: 10}}/>*/}
+                        <Button
+                            disabled={parseErrors.length > 0}
+                            color="primary"
+                            onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}
+                        >
+                            Ok
+                        </Button>
+                        <Button
+                            color="error"
+                            onClick={() => onCancel()}
+                        >
+                            Cancel
+                        </Button>
                     </Stack>
                 </Grid>
             </Grid>

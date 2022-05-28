@@ -1,5 +1,5 @@
 import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";
@@ -7,17 +7,6 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import {ParseType, toRecipe} from "@saucie/recipe-parser";
 import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
-import CodeMirror, {
-    Decoration,
-    DecorationSet,
-    EditorView,
-    Facet,
-    StateEffect,
-    StateField,
-    useCodeMirror, ViewUpdate
-} from "@uiw/react-codemirror";
-import {ILexingError} from "chevrotain";
-import {ThumbDown, ThumbUp} from "@mui/icons-material";
 import {FreeFormEditor} from "./FreeFormEditor";
 // import {EditorState} from "@codemirror/state";
 // import {EditorView, keymap} from "@codemirror/view";
@@ -107,6 +96,15 @@ export function IngredientsEditor(props: Props): JSX.Element {
         if (index >= 0 && index < ingredients.length) {
             onUpdateIngredients(swapItem(ingredients, index, direction))
         }
+    }
+
+    function handleApplyParsedIngredients(parsed: Array<Ingredient>): void {
+        onUpdateIngredients(parsed)
+        setEditorMode(EditorMode.FORM_BASED)
+    }
+
+    function handleCancelParsedIngredients(): void {
+        setEditorMode(EditorMode.FORM_BASED)
     }
 
     function FormBasedEditor(): JSX.Element {
@@ -265,7 +263,11 @@ export function IngredientsEditor(props: Props): JSX.Element {
             </RadioGroup>
             {editorMode === EditorMode.FORM_BASED ?
                 <FormBasedEditor/> :
-                <FreeFormEditor initialIngredients={ingredientsToText(ingredients)}/>
+                <FreeFormEditor
+                    initialIngredients={ingredientsToText(ingredients)}
+                    onApply={handleApplyParsedIngredients}
+                    onCancel={handleCancelParsedIngredients}
+                />
             }
         </>)
 }
