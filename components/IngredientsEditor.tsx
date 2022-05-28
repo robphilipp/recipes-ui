@@ -171,14 +171,14 @@ export function IngredientsEditor(props: Props): JSX.Element {
                     value={EditorMode.FORM_BASED}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FORM_BASED)}
-                    // disabled={editorMode === EditorMode.FREE_FORM}
+                    disabled={editorMode === EditorMode.FREE_FORM}
                 />
                 <EditorModelLabel
                     label="Free-Form"
                     value={EditorMode.FREE_FORM}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FREE_FORM)}
-                    // disabled={editorMode === EditorMode.FREE_FORM}
+                    disabled={editorMode === EditorMode.FREE_FORM}
                 />
             </RadioGroup>
             {editorMode === EditorMode.FORM_BASED ?

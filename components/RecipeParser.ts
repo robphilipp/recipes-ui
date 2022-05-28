@@ -1,5 +1,5 @@
 import {emptyIngredient, emptyStep, Ingredient, Recipe, Step} from "./Recipe";
-import {Ingredient as ParsedIngredient, ParseType, Step as ParsedStep, toRecipe} from "@saucie/recipe-parser";
+import {Ingredient as ParsedIngredient, ParseType, Step as ParsedStep, toRecipe, Recipe as ParsedRecipe} from "@saucie/recipe-parser";
 import {failureResult, Result, successResult} from "result-fn";
 import {ILexingError} from "chevrotain";
 import {unitTypeFrom} from "../lib/Measurements";
@@ -9,8 +9,8 @@ export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
     if (errors.length !== 0) {
         return failureResult(errors)
     }
-    const ingredients: Array<Ingredient> = convertIngredients(recipe.ingredients)
-    const steps: Array<Step> = convertSteps(recipe.steps)
+    const ingredients: Array<Ingredient> = convertIngredients((recipe as ParsedRecipe).ingredients)
+    const steps: Array<Step> = convertSteps((recipe as ParsedRecipe).steps)
 }
 
 /**
@@ -24,7 +24,7 @@ export function parseIngredients(text: string): Result<Array<Ingredient>, Array<
     if (errors.length !== 0) {
         return failureResult(errors)
     }
-    return successResult(convertIngredients(recipe.ingredients))
+    return successResult(convertIngredients(recipe as ParsedIngredient[]))
 }
 
 function convertIngredients(parsed: Array<ParsedIngredient>): Array<Ingredient> {
@@ -48,7 +48,7 @@ export function parseSteps(text: string): Result<Array<Step>, Array<ILexingError
     if (errors.length !== 0) {
         return failureResult(errors)
     }
-    return successResult(convertSteps(recipe.steps))
+    return successResult(convertSteps(recipe as ParsedStep[]))
 }
 
 function convertSteps(parsed: Array<ParsedStep>): Array<Step> {
