@@ -129,7 +129,9 @@ export function StepForm(props: Props): JSX.Element {
                         xs: 500,
                         sm: 550,
                         md: 800,
-                    }
+                    },
+                    borderBottomStyle: 'solid',
+                    borderColor: 'rgba(80,80,84,0.1)'
                 }}
             >
                 {position ?
@@ -165,9 +167,6 @@ export function StepForm(props: Props): JSX.Element {
                     }
                     <div>{step.text}</div>
                 </ListItemText>
-                {/*<ListItemButton>*/}
-                {/*    {renderControls(step)}*/}
-                {/*</ListItemButton>*/}
             </ListItem>
         )
     }

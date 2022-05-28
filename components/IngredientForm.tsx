@@ -151,7 +151,9 @@ export function IngredientForm(props: Props): JSX.Element {
                         xs: 500,
                         sm: 550,
                         md: 800,
-                    }
+                    },
+                    borderBottomStyle: 'solid',
+                    borderColor: 'rgba(80,80,84,0.1)'
                 }}
             >
                 <ListItemText

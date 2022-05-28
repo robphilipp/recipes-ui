@@ -31,40 +31,6 @@ export function IngredientsEditor(props: Props): JSX.Element {
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
     const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.FORM_BASED)
 
-    // const editorStateRef = useRef<EditorState>()
-    // const editorViewRef = useRef<EditorView>()
-
-    useEffect(
-        () => {
-            const {result: ingredients, errors} = toIngredients(`dough
-            1 1/2 cp all-purpose flour
-            1 tsp vanilla extract,
-            sauce
-            1 cup milk
-            1 egg`,
-                {deDupSections: true}
-            )
-            console.log("parsed recipe", ingredients, "parse errors", errors)
-        },
-        []
-    )
-
-    // useEffect(
-    //     () => {
-    //         if (editorMode === EditorMode.FREE_FORM) {
-    //             editorStateRef.current = EditorState.create({
-    //                 doc: ingredients.map(ingredient => ingredientAsText(ingredient)).join("\n"),
-    //                 extensions: [keymap.of(defaultKeymap)]
-    //             })
-    //             editorViewRef.current = new EditorView({
-    //                 state: editorStateRef.current,
-    //                 parent: document.body
-    //             })
-    //         }
-    //     },
-    //     [editorMode]
-    // )
-
     function handleAddingIngredient(): void {
         setAddingIngredient(true)
     }
@@ -160,7 +126,7 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     return (
         <>
-            <RadioGroup
+            {editorMode === EditorMode.FORM_BASED ? <RadioGroup
                 aria-labelledby="editor mode"
                 value={editorMode}
                 name="editor-mode-radio-buttons"
@@ -171,16 +137,16 @@ export function IngredientsEditor(props: Props): JSX.Element {
                     value={EditorMode.FORM_BASED}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FORM_BASED)}
-                    disabled={editorMode === EditorMode.FREE_FORM}
+                    // disabled={editorMode === EditorMode.FREE_FORM}
                 />
                 <EditorModelLabel
                     label="Free-Form"
                     value={EditorMode.FREE_FORM}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FREE_FORM)}
-                    disabled={editorMode === EditorMode.FREE_FORM}
+                    // disabled={editorMode === EditorMode.FREE_FORM}
                 />
-            </RadioGroup>
+            </RadioGroup> : <></>}
             {editorMode === EditorMode.FORM_BASED ?
                 <FormBasedEditor/> :
                 <FreeFormEditor

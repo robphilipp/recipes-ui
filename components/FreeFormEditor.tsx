@@ -17,7 +17,7 @@ import {unitFor, unitNameFor, unitTypeFrom} from "../lib/Measurements";
 import {UUID} from "bson";
 import {
     Box,
-    Button,
+    Button, ButtonGroup,
     Divider,
     Grid,
     lighten,
@@ -31,6 +31,8 @@ import {
 import pluralize from 'pluralize'
 import {styled} from "@mui/system";
 import {failureResult, Result, successResult} from "result-fn";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const underlineTheme = EditorView.baseTheme({
     ".cm-underline": {textDecoration: "wavy underline orange"}
@@ -155,6 +157,30 @@ export function FreeFormEditor(props: Props): JSX.Element {
         }
 
     return <>
+        <ButtonGroup>
+            <Button
+                startIcon={<CheckCircleIcon/>}
+                variant="outlined"
+                size="small"
+                sx={{textTransform: 'none'}}
+                disabled={parseErrors.length > 0}
+                // color="primary"
+                onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}
+            >
+                Accept Changes
+            </Button>
+            <Button
+                startIcon={<CancelIcon/>}
+                variant="outlined"
+                size="small"
+                // color="error"
+                onClick={handleCancel}
+                sx={{textTransform: 'none'}}
+            >
+                Cancel
+            </Button>
+        </ButtonGroup>
+
         <div ref={editorRef}/>
         <Divider sx={{marginBottom: 1}}/>
         <Box>
@@ -194,24 +220,24 @@ export function FreeFormEditor(props: Props): JSX.Element {
                         )
                     })}
                 </Grid>
-                <Grid item xs={12} sm={12} md={2} lg={2}
-                      sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
-                    <Stack alignItems='center' spacing={1}>
-                        <Button
-                            disabled={parseErrors.length > 0}
-                            color="primary"
-                            onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}
-                        >
-                            Ok
-                        </Button>
-                        <Button
-                            color="error"
-                            onClick={handleCancel}
-                        >
-                            Cancel
-                        </Button>
-                    </Stack>
-                </Grid>
+                {/*<Grid item xs={12} sm={12} md={2} lg={2}*/}
+                {/*      sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>*/}
+                {/*    <Stack alignItems='center' spacing={1}>*/}
+                {/*        <Button*/}
+                {/*            disabled={parseErrors.length > 0}*/}
+                {/*            color="primary"*/}
+                {/*            onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}*/}
+                {/*        >*/}
+                {/*            Ok*/}
+                {/*        </Button>*/}
+                {/*        <Button*/}
+                {/*            color="error"*/}
+                {/*            onClick={handleCancel}*/}
+                {/*        >*/}
+                {/*            Cancel*/}
+                {/*        </Button>*/}
+                {/*    </Stack>*/}
+                {/*</Grid>*/}
             </Grid>
             <Divider sx={{marginTop: 1}}/>
         </Box>
