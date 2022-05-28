@@ -100,7 +100,13 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     function handleApplyParsedIngredients(parsed: Array<Ingredient>): void {
         onUpdateIngredients(parsed)
+        console.log(parsed)
         setEditorMode(EditorMode.FORM_BASED)
+    }
+
+    function handleParsedIngredientsChanged(parsed: Array<Ingredient>): void {
+        console.log(parsed)
+        onUpdateIngredients(parsed)
     }
 
     function handleCancelParsedIngredients(): void {
@@ -165,14 +171,14 @@ export function IngredientsEditor(props: Props): JSX.Element {
                     value={EditorMode.FORM_BASED}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FORM_BASED)}
-                    disabled={editorMode === EditorMode.FREE_FORM}
+                    // disabled={editorMode === EditorMode.FREE_FORM}
                 />
                 <EditorModelLabel
                     label="Free-Form"
                     value={EditorMode.FREE_FORM}
                     control={<EditorModeRadio/>}
                     onChange={() => setEditorMode(EditorMode.FREE_FORM)}
-                    disabled={editorMode === EditorMode.FREE_FORM}
+                    // disabled={editorMode === EditorMode.FREE_FORM}
                 />
             </RadioGroup>
             {editorMode === EditorMode.FORM_BASED ?
@@ -180,6 +186,7 @@ export function IngredientsEditor(props: Props): JSX.Element {
                 <FreeFormEditor
                     initialIngredients={ingredientsToText(ingredients)}
                     onApply={handleApplyParsedIngredients}
+                    onChange={handleParsedIngredientsChanged}
                     onCancel={handleCancelParsedIngredients}
                 />
             }

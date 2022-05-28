@@ -257,7 +257,9 @@ export function copyIngredient(ingredient: Ingredient): Ingredient {
 
 export function ingredientAsText(ingredient: Ingredient): string {
     if (ingredient.amount.unit.toString() === 'piece') {
-        return `${formatQuantityFor(ingredient.amount.value, ingredient.name)}`
+        const names = ingredient.name.split(" ")
+        const remaining = names.slice(1).join(" ")
+        return `${formatQuantityFor(ingredient.amount.value, names[0])} ${remaining}`
     }
     return `${formatQuantityFor(ingredient.amount.value, ingredient.amount.unit)} ${ingredient.name}`
 }

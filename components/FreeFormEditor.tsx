@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {ILexingError} from "chevrotain";
 import {Ingredient as ParsedIngredient, ParseType, Recipe as ParsedRecipe, toRecipe} from "@saucie/recipe-parser";
 import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";
@@ -24,6 +24,7 @@ import {
 } from "@mui/material";
 import pluralize from 'pluralize'
 import {styled} from "@mui/system";
+import {failureResult, Result, successResult} from "result-fn";
 
 const underlineTheme = EditorView.baseTheme({
     ".cm-underline": {textDecoration: "wavy underline orange"}
@@ -49,17 +50,19 @@ const underlineField = StateField.define<DecorationSet>({
 type Props = {
     initialIngredients: string
     onApply: (ingredients: Array<Ingredient>) => void
+    onChange: (ingredients: Array<Ingredient>) => void
     onCancel: () => void
 }
 
 export function FreeFormEditor(props: Props): JSX.Element {
-    const {initialIngredients, onApply, onCancel} = props
+    const {initialIngredients, onApply, onChange, onCancel} = props
 
     const theme = useTheme()
     const medium = useMediaQuery(theme.breakpoints.up('md'))
 
     const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
     const [ingredients, setIngredients] = useState<Array<ParsedIngredient>>()
+    const initialParsedIngredientsRef = useRef<Array<ParsedIngredient>>()
 
     const editorRef = useRef<HTMLDivElement>()
     const editorStateRef = useRef<EditorState>(EditorState.create({
@@ -68,7 +71,12 @@ export function FreeFormEditor(props: Props): JSX.Element {
             basicSetup,
             EditorView.updateListener.of(update => {
                 if (update.docChanged) {
-                    handleChange(update.state.doc.sliceString(0))
+                    parseIngredients(update.state.doc.sliceString(0))
+                        .onSuccess(gredients => {
+                            onChange(gredients.map(ingredient => convertIngredient(ingredient)))
+                            setIngredients(gredients)
+                        })
+                        .onFailure(setParseErrors)
                 }
             }),
             EditorView.lineWrapping
@@ -76,26 +84,42 @@ export function FreeFormEditor(props: Props): JSX.Element {
     }))
     const editorViewRef = useRef<EditorView>()
 
+    // set up the editor on mount
     useEffect(
         () => {
             editorViewRef.current = new EditorView({
                 state: editorStateRef.current,
                 parent: editorRef.current,
             })
-            handleChange(initialIngredients)
+
             return () => {
+                setIngredients(undefined)
                 editorViewRef.current.destroy()
             }
         },
-        [initialIngredients]
+        []
     )
 
-    function handleChange(value: string): void {
-        const {recipe: ingredientList, errors} = toRecipe(value, {
+    // set the initial ingredients on mount
+    useEffect(
+        () => {
+            if (ingredients === undefined) {
+                parseIngredients(initialIngredients)
+                    .onSuccess(gredients => {
+                        initialParsedIngredientsRef.current = gredients
+                        setIngredients(gredients)
+                    })
+                    .onFailure(setParseErrors)
+            }
+        },
+        [ingredients, initialIngredients]
+    )
+
+    function parseIngredients(text: string): Result<Array<ParsedIngredient>, Array<ILexingError>> {
+        const {recipe: ingredientList, errors} = toRecipe(text, {
             deDupSections: true,
             inputType: ParseType.INGREDIENTS
         })
-        setParseErrors(errors)
         if (editorViewRef.current && editorViewRef.current.state) {
             if (errors.length === 0) {
                 underlineRanges(editorViewRef.current, [])
@@ -104,16 +128,28 @@ export function FreeFormEditor(props: Props): JSX.Element {
                     editorViewRef.current,
                     errors.map(error => ({from: error.offset, to: error.offset + error.length}))
                 )
+                return failureResult(errors)
             }
             if (ingredientList !== undefined && (ingredientList as Array<ParsedIngredient>).length > 0) {
-                setIngredients(ingredientList as Array<ParsedIngredient>)
+                return successResult(ingredientList as Array<ParsedIngredient>)
             }
         }
     }
 
+    function handleCancel(): void {
+        onChange(initialParsedIngredientsRef.current.map(ingredient => convertIngredient(ingredient)))
+        onCancel()
+    }
+
     const borderStyle = medium ?
         {borderLeftStyle: 'solid', borderLeftWidth: '1px', borderLeftColor: lighten(theme.palette.primary.light, 0.7)} :
-        {borderTopStyle: 'solid', borderTopWidth: '1px', borderTopColor: lighten(theme.palette.primary.light, 0.7), marginTop: 1, paddingTop: 1}
+        {
+            borderTopStyle: 'solid',
+            borderTopWidth: '1px',
+            borderTopColor: lighten(theme.palette.primary.light, 0.7),
+            marginTop: 1,
+            paddingTop: 1
+        }
 
     return <>
         <div ref={editorRef}/>
@@ -155,7 +191,8 @@ export function FreeFormEditor(props: Props): JSX.Element {
                         )
                     })}
                 </Grid>
-                <Grid item xs={12} sm={12} md={2} lg={2} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
+                <Grid item xs={12} sm={12} md={2} lg={2}
+                      sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>
                     <Stack alignItems='center' spacing={1}>
                         <Button
                             disabled={parseErrors.length > 0}
@@ -166,7 +203,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
                         </Button>
                         <Button
                             color="error"
-                            onClick={() => onCancel()}
+                            onClick={handleCancel}
                         >
                             Cancel
                         </Button>
@@ -200,7 +237,7 @@ function renderIngredientAs(ingredient: Ingredient, theme: Theme): JSX.Element {
                 {`${formatQuantityFor(ingredient.amount.value)}`}
             </RenderedQuantityUnit>
             <RenderedIngredient component="span">
-                {` ${pluralize(ingredient.name, Math.max(1, ingredient.amount.value))}`}
+                {` ${ingredient.name}`}
             </RenderedIngredient>
         </>
     }
