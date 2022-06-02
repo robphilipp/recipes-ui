@@ -1,10 +1,12 @@
 import {copyStep, emptyStep, Step} from "./Recipe";
-import {Button, List, ListItem} from "@mui/material";
+import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {StepForm} from "./StepForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import React, {useState} from "react";
 import {ItemPosition, Movement} from "./RecipeEditor";
+import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
+import {FreeFormStepsEditor} from "./FreeFormStepsEditor";
 
 type Props = {
     /**
@@ -22,6 +24,7 @@ export function StepsEditor(props: Props): JSX.Element {
     const {steps, onUpdateSteps} = props
 
     const [addingStep, setAddingStep] = useState<boolean>(false)
+    const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.FORM_BASED)
 
     function handleAddingStep(): void {
         setAddingStep(true)
@@ -29,7 +32,6 @@ export function StepsEditor(props: Props): JSX.Element {
 
     function handleSubmittedNewStep(step: Step, andAgain: boolean): void {
         onUpdateSteps([...steps, step])
-        // setRecipe(current => ({...current, steps: [...current.steps, step]}))
         setAddingStep(andAgain)
     }
 
@@ -39,68 +41,113 @@ export function StepsEditor(props: Props): JSX.Element {
             const updated = steps.map(step => copyStep(step))
             updated[index] = step
             onUpdateSteps(updated)
-            // setRecipe(current => {
-            //     const updated = current.steps.slice()
-            //     updated[index] = step
-            //     return {...current, steps: updated}
-            // })
         }
     }
 
     function handleDeleteStep(id: string): void {
         onUpdateSteps(steps.filter(ing => ing.id !== id))
-        // setRecipe(current => ({...current, steps: current.steps.filter(ing => ing.id !== id)}))
     }
 
     function handleCancelStep(): void {
-        setAddingStep(false)
+        // setAddingStep(false)
+        setEditorMode(EditorMode.FORM_BASED)
     }
 
     function handleMoveStep(step: Step, stepNumber: number, direction: Movement): void {
         const index = stepNumber - 1
         if (index >= 0 && index < steps.length) {
             onUpdateSteps(swapItem(steps, index, direction))
-            // setRecipe(current => ({...current, steps: swapItem(current.steps, index, direction)}))
         }
+    }
+
+    function handleApplyParsedSteps(parsed: Array<Step>): void {
+        onUpdateSteps(parsed)
+        setEditorMode(EditorMode.FORM_BASED)
+    }
+
+    function handleParsedStepsChanged(parsed: Array<Step>): void {
+        onUpdateSteps(parsed)
+    }
+
+    function handleCancelParsedIngredients(): void {
+        setEditorMode(EditorMode.FORM_BASED)
+    }
+
+    function FormBasedEditor(): JSX.Element {
+        return (
+            <>
+                <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
+                    {steps.map((step, index) => (
+                        <ListItem key={step.text} disablePadding>
+                            <StepForm
+                                position={itemPosition(index + 1, steps.length)}
+                                step={step}
+                                onSubmit={handleUpdatedStep}
+                                onCancel={handleCancelStep}
+                                onDelete={handleDeleteStep}
+                                onMove={handleMoveStep}
+                            />
+                        </ListItem>))}
+                </List>
+                {addingStep ?
+                    <StepForm
+                        key={`new-step-${steps.length + 1}`}
+                        step={emptyStep()}
+                        initialMode={DisplayMode.EDIT}
+                        onSubmit={handleSubmittedNewStep}
+                        onCancel={handleCancelStep}
+                        onMove={handleMoveStep}
+                    /> :
+                    <span/>}
+                {!addingStep ?
+                    <Button
+                        onClick={handleAddingStep}
+                        disabled={addingStep}
+                        startIcon={<AddCircleIcon/>}
+                        variant='outlined'
+                        size='small'
+                        sx={{textTransform: 'none'}}
+                    >
+                        Add Step
+                    </Button> :
+                    <span/>
+                }
+            </>
+        )
     }
 
     return (
         <>
-            <List sx={{width: '100%', maxWidth: 900, bgcolor: 'background.paper'}}>
-                {steps.map((step, index) => (
-                    <ListItem key={step.text} disablePadding>
-                        <StepForm
-                            position={itemPosition(index + 1, steps.length)}
-                            step={step}
-                            onSubmit={handleUpdatedStep}
-                            onCancel={handleCancelStep}
-                            onDelete={handleDeleteStep}
-                            onMove={handleMoveStep}
-                        />
-                    </ListItem>))}
-            </List>
-            {addingStep ?
-                <StepForm
-                    key={`new-step-${steps.length+1}`}
-                    step={emptyStep()}
-                    initialMode={DisplayMode.EDIT}
-                    onSubmit={handleSubmittedNewStep}
-                    onCancel={handleCancelStep}
-                    onMove={handleMoveStep}
-                /> :
-                <span/>}
-            {!addingStep ?
-                <Button
-                    onClick={handleAddingStep}
-                    disabled={addingStep}
-                    startIcon={<AddCircleIcon/>}
-                    variant='outlined'
-                    size='small'
-                    sx={{textTransform: 'none'}}
+            {editorMode === EditorMode.FORM_BASED ?
+                <RadioGroup
+                    aria-labelledby="steps editor mode"
+                    value={editorMode}
+                    name="ingredients-editor-mode-radio-buttons"
+                    row={true}
                 >
-                    Add Step
-                </Button> :
-                <span/>
+                    <EditorModelLabel
+                        label="Form-Based"
+                        value={EditorMode.FORM_BASED}
+                        control={<EditorModeRadio/>}
+                        onChange={() => setEditorMode(EditorMode.FORM_BASED)}
+                    />
+                    <EditorModelLabel
+                        label="Free-Form"
+                        value={EditorMode.FREE_FORM}
+                        control={<EditorModeRadio/>}
+                        onChange={() => setEditorMode(EditorMode.FREE_FORM)}
+                    />
+                </RadioGroup> :
+                <></>
+            }
+            {editorMode === EditorMode.FORM_BASED ?
+                <FormBasedEditor/> :
+                <FreeFormStepsEditor
+                    initialSteps={stepsToText(steps)}
+                    onApply={handleApplyParsedSteps}
+                    onChange={handleParsedStepsChanged}
+                    onCancel={handleCancelStep}
+                />
             }
         </>
     )
@@ -129,4 +176,13 @@ function itemPosition(itemNumber: number, numItems: number): ItemPosition {
         isFirst: itemNumber <= 1,
         isLast: itemNumber >= numItems
     }
+}
+
+function stepsToText(steps: Array<Step>): string {
+    return steps
+        .map((step, index) => step.title !== null ?
+            `${step.title}\n${index+1}. ${step.text}` :
+            `${index+1}. ${step.text}`
+        )
+        .join("\n")
 }

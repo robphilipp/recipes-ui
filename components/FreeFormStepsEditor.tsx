@@ -1,34 +1,14 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {ILexingError} from "chevrotain";
-import {
-    Ingredient as ParsedIngredient,
-    ParseType,
-    Recipe as ParsedRecipe,
-    toIngredients,
-    toRecipe
-} from "@saucie/recipe-parser";
+import {Step as ParsedStep, toSteps} from "@saucie/recipe-parser";
 import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";
-import {Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
+import {Decoration, DecorationSet, EditorView} from "@codemirror/view";
 import {EditorState, StateEffect, StateField} from "@codemirror/state";
 import {basicSetup} from "@codemirror/basic-setup"
-import {Ingredient, ingredientAsText} from "./Recipe";
-import {formatQuantityFor} from "../lib/utils";
-import {unitFor, unitNameFor, unitTypeFrom} from "../lib/Measurements";
+import {Step} from "./Recipe";
+import {formatNumber} from "../lib/utils";
 import {UUID} from "bson";
-import {
-    Box,
-    Button, ButtonGroup,
-    Divider,
-    Grid,
-    lighten,
-    Radio,
-    Stack,
-    Theme,
-    Typography,
-    useMediaQuery,
-    useTheme
-} from "@mui/material";
-import pluralize from 'pluralize'
+import {Box, Button, ButtonGroup, Divider, Grid, Typography, useTheme} from "@mui/material";
 import {styled} from "@mui/system";
 import {failureResult, Result, successResult} from "result-fn";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -56,33 +36,58 @@ const underlineField = StateField.define<DecorationSet>({
 })
 
 type Props = {
-    initialIngredients: string
-    onApply: (ingredients: Array<Ingredient>) => void
-    onChange: (ingredients: Array<Ingredient>) => void
+    /**
+     * The text holding the list of steps
+     */
+    initialSteps: string
+    /**
+     * Callback for when the user accepts the changes, and wants to switch back to
+     * the form-based editor
+     * @param steps An array of {@link Step} parsed from the text
+     */
+    onApply: (steps: Array<Step>) => void
+    /**
+     * Callback for when the user makes changes to the steps that are parsed
+     * into a steps list
+     * @param steps An array of {@link Step} parsed from the text
+     */
+    onChange: (steps: Array<Step>) => void
+    /**
+     * Callback to cancel and revert any changes made in the free-form editor
+     */
     onCancel: () => void
 }
 
-export function FreeFormEditor(props: Props): JSX.Element {
-    const {initialIngredients, onApply, onChange, onCancel} = props
+/**
+ * Provides a text editor that can be used to enter the list of ingredients and sections
+ * @param props The initial ingredients and the callback functions
+ * @constructor
+ */
+export function FreeFormStepsEditor(props: Props): JSX.Element {
+    const {initialSteps, onApply, onChange, onCancel} = props
 
     const theme = useTheme()
-    const medium = useMediaQuery(theme.breakpoints.up('md'))
 
     const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
-    const [ingredients, setIngredients] = useState<Array<ParsedIngredient>>()
-    const initialParsedIngredientsRef = useRef<Array<ParsedIngredient>>()
+    const [steps, setSteps] = useState<Array<ParsedStep>>()
+    const initialParsedStepsRef = useRef<Array<ParsedStep>>()
 
+    // holds to the ref to the editor, when the page mounts
     const editorRef = useRef<HTMLDivElement>()
+
+    // reference to the editor state for managing changes
     const editorStateRef = useRef<EditorState>(EditorState.create({
-        doc: initialIngredients,
+        doc: initialSteps,
         extensions: [
             basicSetup,
             EditorView.updateListener.of(update => {
+                // when the user updates the ingredients list, then parse, call the on-change
+                // callback, and set the updated ingredients
                 if (update.docChanged) {
-                    parseIngredients(update.state.doc.sliceString(0))
-                        .onSuccess(gredients => {
-                            onChange(gredients.map(ingredient => convertIngredient(ingredient)))
-                            setIngredients(gredients)
+                    parseSteps(update.state.doc.sliceString(0), false, false)
+                        .onSuccess(stps => {
+                            onChange(stps.map(step => convertStep(step)))
+                            setSteps(stps)
                         })
                         .onFailure(setParseErrors)
                 }
@@ -90,6 +95,8 @@ export function FreeFormEditor(props: Props): JSX.Element {
             EditorView.lineWrapping
         ]
     }))
+
+    // the reference to the editor view (set when the component mounts)
     const editorViewRef = useRef<EditorView>()
 
     // set up the editor on mount
@@ -101,7 +108,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
             })
 
             return () => {
-                setIngredients(undefined)
+                setSteps(undefined)
                 editorViewRef.current.destroy()
             }
         },
@@ -111,20 +118,26 @@ export function FreeFormEditor(props: Props): JSX.Element {
     // set the initial ingredients on mount
     useEffect(
         () => {
-            if (ingredients === undefined) {
-                parseIngredients(initialIngredients)
+            if (steps === undefined) {
+                parseSteps(initialSteps, true, true)
                     .onSuccess(gredients => {
-                        initialParsedIngredientsRef.current = gredients
-                        setIngredients(gredients)
+                        initialParsedStepsRef.current = gredients
+                        setSteps(gredients)
                     })
                     .onFailure(setParseErrors)
             }
         },
-        [ingredients, initialIngredients]
+        [steps, initialSteps]
     )
 
-    function parseIngredients(text: string): Result<Array<ParsedIngredient>, Array<ILexingError>> {
-        const {result: ingredientList, errors} = toIngredients(text, {deDupSections: true})
+    /**
+     * Parses the text into an array of {@link ParsedStep}. When there is a parsing error, the
+     * returns a list of the errors
+     * @param text The text to be converted to step
+     * @return A {@link Result} wrapping the parsed step, or the parse errors when it fails
+     */
+    function parseSteps(text: string, newLexer: boolean, newParser: boolean): Result<Array<ParsedStep>, Array<ILexingError>> {
+        const {result: stepList, errors} = toSteps(text, {deDupSections: true, gimmeANewLexer: newLexer, gimmeANewParser: newParser})
         if (editorViewRef.current && editorViewRef.current.state) {
             if (errors.length === 0) {
                 underlineRanges(editorViewRef.current, [])
@@ -135,26 +148,24 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 )
                 return failureResult(errors)
             }
-            if (ingredientList !== undefined && (ingredientList as Array<ParsedIngredient>).length > 0) {
-                return successResult(ingredientList as Array<ParsedIngredient>)
+            if (stepList !== undefined && (stepList as Array<ParsedStep>).length > 0) {
+                return successResult(stepList as Array<ParsedStep>)
+            }
+            if (stepList === undefined) {
+                return failureResult([])
             }
         }
     }
 
+    /**
+     * Reverts the changes to the initial ingredients. Recall that each change made by the user is updated
+     * with the parent, so we need to set the original step list with the parent and then tell the
+     * parent to cancel
+     */
     function handleCancel(): void {
-        onChange(initialParsedIngredientsRef.current.map(ingredient => convertIngredient(ingredient)))
+        onChange(initialParsedStepsRef.current.map(step => convertStep(step)))
         onCancel()
     }
-
-    const borderStyle = medium ?
-        {borderLeftStyle: 'solid', borderLeftWidth: '1px', borderLeftColor: lighten(theme.palette.primary.light, 0.7)} :
-        {
-            borderTopStyle: 'solid',
-            borderTopWidth: '1px',
-            borderTopColor: lighten(theme.palette.primary.light, 0.7),
-            marginTop: 1,
-            paddingTop: 1
-        }
 
     return <>
         <ButtonGroup>
@@ -164,8 +175,7 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 size="small"
                 sx={{textTransform: 'none'}}
                 disabled={parseErrors.length > 0}
-                // color="primary"
-                onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}
+                onClick={() => onApply(steps.map(ingredient => convertStep(ingredient)))}
             >
                 Accept Changes
             </Button>
@@ -173,7 +183,6 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 startIcon={<CancelIcon/>}
                 variant="outlined"
                 size="small"
-                // color="error"
                 onClick={handleCancel}
                 sx={{textTransform: 'none'}}
             >
@@ -191,16 +200,16 @@ export function FreeFormEditor(props: Props): JSX.Element {
                 <Grid item xs={12} sm={8} md={8} lg={8} sx={{display: 'flex', justifyContent: 'flex-start'}}>
                     <ArrowCircleDown/>
                     <Typography sx={{marginTop: 0.5, marginLeft: 2, marginRight: 2}} component="span">
-                        Parsed Ingredient List
+                        Parsed Steps
                     </Typography>
                     <ArrowCircleDown/>
                 </Grid>
                 <Grid item xs={12} sm={12} md={10} lg={10}>
-                    {ingredients?.map(ingredient => {
-                        const ing = convertIngredient(ingredient)
-                        const sectionHeader = ing.section ?
+                    {steps?.map((step, index) => {
+                        const ing = convertStep(step)
+                        const sectionHeader = ing.title ?
                             <Typography
-                                key={ing.section}
+                                key={ing.title}
                                 sx={{
                                     fontSize: '1.1em',
                                     fontWeight: 700,
@@ -209,35 +218,17 @@ export function FreeFormEditor(props: Props): JSX.Element {
                                     marginTop: 1
                                 }}
                             >
-                                {ing.section}
+                                {ing.title}
                             </Typography> :
                             <></>
                         return (
                             <>
                                 {sectionHeader}
-                                <Typography key={ing.id}>{renderIngredientAs(ing, theme)}</Typography>
+                                <Typography key={ing.id}>{renderStepAs(index+1, ing)}</Typography>
                             </>
                         )
                     })}
                 </Grid>
-                {/*<Grid item xs={12} sm={12} md={2} lg={2}*/}
-                {/*      sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', ...borderStyle}}>*/}
-                {/*    <Stack alignItems='center' spacing={1}>*/}
-                {/*        <Button*/}
-                {/*            disabled={parseErrors.length > 0}*/}
-                {/*            color="primary"*/}
-                {/*            onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}*/}
-                {/*        >*/}
-                {/*            Ok*/}
-                {/*        </Button>*/}
-                {/*        <Button*/}
-                {/*            color="error"*/}
-                {/*            onClick={handleCancel}*/}
-                {/*        >*/}
-                {/*            Cancel*/}
-                {/*        </Button>*/}
-                {/*    </Stack>*/}
-                {/*</Grid>*/}
             </Grid>
             <Divider sx={{marginTop: 1}}/>
         </Box>
@@ -246,11 +237,12 @@ export function FreeFormEditor(props: Props): JSX.Element {
 
 export const RenderedQuantityUnit = styled(Typography)(({theme}) => ({
     color: theme.palette.text.secondary,
-    textDecorationLine: 'underline',
-    textDecorationColor: theme.palette.text.secondary,
-    textDecorationStyle: 'dotted',
+    // textDecorationLine: 'underline',
+    // textDecorationColor: theme.palette.text.secondary,
+    // textDecorationStyle: 'dotted',
     fontSize: '0.9em',
-    fontWeight: 500,
+    fontWeight: 600,
+    marginRight: 10
 })) as typeof Typography
 
 export const RenderedIngredient = styled(Typography)(({theme}) => ({
@@ -259,35 +251,23 @@ export const RenderedIngredient = styled(Typography)(({theme}) => ({
     fontWeight: 500,
 })) as typeof Typography
 
-function renderIngredientAs(ingredient: Ingredient, theme: Theme): JSX.Element {
-    if (ingredient.amount.unit.toString() === 'piece') {
-        return <>
-            <RenderedQuantityUnit component="span">
-                {`${formatQuantityFor(ingredient.amount.value)}`}
-            </RenderedQuantityUnit>
-            <RenderedIngredient component="span">
-                {` ${ingredient.name}`}
-            </RenderedIngredient>
-        </>
-    }
+function renderStepAs(stepNumber: number, step: Step): JSX.Element {
     return <>
         <RenderedQuantityUnit component="span">
-            {`${formatQuantityFor(ingredient.amount.value, unitNameFor(ingredient.amount.unit))}`}
+            {`${formatNumber(stepNumber)}.`}
         </RenderedQuantityUnit>
         <RenderedIngredient component="span">
-            {` ${ingredient.name}`}
+            {`${step.text}`}
         </RenderedIngredient>
     </>
 }
 
 
-function convertIngredient(ingredient: ParsedIngredient): Ingredient {
+function convertStep(step: ParsedStep): Step {
     return {
         id: (new UUID()).toString('hex'),
-        section: ingredient.section,
-        amount: {value: ingredient.amount.quantity, unit: unitTypeFrom(ingredient.amount.unit)},
-        name: ingredient.ingredient,
-        brand: ingredient.brand
+        title: step.title,
+        text: step.step
     }
 }
 

@@ -1,16 +1,12 @@
 import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import {ItemPosition, Movement} from "./RecipeEditor";
-import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser";
 import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
-import {FreeFormEditor} from "./FreeFormEditor";
-// import {EditorState} from "@codemirror/state";
-// import {EditorView, keymap} from "@codemirror/view";
-// import {defaultKeymap} from "@codemirror/commands";
+import {FreeFormIngredientsEditor} from "./FreeFormIngredientsEditor";
 
 type Props = {
     /**
@@ -54,7 +50,8 @@ export function IngredientsEditor(props: Props): JSX.Element {
     }
 
     function handleCancelIngredient(): void {
-        setAddingIngredient(false)
+        // setAddingIngredient(false)
+        setEditorMode(EditorMode.FORM_BASED)
     }
 
     function handleMoveIngredient(ingredient: Ingredient, ingredientNumber: number, direction: Movement): void {
@@ -66,12 +63,10 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     function handleApplyParsedIngredients(parsed: Array<Ingredient>): void {
         onUpdateIngredients(parsed)
-        console.log(parsed)
         setEditorMode(EditorMode.FORM_BASED)
     }
 
     function handleParsedIngredientsChanged(parsed: Array<Ingredient>): void {
-        console.log(parsed)
         onUpdateIngredients(parsed)
     }
 
@@ -126,30 +121,33 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     return (
         <>
-            {editorMode === EditorMode.FORM_BASED ? <RadioGroup
-                aria-labelledby="editor mode"
-                value={editorMode}
-                name="editor-mode-radio-buttons"
-                row={true}
-            >
-                <EditorModelLabel
-                    label="Form-Based"
-                    value={EditorMode.FORM_BASED}
-                    control={<EditorModeRadio/>}
-                    onChange={() => setEditorMode(EditorMode.FORM_BASED)}
-                    // disabled={editorMode === EditorMode.FREE_FORM}
-                />
-                <EditorModelLabel
-                    label="Free-Form"
-                    value={EditorMode.FREE_FORM}
-                    control={<EditorModeRadio/>}
-                    onChange={() => setEditorMode(EditorMode.FREE_FORM)}
-                    // disabled={editorMode === EditorMode.FREE_FORM}
-                />
-            </RadioGroup> : <></>}
+            {editorMode === EditorMode.FORM_BASED ?
+                <RadioGroup
+                    aria-labelledby="ingredients editor mode"
+                    value={editorMode}
+                    name="ingredients-editor-mode-radio-buttons"
+                    row={true}
+                >
+                    <EditorModelLabel
+                        label="Form-Based"
+                        value={EditorMode.FORM_BASED}
+                        control={<EditorModeRadio/>}
+                        onChange={() => setEditorMode(EditorMode.FORM_BASED)}
+                        // disabled={editorMode === EditorMode.FREE_FORM}
+                    />
+                    <EditorModelLabel
+                        label="Free-Form"
+                        value={EditorMode.FREE_FORM}
+                        control={<EditorModeRadio/>}
+                        onChange={() => setEditorMode(EditorMode.FREE_FORM)}
+                        // disabled={editorMode === EditorMode.FREE_FORM}
+                    />
+                </RadioGroup> :
+                <></>
+            }
             {editorMode === EditorMode.FORM_BASED ?
                 <FormBasedEditor/> :
-                <FreeFormEditor
+                <FreeFormIngredientsEditor
                     initialIngredients={ingredientsToText(ingredients)}
                     onApply={handleApplyParsedIngredients}
                     onChange={handleParsedIngredientsChanged}
@@ -195,50 +193,3 @@ function ingredientsToText(ingredients: Array<Ingredient>): string {
         )
         .join("\n")
 }
-
-//
-// const underlineTheme = EditorView.baseTheme({
-//     ".cm-underline": { textDecoration: "underline 3px red" }
-// })
-// const underlineMark = Decoration.mark({class: "cm-underline"})
-// const addUnderline = StateEffect.define<{from: number, to: number}>()
-// const underlineField = StateField.define<DecorationSet>({
-//     create() {
-//         return Decoration.none
-//     },
-//     update(underlines: DecorationSet, transaction) {
-//         underlines = underlines.map(transaction.changes)
-//         for (let effect of transaction.effects) if (effect.is(addUnderline)) {
-//             underlines = underlines.update({
-//                 add: [underlineMark.range(effect.value.from, effect.value.to)]
-//             })
-//         }
-//         return underlines
-//     },
-//     provide: stateField => EditorView.decorations.from(stateField)
-// })
-//
-// export function underlineRanges(view: EditorView, ranges: Array<{from: number, to: number}>): boolean {
-//     // let effects: StateEffect<unknown>[] = view.state.selection.ranges
-//     //     .filter(r => !r.empty)
-//     let effects: StateEffect<unknown>[] = ranges.map(({from, to}) => addUnderline.of({from, to}))
-//     if (!effects.length) return false
-//
-//     if (!view.state.field(underlineField, false)) {
-//         effects.push(StateEffect.appendConfig.of([underlineField, underlineTheme]))
-//     }
-//     view.dispatch({effects})
-//     return true
-// }
-// // export function underlineSelection(view: EditorView) {
-// //     let effects: StateEffect<unknown>[] = view.state.selection.ranges
-// //         .filter(r => !r.empty)
-// //         .map(({from, to}) => addUnderline.of({from, to}))
-// //     if (!effects.length) return false
-// //
-// //     if (!view.state.field(underlineField, false))
-// //         effects.push(StateEffect.appendConfig.of([underlineField,
-// //             underlineTheme]))
-// //     view.dispatch({effects})
-// //     return true
-// // }
