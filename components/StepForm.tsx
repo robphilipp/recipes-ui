@@ -131,6 +131,7 @@ export function StepForm(props: Props): JSX.Element {
                         md: 800,
                     },
                     borderBottomStyle: 'solid',
+                    borderBottomWidth: 1,
                     borderColor: 'rgba(80,80,84,0.1)'
                 }}
             >
