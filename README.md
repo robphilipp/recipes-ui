@@ -73,11 +73,13 @@ For raspberry π 4b use the 64-bit debian images from [raspberry pi](https://dow
 
 Use the [set up docs](https://www.raspberrypi.com/documentation/computers/getting-started.html) as a base.
 
-The [Raspberry Pi Imager](https://www.raspberrypi.com/software) can be used to image the downloaded image. Just select the "Use Custom" option from the main menu when selecting the operating system.
+The [Raspberry Pi Imager](https://www.raspberrypi.com/software) can be used to image the downloaded image onto the SD card. Just select the "Use Custom" option from the main menu when selecting the operating system.
 
 ### setting up mongodb
 
 [binaries and instructions for 4.4.8](https://andyfelong.com/2021/08/mongodb-4-4-under-raspberry-pi-os-64-bit-raspbian64/#more-1797)
+
+> Now the above link also has binaries for mongo 5.0.5 (thanks Andy Felong!)
 
 Once installed, you can start the mongo database with:
 

@@ -1,16 +1,11 @@
 import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
 import {
-    // Amount,
-    // categoriesByUnits,
     copyIngredient,
     emptyIngredient,
     Ingredient,
     ingredientAsText,
     isEmptyIngredient,
-    // measurementUnits,
-    // Units,
-    // unitsFrom
 } from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -27,7 +22,6 @@ function noop() {
 }
 
 type UnitOption = { label: UnitName, value: UnitType }
-// type UnitOption = { label: string, value: Units }
 
 type Props = {
     position?: ItemPosition
@@ -94,8 +88,7 @@ export function IngredientForm(props: Props): JSX.Element {
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
-        // @ts-ignore
-        if (event.target.id === "ingredient-amount-unit-select") return;
+        if (event.currentTarget.id === "ingredient-amount-unit-select") return;
 
         switch (event.key) {
             case 'Enter':
@@ -157,21 +150,29 @@ export function IngredientForm(props: Props): JSX.Element {
                     maxWidth: {
                         xs: 500,
                         sm: 550,
-                        md: 600,
-                    }
+                        md: 800,
+                    },
+                    borderBottomStyle: 'solid',
+                    borderBottomWidth: 1,
+                    borderColor: 'rgba(80,80,84,0.1)'
                 }}
             >
                 <ListItemText
                     sx={{
                         maxWidth: {
                             xs: 250,
-                            sm: 250,
+                            sm: 225,
                             md: 800,
                         }
                     }}
                 >
                     {ingredient.section !== null ?
-                        <div style={{fontWeight: 600, fontSize: '1.1em'}}>{ingredient.section.toUpperCase()}</div> :
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '1.1em'
+                        }}>
+                            {ingredient.section.toUpperCase()}
+                        </div> :
                         <span/>
                     }
                     <div>{ingredientAsText(ingredient)}</div>
@@ -214,11 +215,10 @@ export function IngredientForm(props: Props): JSX.Element {
                         renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
                         groupBy={option => categoriesByUnits.get(option.value as UnitType)}
-                        sx={{mt: 1.2, mr: 0.5, minWidth: 100, maxWidth: 150}}
+                        sx={{mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
                         value={ingredient.amount.unit}
-                        // @ts-ignore
-                        isOptionEqualToValue={(option, value) => option !== null && option.value === value}
+                        isOptionEqualToValue={(option, value) => option !== null && option === value}
                         onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
                     />
                 </Grid>

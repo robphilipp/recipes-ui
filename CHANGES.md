@@ -1,5 +1,8 @@
 # City Recipes Change History
 
+## version 0.3.0 (free form editing)
+Added free form editing for ingredients and steps to make it easier to enter and update recipes.
+
 ## version 0.2.0 (basic conversions)
 Added basic conversions and conversion calculator.
 

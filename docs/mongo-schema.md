@@ -27,153 +27,180 @@ use recipeBook
 db.createCollection("recipes", {
     validator: {
         $jsonSchema: {
-            bsonType: "object",
-            required: ["name", "createdOn", "modifiedOn", "tags", "yield", "ingredients", "steps", "notes"],
+            bsonType: 'object',
+            required: [
+                'name',       'createdOn',
+                'modifiedOn', 'tags',
+                'yield',      'ingredients',
+                'steps',      'notes',
+                'ratings'
+            ],
             properties: {
                 _id: {},
-                story: {
-                    bsonType: "string",
-                    description: "must be a string"
-                },
+                story: { bsonType: 'string', description: 'must be a string' },
                 name: {
-                    bsonType: "string",
-                    description: "must be a string and is required"
+                    bsonType: 'string',
+                    description: 'must be a string and is required'
                 },
                 createdOn: {
-                    bsonType: ["int", "long"],
+                    bsonType: [ 'int', 'long' ],
                     description: "'createdOn' must be a date and is required"
                 },
                 modifiedOn: {
-                    bsonType: ["int", "long", "null"],
+                    bsonType: [ 'int', 'long', 'null' ],
                     description: "'createdOn' must be a date and is required"
                 },
                 tags: {
-                    bsonType: ["array"],
+                    bsonType: [ 'array' ],
                     minItems: 0,
                     maxItems: 10,
                     items: {
-                        bsonType: "string",
-                        description: "must be an array of strings and is optional"
+                        bsonType: 'string',
+                        description: 'must be an array of strings and is optional'
                     }
                 },
                 yield: {
-                    bsonType: ["object"],
-                    required: ["value", "unit"],
+                    bsonType: [ 'object' ],
+                    required: [ 'value', 'unit' ],
                     properties: {
                         value: {
-                            bsonType: ["int", "double", "decimal"],
+                            bsonType: [ 'int', 'double', 'decimal' ],
                             minimum: 0,
-                            description: "must be a double, positive, and is required"
+                            description: 'must be a double, positive, and is required'
                         },
                         unit: {
-                            bsonType: "string",
-                            description: "must be a string and is required"
+                            bsonType: 'string',
+                            description: 'must be a string and is required'
                         }
                     }
                 },
                 requiredTime: {
-                    bsonType: ["object"],
-                    required: ["total", "active"],
+                    bsonType: [ 'object' ],
+                    required: [ 'total', 'active' ],
                     properties: {
                         total: {
-                            bsonType: ["object"],
-                            required: ["value", "unit"],
+                            bsonType: [ 'object' ],
+                            required: [ 'value', 'unit' ],
                             properties: {
                                 value: {
-                                    bsonType: ["int", "double", "decimal"],
+                                    bsonType: [ 'int', 'double', 'decimal' ],
                                     minimum: 0,
-                                    description: "must be a positive number"
+                                    description: 'must be a positive number'
                                 },
                                 unit: {
-                                    enum: ["minute", "hour", "day", "month"],
-                                    description: "must be a unit of time"
+                                    enum: [ 'minute', 'hour', 'day', 'month' ],
+                                    description: 'must be a unit of time'
                                 }
                             }
                         },
                         active: {
-                            bsonType: ["object"],
-                            required: ["value", "unit"],
+                            bsonType: [ 'object' ],
+                            required: [ 'value', 'unit' ],
                             properties: {
                                 value: {
-                                    bsonType: ["int", "double", "decimal"],
+                                    bsonType: [ 'int', 'double', 'decimal' ],
                                     minimum: 0,
-                                    description: "must be a positive number"
+                                    description: 'must be a positive number'
                                 },
                                 unit: {
-                                    enum: ["minute", "hour", "day", "month"],
-                                    description: "must be a unit of time"
+                                    enum: [ 'minute', 'hour', 'day', 'month' ],
+                                    description: 'must be a unit of time'
                                 }
                             }
                         }
                     }
                 },
                 ingredients: {
-                    bsonType: ["array"],
+                    bsonType: [ 'array' ],
                     minItems: 1,
                     maxItems: 100,
                     items: {
-                        bsonType: "object",
-                        required: ["id", "name", "brand", "amount"],
+                        bsonType: 'object',
+                        required: [ 'id', 'name', 'brand', 'amount', 'section' ],
                         description: "'ingredients' must contain the stated fields.",
                         properties: {
                             id: {
-                                bsonType: "string",
-                                description: "must be a string and is required"
+                                bsonType: 'string',
+                                description: 'must be a string and is required'
                             },
                             name: {
-                                bsonType: "string",
-                                description: "must be a string and is required"
+                                bsonType: 'string',
+                                description: 'must be a string and is required'
                             },
                             amount: {
-                                bsonType: ["object"],
-                                required: ["value", "unit"],
+                                bsonType: [ 'object' ],
+                                required: [ 'value', 'unit' ],
                                 properties: {
                                     value: {
-                                        bsonType: ["int", "double", "decimal"],
+                                        bsonType: [ 'int', 'double', 'decimal' ],
                                         minimum: 0,
-                                        description: "must be a double, positive, and is required"
+                                        description: 'must be a double, positive, and is required'
                                     },
                                     unit: {
                                         enum: [
-                                            "mg", "g", "kg", "oz", "lb",
-                                            "ml", "l", "tsp", "tbsp", "fl oz",
-                                            "cup", "pt", "qt", "gal", "piece"
+                                            'mg',    'g',   'kg',
+                                            'oz',    'lb',  'ml',
+                                            'l',     'tsp', 'tbsp',
+                                            'fl oz', 'cup', 'pt',
+                                            'qt',    'gal', 'piece',
+                                            'pinch'
                                         ],
-                                        description: "must be a string and is required"
+                                        description: 'must be a string and is required'
                                     }
                                 }
                             },
                             brand: {
-                                bsonType: ["string", "null"],
-                                description: "must be a string and is optional"
+                                bsonType: [ 'string', 'null' ],
+                                description: 'must be a string and is optional'
+                            },
+                            section: {
+                                bsonType: [ 'string', 'null' ],
+                                description: 'must be a string or null and is optional'
                             }
                         }
                     }
                 },
                 steps: {
-                    bsonType: ["array"],
+                    bsonType: [ 'array' ],
                     items: {
-                        bsonType: ["object"],
-                        required: ["id", "title", "text"],
+                        bsonType: [ 'object' ],
+                        required: [ 'id', 'title', 'text' ],
                         properties: {
                             id: {
-                                bsonType: "string",
-                                description: "must be a string and is required"
+                                bsonType: 'string',
+                                description: 'must be a string and is required'
                             },
                             title: {
-                                bsonType: ["string", "null"],
-                                description: "must be a string and is optional"
+                                bsonType: [ 'string', 'null' ],
+                                description: 'must be a string and is optional'
                             },
                             text: {
-                                bsonType: "string",
-                                description: "must be a string and is required"
+                                bsonType: 'string',
+                                description: 'must be a string and is required'
                             }
                         }
                     }
                 },
                 notes: {
-                    bsonType: ["string", "null"],
-                    description: "must be a string and is required"
+                    bsonType: [ 'string', 'null' ],
+                    description: 'must be a string and is required'
+                },
+                author: {
+                    bsonType: [ 'string', 'null' ],
+                    description: 'must be a string'
+                },
+                addedBy: {
+                    bsonType: [ 'string', 'null' ],
+                    description: 'must be a string'
+                },
+                ratings: {
+                    bsonType: [ 'array' ],
+                    minItems: 5,
+                    maxItems: 5,
+                    items: {
+                        bsonType: 'int',
+                        description: 'must be an array of strings and is optional'
+                    }
                 }
             }
         }

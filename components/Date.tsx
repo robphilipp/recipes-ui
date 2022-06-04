@@ -1,4 +1,5 @@
-import {parseISO, format, fromUnixTime} from 'date-fns'
+
+import {DateTime} from "luxon"
 
 type Props = {
     dateString?: string
@@ -7,11 +8,13 @@ type Props = {
 
 export default function Date(props: Props): JSX.Element {
     const {dateString, epochMillis} = props
-    const date = dateString ? parseISO(dateString) : fromUnixTime(epochMillis / 1000 || 0)
+    const date = dateString ?
+        DateTime.fromISO(dateString, {zone: 'utc'}) :
+        DateTime.fromMillis(epochMillis || 0, {zone: 'utc'})
 
     return (
         <time dateTime={dateString}>
-            {format(date, 'LLLL d, yyyy')}
+            {date.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)}
         </time>
     )
 }
