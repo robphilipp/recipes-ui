@@ -14,6 +14,7 @@ import {jsx} from "@emotion/react";
 import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
 import JSX = jsx.JSX;
+import {PdfConverter} from "../../components/exports/PdfConverter";
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,
@@ -77,6 +78,7 @@ export default function RecipeView(props: Props): JSX.Element {
                     >
                         <ModeEditIcon sx={{width: 18, height: 18}}/>
                     </IconButton>
+                    <PdfConverter recipe={recipe}/>
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
                     {recipe._id}
@@ -86,7 +88,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 </Typography>
                 {recipe.modifiedOn != null ?
                     <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
-                        Created: <Date epochMillis={recipe.modifiedOn as number}/>
+                        Modified: <Date epochMillis={recipe.modifiedOn as number}/>
                     </Typography> :
                     <span/>
                 }
