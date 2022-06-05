@@ -7,13 +7,14 @@ import {
     grayscale,
     PDFPageDrawTextOptions,
     layoutMultilineText,
-    TextAlignment, PDFPage
+    TextAlignment, PDFPage, RGB
 } from "pdf-lib";
 import {hexToRgb, IconButton} from "@mui/material";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import download from 'downloadjs'
-import {Recipe} from "../Recipe";
+import {ingredientAsText, Recipe} from "../Recipe";
 import {DateTime} from "luxon";
+import {formatNumber} from "../../lib/utils";
 
 export type PageMargins = {
     top: number
@@ -104,23 +105,106 @@ export function PdfConverter(props: Props): JSX.Element {
                 bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
             })
 
-            // let startingPosition = page.getY()
+            renderMultiline(recipe.story, fontSize, rgb(0, 0, 0))
+        }
+
+        // ingredients
+        page.setFontSize(fontSize + 2)
+        page.setFontColor(rgb(0, 0.2, 0.3))
+        page.moveDown(fontSize + 2 + 2 * lineSpacing)
+        if (page.getY() < margin.bottom) {
+            [page, pageNumber] = newPage(pageNumber, recipe.author)
+        }
+        page.drawText("Ingredients")
+
+        page.setFontSize(fontSize)
+        page.setFontColor(rgb(0, 0, 0))
+        recipe.ingredients.forEach(ingredient => {
+            if (ingredient.section) {
+                sectionHeader(ingredient.section)
+            }
+            renderMultiline(
+                cleanUnicodeFractions(ingredientAsText(ingredient)),
+                fontSize,
+                rgb(0, 0, 0)
+            )
+        })
+
+        // steps
+        page.setFontSize(fontSize + 2)
+        page.setFontColor(rgb(0, 0.2, 0.3))
+        page.moveDown(fontSize + 2 + 2 * lineSpacing)
+        if (page.getY() < margin.bottom) {
+            [page, pageNumber] = newPage(pageNumber, recipe.author)
+        }
+        page.drawText("Steps")
+
+        page.setFontSize(fontSize)
+        page.setFontColor(rgb(0, 0, 0))
+        recipe.steps.forEach((step, index) => {
+            if (step.title) {
+                sectionHeader(step.title)
+            }
+            renderMultiline(
+                `(${formatNumber(index+1, 'en-US', {maximumFractionDigits: 0,})}) ${cleanUnicodeFractions(step.text)}`,
+                fontSize,
+                rgb(0, 0, 0)
+            )
+        })
+
+
+        // download
+        const pdfBytes = await doc.save()
+        download(pdfBytes, "recipe.pdf")
+
+        function cleanUnicodeFractions(text: string): string {
+            return text
+                .replaceAll('⅒', '1/10')
+                .replaceAll('⅑', '1/9')
+                .replaceAll('⅛', '1/8')
+                .replaceAll('⅐', '1/7')
+                .replaceAll('⅙', '1/6')
+                .replaceAll('⅕', '1/5')
+                .replaceAll('¼', '1/4')
+                .replaceAll('⅓', '1/3')
+                .replaceAll('⅜', '3/8')
+                .replaceAll('⅖', '2/5')
+                .replaceAll('½', '1/2')
+                .replaceAll('⅗', '3/5')
+                .replaceAll('⅔', '2/3')
+                .replaceAll('⅝', '5/8')
+                .replaceAll('¾', '3/4')
+                .replaceAll('⅘', '4/5')
+                .replaceAll('⅚', '5/6')
+                .replaceAll('⅞', '7/8')
+        }
+
+        function sectionHeader(header: string): void {
+            page.setFontSize(fontSize + 1)
+            page.moveDown(fontSize + 1 + 1.5 * lineSpacing)
+            page.drawText(header)
+        }
+
+        function renderMultiline(text: string, fontSize: number, fontColor: RGB): void {
+            const multilineText = layoutMultilineText(text, {
+                alignment: TextAlignment.Left,
+                font: documentFont,
+                fontSize: fontSize,
+                bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
+            })
+
             page.setFontSize(fontSize)
-            page.setFontColor(rgb(0, 0, 0))
-            for (let i = 0; i < story.lines.length; ++i) {
+            page.setFontColor(fontColor)
+            for (let i = 0; i < multilineText.lines.length; ++i) {
                 if (page.getY() < margin.bottom) {
                     [page, pageNumber] = newPage(pageNumber, recipe.author)
                     page.moveTo(margin.left, height - margin.top)
                 }
 
                 page.moveDown(fontSize + lineSpacing / 2)
-                page.drawText(story.lines[i].text)
+                page.drawText(multilineText.lines[i].text)
             }
         }
-
-        // download
-        const pdfBytes = await doc.save()
-        download(pdfBytes, "recipe.pdf")
 
         function newPage(pageNumber: number, author?: string): [PDFPage, number] {
             const page = doc.addPage(size)
