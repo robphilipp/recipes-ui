@@ -118,7 +118,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
     // set the initial ingredients on mount
     useEffect(
         () => {
-            if (steps === undefined) {
+            if (steps === undefined && initialSteps !== undefined) {
                 parseSteps(initialSteps, true, true)
                     .onSuccess(gredients => {
                         initialParsedStepsRef.current = gredients
@@ -134,6 +134,10 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
      * Parses the text into an array of {@link ParsedStep}. When there is a parsing error, the
      * returns a list of the errors
      * @param text The text to be converted to step
+     * @param newLexer When `true` creates a new lexer when this function is called; otherwise
+     * reuses the existing one
+     * @param newParser When `true` creates a new parser when this function is called; otherwise
+     * reuses the existing one
      * @return A {@link Result} wrapping the parsed step, or the parse errors when it fails
      */
     function parseSteps(text: string, newLexer: boolean, newParser: boolean): Result<Array<ParsedStep>, Array<ILexingError>> {
@@ -163,7 +167,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
      * parent to cancel
      */
     function handleCancel(): void {
-        onChange(initialParsedStepsRef.current.map(step => convertStep(step)))
+        onChange(initialParsedStepsRef.current?.map(step => convertStep(step)) || [])
         onCancel()
     }
 
@@ -175,7 +179,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
                 size="small"
                 sx={{textTransform: 'none'}}
                 disabled={parseErrors.length > 0}
-                onClick={() => onApply(steps.map(ingredient => convertStep(ingredient)))}
+                onClick={() => onApply(steps?.map(ingredient => convertStep(ingredient)) || [])}
             >
                 Accept Changes
             </Button>
