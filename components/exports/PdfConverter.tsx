@@ -64,19 +64,64 @@ export function PdfConverter(props: Props): JSX.Element {
         page.setFontSize(fontSize)
 
         // recipe name
+        const nameWidth = documentFont.widthOfTextAtSize(recipe.name, titleFontSize)
+
         page.moveTo(margin.left, height - margin.top)
         page.setFontSize(titleFontSize)
         page.setFontColor(rgb(0, 0.2, 0.3))
-        page.drawText(recipe.name)
+        page.drawText(recipe.name, {x: (width - nameWidth) / 2})
+        const nameHeight = documentFont.heightAtSize(titleFontSize)
+        page.drawLine({
+            start: {x: margin.left, y: page.getY() + nameHeight / 2},
+            end: {x: (width - nameWidth) / 2 - 10, y: page.getY() + nameHeight / 2},
+            color: grayscale(0.7),
+            thickness: 2
+        })
+        page.drawLine({
+            start: {x: (width + nameWidth) / 2 + 10, y: page.getY() + nameHeight / 2},
+            end: {x: width - margin.right, y: page.getY() + nameHeight / 2},
+            color: grayscale(0.7),
+            thickness: 2
+        })
+        page.drawLine({
+            start: {x: margin.left, y: page.getY() + nameHeight / 2 - 2},
+            end: {x: (width - nameWidth) / 2 - 10, y: page.getY() + nameHeight / 2 - 2},
+            color: grayscale(0.8),
+            thickness: 1
+        })
+        page.drawLine({
+            start: {x: (width + nameWidth) / 2 + 10, y: page.getY() + nameHeight / 2 - 2},
+            end: {x: width - margin.right, y: page.getY() + nameHeight / 2 - 2},
+            color: grayscale(0.8),
+            thickness: 1
+        })
+        page.drawCircle({
+            x: (width - nameWidth) / 2 - 10,
+            y: page.getY() + nameHeight / 2,
+            size: 4,
+            color: grayscale(0.4)
+        })
+        page.drawCircle({
+            x: (width + nameWidth) / 2 + 10,
+            y: page.getY() + nameHeight / 2,
+            size: 4,
+            color: grayscale(0.4)
+        })
+
 
         // recipe id
         page.setFontSize(smallFontSize)
         page.setFontColor(grayscale(0.75))
-        page.moveDown(smallFontSize + lineSpacing)
-        page.drawText(recipe._id.toString(),)
+        // page.moveDown(smallFontSize + lineSpacing)
+        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id.toString(), smallFontSize)
+        const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
+        page.drawText(recipe._id.toString(), {
+            x: width - recipeIdWidth - 3,
+            y: height - smallFontSize - 3
+            // y: page.getY() + nameHeight / 2 + 2
+        })
 
         // dates
-        // yCursor -= smallFontSize + 2 * lineSpacing
         page.moveDown(smallFontSize + 2 * lineSpacing)
         page.drawText("Created:  " + formatDate(recipe.createdOn as number))
         page.moveDown(smallFontSize)
@@ -86,8 +131,8 @@ export function PdfConverter(props: Props): JSX.Element {
         const author = recipe.author !== "" && recipe.author !== null ? `Author: ${recipe.author} ` : ""
         const addedBy = recipe.addedBy !== "" && recipe.addedBy !== null ? `(added by: ${recipe.addedBy})` : ""
         if (author !== "" || addedBy !== "") {
-            page.moveDown(fontSize + lineSpacing)
-            page.setFontSize(fontSize)
+            page.moveDown(fontSize + 2 * lineSpacing)
+            page.setFontSize(fontSize-2)
             page.setFontColor(rgb(0, 0, 0))
             page.drawText(`${author} ${addedBy}`)
         }
@@ -97,6 +142,7 @@ export function PdfConverter(props: Props): JSX.Element {
             page.moveDown(fontSize + 2 * lineSpacing)
             page.setFontSize(fontSize + 1)
             page.drawText("Story")
+            page.moveDown(lineSpacing)
 
             const story = layoutMultilineText(recipe.story, {
                 alignment: TextAlignment.Left,
