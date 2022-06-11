@@ -120,6 +120,8 @@ export function PdfConverter(props: Props): JSX.Element {
             page.drawText(`${author} ${addedBy}`)
         }
 
+        const lowestHeaderStart = 2 * margin.bottom
+
         // story
         if (recipe.story !== "") {
             page.moveDown(fontSize + 2 * lineSpacing)
@@ -138,8 +140,9 @@ export function PdfConverter(props: Props): JSX.Element {
         // ingredients
         page.setFontColor(rgb(0, 0.2, 0.3))
         page.moveDown(fontSize + 2 + 2 * lineSpacing)
-        if (page.getY() < margin.bottom) {
+        if (page.getY() - lowestHeaderStart < margin.bottom) {
             [page, pageNumber] = newPage(pageNumber, recipe.author)
+            page.moveTo(margin.left, height - margin.top)
         }
         sectionHeader("Ingredients", fontSize)
 
@@ -159,8 +162,9 @@ export function PdfConverter(props: Props): JSX.Element {
         // steps
         page.setFontColor(rgb(0, 0.2, 0.3))
         page.moveDown(fontSize + 2 + 2 * lineSpacing)
-        if (page.getY() < margin.bottom) {
+        if (page.getY() - lowestHeaderStart < margin.bottom) {
             [page, pageNumber] = newPage(pageNumber, recipe.author)
+            page.moveTo(margin.left, height - margin.top)
         }
         sectionHeader("Steps", fontSize)
 
@@ -251,6 +255,10 @@ export function PdfConverter(props: Props): JSX.Element {
          * @param header The header
          */
         function subsectionHeader(header: string): void {
+            if (page.getY() + 2 * lineSpacing < margin.bottom) {
+                [page, pageNumber] = newPage(pageNumber, recipe.author)
+                page.moveTo(margin.left, height - margin.top)
+            }
             page.setFontSize(fontSize + 1)
             page.moveDown(fontSize + 1 + 1.5 * lineSpacing)
             page.drawText(header)
@@ -326,8 +334,9 @@ export function PdfConverter(props: Props): JSX.Element {
             page.setFont(documentFont)
             page.setFontSize(fontSize)
             page.setFontColor(rgb(0, 0, 0))
-            addFooter(page, ++pageNumber, author)
-            return [page, ++pageNumber]
+            const newPageNumber = pageNumber + 1
+            addFooter(page, newPageNumber, author)
+            return [page, newPageNumber]
         }
 
         function addFooter(page: PDFPage, pageNumber: number, author?: string): void {
