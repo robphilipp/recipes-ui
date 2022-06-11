@@ -50,15 +50,10 @@ export function PdfConverter(props: Props): JSX.Element {
         let [page, pageNumber] = newPage(0, recipe.author)
         const {width, height} = page.getSize()
 
-        const titleFontSize = fontSize + 2
+        // title
+        const titleFontSize = fontSize + 6
         const smallFontSize = Math.max(fontSize - 3, 8)
         const lineSpacing = fontSize / 2
-
-        const basics: PDFPageDrawTextOptions = {
-            font: documentFont,
-            size: fontSize,
-            color: rgb(0, 0.2, 0.3),
-        }
 
         page.setFont(documentFont)
         page.setFontSize(fontSize)
@@ -71,54 +66,42 @@ export function PdfConverter(props: Props): JSX.Element {
         page.setFontColor(rgb(0, 0.2, 0.3))
         page.drawText(recipe.name, {x: (width - nameWidth) / 2})
         const nameHeight = documentFont.heightAtSize(titleFontSize)
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + nameHeight / 2},
-            end: {x: (width - nameWidth) / 2 - 10, y: page.getY() + nameHeight / 2},
-            color: grayscale(0.7),
-            thickness: 2
-        })
-        page.drawLine({
-            start: {x: (width + nameWidth) / 2 + 10, y: page.getY() + nameHeight / 2},
-            end: {x: width - margin.right, y: page.getY() + nameHeight / 2},
-            color: grayscale(0.7),
-            thickness: 2
-        })
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + nameHeight / 2 - 2},
-            end: {x: (width - nameWidth) / 2 - 10, y: page.getY() + nameHeight / 2 - 2},
-            color: grayscale(0.8),
-            thickness: 1
-        })
-        page.drawLine({
-            start: {x: (width + nameWidth) / 2 + 10, y: page.getY() + nameHeight / 2 - 2},
-            end: {x: width - margin.right, y: page.getY() + nameHeight / 2 - 2},
-            color: grayscale(0.8),
-            thickness: 1
-        })
-        page.drawCircle({
-            x: (width - nameWidth) / 2 - 10,
-            y: page.getY() + nameHeight / 2,
-            size: 4,
-            color: grayscale(0.4)
-        })
-        page.drawCircle({
-            x: (width + nameWidth) / 2 + 10,
-            y: page.getY() + nameHeight / 2,
-            size: 4,
-            color: grayscale(0.4)
-        })
 
+        const circleRadius = 4
+        const lineHeight = nameHeight / 2 - 2
+        page.drawCircle({
+            x: margin.left,
+            y: page.getY() + lineHeight,
+            size: circleRadius,
+            borderColor: grayscale(0.4),
+        })
+        page.drawCircle({
+            x: width - margin.right,
+            y: page.getY() + lineHeight,
+            size: circleRadius,
+            borderColor: grayscale(0.4)
+        })
+        page.drawLine({
+            start: {x: margin.left + circleRadius, y: page.getY() + lineHeight},
+            end: {x: (width - nameWidth) / 2 - 10, y: page.getY() + lineHeight},
+            color: grayscale(0.4),
+            thickness: 2
+        })
+        page.drawLine({
+            start: {x: (width + nameWidth) / 2 + 10, y: page.getY() + lineHeight},
+            end: {x: width - margin.right - circleRadius, y: page.getY() + lineHeight},
+            color: grayscale(0.4),
+            thickness: 2
+        })
 
         // recipe id
         page.setFontSize(smallFontSize)
         page.setFontColor(grayscale(0.75))
-        // page.moveDown(smallFontSize + lineSpacing)
         const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id.toString(), smallFontSize)
         const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
         page.drawText(recipe._id.toString(), {
             x: width - recipeIdWidth - 3,
             y: height - smallFontSize - 3
-            // y: page.getY() + nameHeight / 2 + 2
         })
 
         // dates
@@ -140,31 +123,7 @@ export function PdfConverter(props: Props): JSX.Element {
         // story
         if (recipe.story !== "") {
             page.moveDown(fontSize + 2 * lineSpacing)
-            const storyWidth = documentFont.widthOfTextAtSize("Story", fontSize + 1)
-            const storyHeight = documentFont.heightAtSize(fontSize + 1)
-            page.drawLine({
-                start: {x: margin.left, y: page.getY() + storyHeight / 2},
-                end: {x: margin.left + 20, y: page.getY() + storyHeight / 2},
-                color: grayscale(0.7),
-                thickness: 1,
-            })
-            page.drawLine({
-                start: {x: margin.left, y: page.getY() + storyHeight / 2 - 2},
-                end: {x: margin.left + 20, y: page.getY() + storyHeight / 2 - 2},
-                color: grayscale(0.7),
-                thickness: 1,
-            })
-
-            page.drawLine({
-                start: {x: margin.left + 20 + storyWidth + 10 + 10, y: page.getY() + storyHeight / 2 - 1},
-                end: {x: width - margin.right, y: page.getY() + storyHeight / 2 - 1},
-                color: grayscale(0.8),
-                thickness: 1
-            })
-
-            page.setFontSize(fontSize + 1)
-            page.drawText("Story", {x: margin.left + 30})
-            page.moveDown(lineSpacing)
+            sectionHeader("Story", fontSize)
 
             const story = layoutMultilineText(recipe.story, {
                 alignment: TextAlignment.Left,
@@ -173,47 +132,24 @@ export function PdfConverter(props: Props): JSX.Element {
                 bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
             })
 
-            renderMultiline(recipe.story, fontSize, rgb(0, 0, 0))
+            renderMultilineText(recipe.story, fontSize, rgb(0, 0, 0))
         }
 
         // ingredients
-        page.setFontSize(fontSize + 2)
         page.setFontColor(rgb(0, 0.2, 0.3))
         page.moveDown(fontSize + 2 + 2 * lineSpacing)
         if (page.getY() < margin.bottom) {
             [page, pageNumber] = newPage(pageNumber, recipe.author)
         }
-        const ingredientsWidth = documentFont.widthOfTextAtSize("Ingredients", fontSize + 1)
-        const ingredientsHeight = documentFont.heightAtSize(fontSize + 1)
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + ingredientsHeight / 2},
-            end: {x: margin.left + 20, y: page.getY() + ingredientsHeight / 2},
-            color: grayscale(0.7),
-            thickness: 1,
-        })
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + ingredientsHeight / 2 - 2},
-            end: {x: margin.left + 20, y: page.getY() + ingredientsHeight / 2 - 2},
-            color: grayscale(0.7),
-            thickness: 1,
-        })
-
-        page.drawLine({
-            start: {x: margin.left + 20 + ingredientsWidth + 10 + 10, y: page.getY() + ingredientsHeight / 2 - 1},
-            end: {x: width - margin.right, y: page.getY() + ingredientsHeight / 2 - 1},
-            color: grayscale(0.8),
-            thickness: 1
-        })
-
-        page.drawText("Ingredients", {x: margin.left + 30})
+        sectionHeader("Ingredients", fontSize)
 
         page.setFontSize(fontSize)
         page.setFontColor(rgb(0, 0, 0))
         recipe.ingredients.forEach(ingredient => {
             if (ingredient.section) {
-                sectionHeader(ingredient.section)
+                subsectionHeader(ingredient.section)
             }
-            renderMultiline(
+            renderMultilineText(
                 cleanUnicodeFractions(ingredientAsText(ingredient)),
                 fontSize,
                 rgb(0, 0, 0)
@@ -221,43 +157,22 @@ export function PdfConverter(props: Props): JSX.Element {
         })
 
         // steps
-        page.setFontSize(fontSize + 2)
         page.setFontColor(rgb(0, 0.2, 0.3))
         page.moveDown(fontSize + 2 + 2 * lineSpacing)
         if (page.getY() < margin.bottom) {
             [page, pageNumber] = newPage(pageNumber, recipe.author)
         }
-        const stepsWidth = documentFont.widthOfTextAtSize("Steps", fontSize + 1)
-        const stepsHeight = documentFont.heightAtSize(fontSize + 1)
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + stepsHeight / 2},
-            end: {x: margin.left + 20, y: page.getY() + stepsHeight / 2},
-            color: grayscale(0.7),
-            thickness: 1,
-        })
-        page.drawLine({
-            start: {x: margin.left, y: page.getY() + stepsHeight / 2 - 2},
-            end: {x: margin.left + 20, y: page.getY() + stepsHeight / 2 - 2},
-            color: grayscale(0.7),
-            thickness: 1,
-        })
-
-        page.drawLine({
-            start: {x: margin.left + 20 + stepsWidth + 10 + 10, y: page.getY() + stepsHeight / 2 - 1},
-            end: {x: width - margin.right, y: page.getY() + stepsHeight / 2 - 1},
-            color: grayscale(0.8),
-            thickness: 1
-        })
-        page.drawText("Steps", {x: margin.left + 30})
+        sectionHeader("Steps", fontSize)
 
         page.setFontSize(fontSize)
         page.setFontColor(rgb(0, 0, 0))
         recipe.steps.forEach((step, index) => {
             if (step.title) {
-                sectionHeader(step.title)
+                subsectionHeader(step.title)
             }
-            renderMultiline(
-                `(${formatNumber(index+1, 'en-US', {maximumFractionDigits: 0,})}) ${cleanUnicodeFractions(step.text)}`,
+            renderMultilineStep(
+                index + 1,
+                cleanUnicodeFractions(step.text),
                 fontSize,
                 rgb(0, 0, 0)
             )
@@ -266,7 +181,7 @@ export function PdfConverter(props: Props): JSX.Element {
 
         // download
         const pdfBytes = await doc.save()
-        download(pdfBytes, "recipe.pdf")
+        download(pdfBytes, `${recipe.name.toLowerCase().replaceAll(/[ \t]+/g, '-')}.pdf`)
 
         function cleanUnicodeFractions(text: string): string {
             return text
@@ -290,24 +205,59 @@ export function PdfConverter(props: Props): JSX.Element {
                 .replaceAll('⅞', '7/8')
         }
 
-        function sectionHeader(header: string): void {
-            page.setFontSize(fontSize + 1)
-            page.moveDown(fontSize + 1 + 1.5 * lineSpacing)
-            const headerWidth = documentFont.widthOfTextAtSize(header, fontSize + 1)
-            const headerHeight = documentFont.heightAtSize(fontSize + 1)
+        /**
+         * Renders the section header (i.e. ingredients, steps, story)
+         * @param header
+         */
+        function sectionHeader(header: string, fontSize: number): void {
+            const size = fontSize + 2
+            const headerWidth = documentFont.widthOfTextAtSize(header, size)
+            const headerHeight = documentFont.heightAtSize(size)
+            const lineLength = 20
+            const spacing = 5
 
             page.drawLine({
-                start: {x: margin.left, y: page.getY() - 2},
-                end: {x: margin.left + headerWidth, y: page.getY() - 2},
-                // start: {x: margin.left + headerWidth + 10 + 10, y: page.getY() + headerHeight / 2},
-                // end: {x: 0.75 * (width - margin.right), y: page.getY() + headerHeight / 2},
-                color: grayscale(0.9),
-                thickness: 1
+                start: {x: margin.left, y: page.getY() + headerHeight / 2 - 1},
+                end: {x: margin.left + lineLength, y: page.getY() + headerHeight / 2 - 1},
+                color: grayscale(0.7),
+                thickness: 1,
             })
-            page.drawText(header)
+            page.drawLine({
+                start: {x: margin.left, y: page.getY() + headerHeight / 2 - 3},
+                end: {x: margin.left + lineLength, y: page.getY() + headerHeight / 2 - 3},
+                color: grayscale(0.7),
+                thickness: 1,
+            })
+            page.drawLine({
+                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 1},
+                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 1},
+                color: grayscale(0.7),
+                thickness: 1,
+            })
+            page.drawLine({
+                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 3},
+                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 3},
+                color: grayscale(0.7),
+                thickness: 1,
+            })
+            page.drawText(header, {
+                x: margin.left + lineLength + spacing,
+                size // font size
+            })
         }
 
-        function renderMultiline(text: string, fontSize: number, fontColor: RGB): void {
+        /**
+         * Renders the subsection headers with ingredients or steps
+         * @param header The header
+         */
+        function subsectionHeader(header: string): void {
+            page.setFontSize(fontSize + 1)
+            page.moveDown(fontSize + 1 + 1.5 * lineSpacing)
+            page.drawText(header)
+            page.moveDown(lineSpacing / 2)
+        }
+
+        function renderMultilineText(text: string, fontSize: number, fontColor: RGB): void {
             const multilineText = layoutMultilineText(text, {
                 alignment: TextAlignment.Left,
                 font: documentFont,
@@ -326,6 +276,49 @@ export function PdfConverter(props: Props): JSX.Element {
                 page.moveDown(fontSize + lineSpacing / 2)
                 page.drawText(multilineText.lines[i].text)
             }
+        }
+
+        function renderMultilineStep(itemNumber: number, text: string, fontSize: number, fontColor: RGB): void {
+            const multilineText = layoutMultilineText(text, {
+                alignment: TextAlignment.Left,
+                font: documentFont,
+                fontSize: fontSize,
+                bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
+            })
+
+            const circleRadius = 10
+            page.setFontSize(fontSize)
+            page.setFontColor(fontColor)
+            for (let i = 0; i < multilineText.lines.length; ++i) {
+                if (page.getY() < margin.bottom) {
+                    [page, pageNumber] = newPage(pageNumber, recipe.author)
+                    page.moveTo(margin.left, height - margin.top)
+                }
+                if (i === 0) {
+                    page.moveDown(lineSpacing / 2)
+                    page.drawCircle({
+                        x: margin.left + circleRadius,
+                        y: page.getY() - fontSize,
+                        size: circleRadius,
+                        borderColor: grayscale(0.3),
+                        color: grayscale(0.5),
+                    })
+                    const stepNumber = formatNumber(itemNumber, 'en-US', {maximumFractionDigits: 0})
+                    const stepNumberWidth = documentFont.widthOfTextAtSize(stepNumber, fontSize)
+                    const stepNumberHeight = documentFont.heightAtSize(fontSize)
+                    page.drawText(stepNumber, {
+                        x: margin.left + circleRadius - stepNumberWidth / 2,
+                        y: page.getY() - fontSize - stepNumberHeight / 2 + 2,
+                        color: grayscale(0.99),
+                        size: fontSize
+                    })
+                }
+
+                page.moveDown(fontSize + lineSpacing / 2)
+                page.drawText(multilineText.lines[i].text, {x: margin.left + 2 * circleRadius + 5})
+            }
+            page.moveDown(fontSize + circleRadius)
+
         }
 
         function newPage(pageNumber: number, author?: string): [PDFPage, number] {
