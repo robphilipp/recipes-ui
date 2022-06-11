@@ -1,6 +1,6 @@
 module.exports = {
     env: {
-        version: '0.3.0',
+        version: '0.4.0',
 
         siteName: 'City Recipes',
         bookTitle: "B&R Recipes",

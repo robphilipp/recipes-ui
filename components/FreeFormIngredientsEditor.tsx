@@ -119,7 +119,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
     // set the initial ingredients on mount
     useEffect(
         () => {
-            if (ingredients === undefined) {
+            if (ingredients === undefined && initialIngredients !== undefined) {
                 parseIngredients(initialIngredients, true, true)
                     .onSuccess(gredients => {
                         initialParsedIngredientsRef.current = gredients
@@ -153,6 +153,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                 return successResult(ingredientList)
             }
         }
+        return failureResult([])
     }
 
     /**
@@ -161,7 +162,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
      * parent to cancel
      */
     function handleCancel(): void {
-        onChange(initialParsedIngredientsRef.current.map(ingredient => convertIngredient(ingredient)))
+        onChange(initialParsedIngredientsRef.current?.map(ingredient => convertIngredient(ingredient)) || [])
         onCancel()
     }
 
@@ -173,7 +174,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                 size="small"
                 sx={{textTransform: 'none'}}
                 disabled={parseErrors.length > 0}
-                onClick={() => onApply(ingredients.map(ingredient => convertIngredient(ingredient)))}
+                onClick={() => onApply(ingredients?.map(ingredient => convertIngredient(ingredient)) || [])}
             >
                 Accept Changes
             </Button>

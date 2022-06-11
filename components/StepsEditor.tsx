@@ -49,7 +49,6 @@ export function StepsEditor(props: Props): JSX.Element {
     }
 
     function handleCancelStep(): void {
-        // setAddingStep(false)
         setEditorMode(EditorMode.FORM_BASED)
     }
 
