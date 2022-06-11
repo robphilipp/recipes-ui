@@ -1,5 +1,8 @@
 # City Recipes Change History
 
+## version 0.4.1 (free-form editor bug fix)
+Fix bug where error was not being cleared when fixed.
+
 ## version 0.4.0 (create pdf; bug fix)
 1. Recipes can now be exports as PDF for sharing with friends and family.
 2. Fixed bugs when free-form editors where called and no items existed yet.
