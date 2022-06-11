@@ -88,6 +88,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
                         .onSuccess(stps => {
                             onChange(stps.map(step => convertStep(step)))
                             setSteps(stps)
+                            setParseErrors([])
                         })
                         .onFailure(setParseErrors)
                 }
@@ -123,6 +124,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
                     .onSuccess(gredients => {
                         initialParsedStepsRef.current = gredients
                         setSteps(gredients)
+                        setParseErrors([])
                     })
                     .onFailure(setParseErrors)
             }

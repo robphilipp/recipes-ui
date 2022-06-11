@@ -89,6 +89,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                         .onSuccess(gredients => {
                             onChange(gredients.map(ingredient => convertIngredient(ingredient)))
                             setIngredients(gredients)
+                            setParseErrors([])
                         })
                         .onFailure(setParseErrors)
                 }
@@ -124,6 +125,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                     .onSuccess(gredients => {
                         initialParsedIngredientsRef.current = gredients
                         setIngredients(gredients)
+                        setParseErrors([])
                     })
                     .onFailure(setParseErrors)
             }
