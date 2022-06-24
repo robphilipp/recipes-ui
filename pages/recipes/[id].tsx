@@ -14,7 +14,7 @@ import {jsx} from "@emotion/react";
 import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
 import JSX = jsx.JSX;
-import {PdfConverter} from "../../components/exports/PdfConverter";
+import {PdfConverter} from "../../components/exportrecipes/PdfConverter";
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,

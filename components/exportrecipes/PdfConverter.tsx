@@ -211,7 +211,8 @@ export function PdfConverter(props: Props): JSX.Element {
 
         /**
          * Renders the section header (i.e. ingredients, steps, story)
-         * @param header
+         * @param header The header string to display
+         * @param fontSize The size of the font in pixels
          */
         function sectionHeader(header: string, fontSize: number): void {
             const size = fontSize + 2
@@ -265,6 +266,12 @@ export function PdfConverter(props: Props): JSX.Element {
             page.moveDown(lineSpacing / 2)
         }
 
+        /**
+         *
+         * @param text
+         * @param fontSize
+         * @param fontColor
+         */
         function renderMultilineText(text: string, fontSize: number, fontColor: RGB): void {
             const multilineText = layoutMultilineText(text, {
                 alignment: TextAlignment.Left,
