@@ -25,18 +25,18 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 
-import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
-
-const {result: ingredients, errors} = toIngredients(`dough
-            1 1/2 cp all-purpose flour
-            1 tsp vanilla extract,
-            sauce
-            1 cup milk
-            1 egg`,
-    {deDupSections: true}
-)
-
-console.log("recipe", ingredients)
+// import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
+//
+// const {result: ingredients, errors} = toIngredients(`dough
+//             1 1/2 cp all-purpose flour
+//             1 tsp vanilla extract,
+//             sauce
+//             1 cup milk
+//             1 egg`,
+//     {deDupSections: true}
+// )
+//
+// console.log("recipe", ingredients)
 
 type Props = {}
 
@@ -60,6 +60,7 @@ export default function Home(props: Props): JSX.Element {
         []
     )
 
+    // loads the summaries that match one or more of the accumulated search terms
     useEffect(
         () => {
             if (accumulated.length > 0) {
@@ -176,15 +177,26 @@ export default function Home(props: Props): JSX.Element {
                                         {recipe.name.toUpperCase()}
                                     </a>
                                 </Link>}
-                                subheader={<Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
-                                    <Date epochMillis={
-                                        (recipe.modifiedOn !== null ? recipe.modifiedOn : recipe.createdOn) as number
-                                    }/>
-                                    <div>
-                                        {recipe.author ? <span style={{marginRight: 25}}>Author: {recipe.author}</span> : <span/>}
-                                        {recipe.addedBy ? <span>Added By: {recipe.addedBy}</span> : <span/>}
-                                    </div>
-                                </Typography>}
+                                subheader={<div>
+                                    <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
+                                        <Date epochMillis={
+                                            (recipe.modifiedOn !== null ?
+                                                recipe.modifiedOn :
+                                                recipe.createdOn
+                                            ) as number
+                                        }/>
+                                    </Typography>
+                                    <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
+                                        {recipe.author ?
+                                            <span style={{marginRight: 25}}>Author: {recipe.author}</span> :
+                                            <span/>
+                                        }
+                                        {recipe.addedBy ?
+                                            <span>Added By: {recipe.addedBy}</span> :
+                                            <span/>
+                                        }
+                                    </Typography>
+                                </div>}
                                 action={renderEditDelete(recipe._id.toString())}
                             />
                             <CardContent>

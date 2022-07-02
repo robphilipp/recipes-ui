@@ -6,6 +6,10 @@ const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
 const recipeCollection = (client: MongoClient): Collection<Recipe> => client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
 
+/**
+ * Retrieves the number of recipes in the system
+ * @return A {@link Promise} to the recipe count
+ */
 export async function recipeCount(): Promise<number> {
     try {
         const client = await clientPromise
@@ -15,6 +19,10 @@ export async function recipeCount(): Promise<number> {
     }
 }
 
+/**
+ * Retrieves the recipes for all the recipes in the system
+ * @return A {@link Promise} the holds the recipes
+ */
 export async function allRecipes(): Promise<Array<Recipe>> {
     try {
         const client = await clientPromise
@@ -27,6 +35,10 @@ export async function allRecipes(): Promise<Array<Recipe>> {
     }
 }
 
+/**
+ * Retrieves the recipe summaries for all the recipes in the system
+ * @return A {@link Promise} to the recipe summaries
+ */
 export async function recipeSummaries(): Promise<Array<RecipeSummary>> {
     try {
         const client = await clientPromise
@@ -36,6 +48,11 @@ export async function recipeSummaries(): Promise<Array<RecipeSummary>> {
     }
 }
 
+/**
+ * Retrieves the recipes whose names contain any of the specified words
+ * @param words The words that the recipes names must have
+ * @return A {@link Promise} to the matching recipes
+ */
 export async function recipesByName(words: Array<string>): Promise<Array<Recipe>> {
     try {
         const client = await clientPromise
@@ -65,6 +82,11 @@ export async function recipeById(id: string): Promise<Recipe> {
     }
 }
 
+/**
+ * Retrieves the recipe summaries whose names contain any of the specified words
+ * @param words The words a recipe name must contain for it to be considered a match
+ * @return A {@link Promise} to the matching recipe summaries
+ */
 export async function recipeSummariesByName(words: Array<string>): Promise<Array<RecipeSummary>> {
     try {
         const client = await clientPromise
@@ -77,6 +99,11 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
     }
 }
 
+/**
+ * Retrieves all the recipe summaries whose names or tags contain any of the specified words.
+ * @param words The words a recipe name or tags must contain to be considered a match
+ * @return A {@link Promise} to the matching recipe summaries
+ */
 export async function recipeSummariesSearch(words: Array<string>): Promise<Array<RecipeSummary>> {
     try {
         const client = await clientPromise
@@ -95,6 +122,10 @@ export async function recipeSummariesSearch(words: Array<string>): Promise<Array
     }
 }
 
+/**
+ * Retrieves that recipe IDs and converts them to an API path to the recipe.
+ * @return A {@link Promise} to an array of API paths for each recipe
+ */
 export async function allRecipePaths(): Promise<Array<string>> {
     try {
         return await recipeSummaries()
@@ -104,12 +135,17 @@ export async function allRecipePaths(): Promise<Array<string>> {
     }
 }
 
+/**
+ * Removes the recipe ID from the recipe and returns a new {@link Recipe} without the
+ * ID. Generally this is used to add a new recipe so that the datastore can determine
+ * the ID of the new recipe
+ * @param recipe The recipe for which to remove the ID
+ * @return A new {@link Recipe} whose ID has been removed
+ */
 function removeRecipeId(recipe: Recipe): Recipe {
     return {
         author: recipe.author,
         addedBy: recipe.addedBy,
-        // author: recipe.author || '',
-        // addedBy: recipe.addedBy || '',
         story: recipe.story,
         name: recipe.name,
         yield: recipe.yield,
@@ -124,6 +160,12 @@ function removeRecipeId(recipe: Recipe): Recipe {
     }
 }
 
+/**
+ * Adds a new {@link Recipe} to the datastore
+ * @param recipe The recipe to add
+ * @return A {@link Promise} to the added recipe, which will then contain the recipe ID
+ * assigned by the datastore.
+ */
 export async function addRecipe(recipe: Recipe): Promise<Recipe> {
     try {
         const client = await clientPromise
@@ -134,6 +176,11 @@ export async function addRecipe(recipe: Recipe): Promise<Recipe> {
     }
 }
 
+/**
+ * Updates the specified recipe in the datastore
+ * @param recipe The recipe to update
+ * @return A {@link Promise} to the updated recipe
+ */
 export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
     try {
         const client = await clientPromise
@@ -155,10 +202,20 @@ export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
     return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe._id}; name: ${recipe.name}`)
 }
 
+/**
+ * Updates the specified recipes in the datastore
+ * @param recipes The recipe to update
+ * @return A {@link Promise} to the updated recipes
+ */
 export async function updateRecipes(recipes: Array<Recipe>): Promise<Array<Recipe>> {
     return Promise.all(recipes.map(updateRecipe))
 }
 
+/**
+ * Deletes the recipe, for the specified ID, from the datastore.
+ * @param recipeId The ID of the recipe to delete
+ * @return A {@link Promise} to the deleted recipe
+ */
 export async function deleteRecipe(recipeId: string): Promise<Recipe> {
     try {
         const client = await clientPromise
@@ -170,21 +227,32 @@ export async function deleteRecipe(recipeId: string): Promise<Recipe> {
         const result = await recipeCollection(client)
             .deleteOne({_id: new ObjectId(recipeId)})
         if (!result.acknowledged) {
-            return Promise.reject(`Request to delete recipe was not acknowledged; _id: ${recipeId}; name: ${recipe.name}`)
+            return Promise.reject(
+                `Request to delete recipe was not acknowledged; _id: ${recipeId}; name: ${recipe.name}`
+            )
         }
         if (result.deletedCount < 1) {
             return Promise.reject(`Unable to delete recipe; _id: ${recipeId}; name: ${recipe.name}`)
         }
         return Promise.resolve(recipe)
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        console.error("Unable to delete recipe", e)
     }
 }
 
+/**
+ * Updates the ratings for the recipe with the specified ID
+ * @param recipeId The ID of the recipe for which to update the ratings
+ * @param newRating The new rating
+ * @param ratings The array of counts that each rating value has received
+ * @return A {@link Promise} to the recipe with the updated ratings
+ */
 export async function updateRatings(recipeId: string, newRating: number, ratings: Array<number>): Promise<Recipe> {
     try {
         if (newRating < 1 || newRating > ratings.length) {
-            return Promise.reject(`Invalid rating: ratings must be in [1, 5]; rating: ${newRating}; recipe_id: ${recipeId}`)
+            return Promise.reject(
+                `Invalid rating: ratings must be in [1, 5]; rating: ${newRating}; recipe_id: ${recipeId}`
+            )
         }
 
         const updatedRatings = [...ratings]
@@ -205,7 +273,7 @@ export async function updateRatings(recipeId: string, newRating: number, ratings
             return await recipeById(recipeId)
         }
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        console.error("Unable to update recipe ratings", e)
     }
-    return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipeId}`)
+    return Promise.reject(`Request to update recipe ratings was not acknowledged; _id: ${recipeId}`)
 }

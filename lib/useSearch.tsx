@@ -2,8 +2,11 @@ import * as React from 'react';
 import {createContext, useContext, useState} from 'react';
 
 interface UseSearchValues {
+    // the current value in the search input
     readonly current?: string
+    // the set of search terms that have been entered
     readonly accumulated: Array<string>
+
     updateCurrent: (value: string) => void
     appendCurrent: (value: string) => void
     clearCurrent: () => void
@@ -37,9 +40,18 @@ interface Props {
  * @constructor
  */
 export default function SearchProvider(props: Props): JSX.Element {
+    // Holds the current value in the search text field. This allows searching as
+    // the user types (when enabled)
     const [current, setCurrent] = useState<string | undefined>()
+
+    // Holds all the values that have been specified for search
     const [accumulated, setAccumulated] = useState<Array<string>>(() => [])
 
+    /**
+     * Updates the current value in the search text field. This allows searching as
+     * the user types (when enabled)
+     * @param value The current value
+     */
     function updateCurrent(value: string): void {
         setCurrent(value)
     }
@@ -66,12 +78,11 @@ export default function SearchProvider(props: Props): JSX.Element {
         setAccumulated([])
     }
 
-    const {children} = props;
     return <SearchContext.Provider value={{
         current, updateCurrent, appendCurrent, clearCurrent,
         accumulated, addAccumulated, deleteAccumulated, clearAccumulated
     }}>
-        {children}
+        {props.children}
     </SearchContext.Provider>
 }
 
