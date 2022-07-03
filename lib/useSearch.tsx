@@ -35,7 +35,7 @@ interface Props {
 }
 
 /**
- * Manages the search state for the children
+ * Manages the search state for the children.
  * @param props The properties holding the children
  * @constructor
  */

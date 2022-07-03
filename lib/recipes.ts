@@ -4,7 +4,10 @@ import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/Re
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
-const recipeCollection = (client: MongoClient): Collection<Recipe> => client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
+
+function recipeCollection(client: MongoClient): Collection<Recipe> {
+    return client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
+}
 
 /**
  * Retrieves the number of recipes in the system

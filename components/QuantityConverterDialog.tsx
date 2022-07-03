@@ -15,7 +15,7 @@ function PaperComponent(props: PaperProps) {
             handle="#draggable-dialog-title"
             cancel={'[class*="MuiDialogContent-root"]'}
         >
-            <Paper {...props} />
+            <Paper {...props}/>
         </Draggable>
     );
 }

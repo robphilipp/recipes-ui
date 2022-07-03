@@ -6,7 +6,7 @@ import {
     measurementUnits,
     Unit,
     UnitCategories,
-    unitFor,
+    unitFromName, unitFromType,
     UnitName,
     unitsByCategory,
     UnitType
@@ -17,62 +17,89 @@ import formatQuantity from "format-quantity";
 import {formatNumber} from "../lib/utils";
 
 type UnitOption = { label: UnitName, value: UnitType }
+type Conversion = { from: Amount, to: Amount }
+const initialConversion: Conversion = {
+    from: amountFor(0, UnitType.TABLESPOON),
+    to: amountFor(0, UnitType.TEASPOON)
+}
 
 export default function AmountConverter(): JSX.Element {
 
-    const [fromAmount, setFromAmount] = useState<Amount>(amountFor(0, UnitType.TABLESPOON))
-    const [toAmount, setToAmount] = useState<Amount>(amountFor(0, UnitType.TEASPOON))
+    const [conversion, setConversion] = useState<Conversion>(initialConversion)
     const [toOptions, setToOptions] = useState<Array<UnitOption>>(() => validToUnitsFor(unitOptionFrom(UnitName.tablespoon)))
 
     function handleSetFromUnit(unit: UnitOption): void {
         // calculate the valid units for the new fromAmount
         const validUnits = validToUnitsFor(unitOptionFrom(unit.label))
 
-        setFromAmount(current => ({...current, unit: unit.value}))
+        setConversion(current => {
+            if (validUnits.findIndex(option => option.value === current.to.unit) < 0) {
+                return {
+                    from: {...current.from, unit: unit.value},
+                    to: {...current.from, unit: unit.value}
+                }
+            } else {
+                const amount: Amount = {...current.from, unit: unit.value}
+                return {
+                    from: amount,
+                    to: convertAmount(amount, current.to.unit).getOrDefault(current.from)
+                }
+            }
+        })
         setToOptions(validUnits)
+    }
 
-        // when the units we are converting into are no longer valid, then set them to the
-        // same units as just selected
-        if (validUnits.findIndex(option => option.value === toAmount.unit) < 0) {
-            setToAmount(current => ({...current, unit: unit.value}))
-        }
+    function handleSetToUnit(unit: UnitOption): void {
+        convertAmount(conversion.from, unit.value)
+            .onSuccess(amount => setConversion(current => ({
+                from: current.from,
+                to: amount
+            })))
     }
 
     function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>): void {
-        if (event.key === 'Enter') {
-            convertAmount(fromAmount, toAmount.unit)
-                .onSuccess(amount => setToAmount(current => ({...current, value: amount.value})))
+        if (event.key === 'Enter' || event.key === 'Tab') {
+            convertAmount(conversion.from, conversion.to.unit)
+                .onSuccess(amount => setConversion(current => ({
+                        ...current,
+                        to: {...current.to, value: amount.value}
+                    })
+                ))
         }
     }
 
     return <Box onKeyDown={handleKeyPress}>
         <Stack direction="row" spacing={1} sx={{paddingTop: 1}}>
             <TextField
-                id="conversion-amount-value"
+                id="conversion-from-amount-value"
                 label="From Quantity"
                 size='small'
                 type="number"
                 required
                 autoFocus={true}
-                value={fromAmount.value}
-                onChange={event => setFromAmount(current => ({...current, value: parseFloat(event.target.value)}))}
+                value={conversion.from.value}
+                InputProps={{ inputProps: { min: 0, max: 10 } }}
+                onChange={event => {
+                    setConversion(current => {
+                        const amount: Amount = {...current.from, value: parseFloat(event.target.value)}
+                        return {
+                            from: amount,
+                            to: convertAmount(amount, current.to.unit).getOrDefault(amount)
+                        }
+                    })
+                }}
             />
             <Autocomplete
-                id="conversion-amount-unit-select"
+                id="conversion-from-amount-unit-select"
                 renderInput={(params) => (<TextField {...params} label="units"/>)}
-                // options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
                 options={measurementUnits.map(unit => unitOptionFor(unit))}
                 groupBy={option => categoriesByUnits.get(option.value as UnitType)}
-                sx={{mt: 1.2, mr: 0.5, minWidth: 150, maxWidth: 350}}
+                sx={{mt: 1.2, mr: 0.5, minWidth: 200, maxWidth: 450}}
                 size='small'
-                value={fromAmount.unit}
-                // @ts-ignore
-                isOptionEqualToValue={(option, value) => option !== null && option.value === value}
+                value={unitOptionFor(unitFromType(conversion.from.unit))}
+                isOptionEqualToValue={(option, value) => option !== null && option.value === value.value}
                 onChange={(event: SyntheticEvent, newValue: UnitOption) => handleSetFromUnit(newValue)}
-                // onChange={(event: SyntheticEvent, newValue: UnitOption) => setFromAmount(current => ({
-                //     ...current,
-                //     unit: newValue.value
-                // }))}
+                disableClearable={true}
             />
         </Stack>
         <Stack direction="row" spacing={1} sx={{paddingTop: 1}}>
@@ -81,32 +108,27 @@ export default function AmountConverter(): JSX.Element {
                 label="To Quantity"
                 size='small'
                 autoFocus={true}
-                value={formatQuantity(formatNumber(toAmount.value) || '0', false)}
+                value={formatNumber(conversion.to.value) || '0'}
                 disabled={true}
             />
             <Autocomplete
-                id="conversion-amount-unit-select"
+                id="conversion-to-amount-unit-select"
                 renderInput={(params) => (<TextField {...params} label="units"/>)}
-                // options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
-                // options={measurementUnits.map(unit => unitOptionFor(unit))}
                 options={toOptions}
                 groupBy={option => categoriesByUnits.get(option.value as UnitType)}
-                sx={{mt: 1.2, mr: 0.5, minWidth: 150, maxWidth: 350}}
+                sx={{mt: 1.2, mr: 0.5, minWidth: 200, maxWidth: 450}}
                 size='small'
-                value={toAmount.unit}
-                // @ts-ignore
-                isOptionEqualToValue={(option, value) => option !== null && option.value === value}
-                onChange={(event: SyntheticEvent, newValue: UnitOption) => setToAmount(current => ({
-                    ...current,
-                    unit: newValue.value
-                }))}
+                value={unitOptionFor(unitFromType(conversion.to.unit))}
+                isOptionEqualToValue={(option, value) => option !== null && option.value === value.value}
+                onChange={(event: SyntheticEvent, newValue: UnitOption) => handleSetToUnit(newValue)}
+                disableClearable={true}
             />
         </Stack>
     </Box>
 }
 
 function unitOptionFrom(unitName: UnitName): UnitOption {
-    return unitOptionFor(unitFor(unitName))
+    return unitOptionFor(unitFromName(unitName))
 }
 
 function unitOptionFor(unit: Unit): UnitOption {
@@ -115,7 +137,7 @@ function unitOptionFor(unit: Unit): UnitOption {
 
 function validToUnitsFor(unit: UnitOption): Array<UnitOption> {
     const categories: UnitCategories = categoriesByUnits.get(unit.value as UnitType)
-    switch(categories) {
+    switch (categories) {
         case UnitCategories.MASS:
         case UnitCategories.WEIGHT: {
             const unitOptions: Array<UnitOption> = []

@@ -97,8 +97,12 @@ const unitTypeToName = new Map<UnitType, UnitName>([
     [UnitType.PINCH, UnitName.pinch]
 ])
 
-export function unitFor(unitName: UnitName): Unit {
+export function unitFromName(unitName: UnitName): Unit {
     return unitFrom(units.get(unitName), unitName)
+}
+
+export function unitFromType(unitType: UnitType): Unit {
+    return unitFromName(unitNameFor(unitType))
 }
 
 export function unitNameFor(unitType: UnitType): UnitName {
