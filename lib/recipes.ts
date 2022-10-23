@@ -107,7 +107,10 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
  * @param words The words a recipe name or tags must contain to be considered a match
  * @return A {@link Promise} to the matching recipe summaries
  */
-export async function recipeSummariesSearch(words: Array<string>): Promise<Array<RecipeSummary>> {
+export async function recipeSummariesSearch(words?: Array<string>): Promise<Array<RecipeSummary>> {
+    if (words === undefined) {
+        return Promise.resolve([])
+    }
     try {
         const client = await clientPromise
         return await recipeCollection(client)

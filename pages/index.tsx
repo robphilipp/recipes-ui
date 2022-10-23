@@ -1,9 +1,10 @@
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import Date from '../components/Date'
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {
-    Avatar, Box,
+    Avatar,
+    Box,
     Button,
     Card,
     CardContent,
@@ -24,6 +25,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
+import {useQuery} from "@tanstack/react-query";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -40,6 +42,11 @@ import Link from 'next/link'
 
 type Props = {}
 
+/**
+ * The main page
+ * @param props
+ * @constructor
+ */
 export default function Home(props: Props): JSX.Element {
     const {} = props
 
@@ -49,37 +56,60 @@ export default function Home(props: Props): JSX.Element {
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
-    const [recipeCount, setRecipeCount] = useState<number>(0)
-    const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
+    // const [recipeCount, setRecipeCount] = useState<number>(0)
+    // const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
 
-    useEffect(
-        () => {
-            axios.get('/api/recipes/count').then(response => setRecipeCount(response.data))
-        },
-        []
-    )
+    // useEffect(
+    //     () => {
+    //         axios.get('/api/recipes/count').then(response => setRecipeCount(response.data))
+    //     },
+    //     []
+    // )
 
     // loads the summaries that match one or more of the accumulated search terms
-    useEffect(
-        () => {
-            if (accumulated.length > 0) {
-                const queries = accumulated.map(acc => `name=${acc}`).join("&")
-                axios
-                    .get(`/api/recipes/summaries?${queries}`)
-                    .then(response => setRecipes(response.data))
-            } else {
-                setRecipes([])
-            }
-        },
-        [accumulated]
-    )
+    // useEffect(
+    //     () => {
+    //         if (accumulated.length > 0) {
+    //             const queries = accumulated.map(acc => `name=${acc}`).join("&")
+    //             axios
+    //                 .get(`/api/recipes/summaries?${queries}`)
+    //                 .then(response => setRecipes(response.data))
+    //         } else {
+    //             setRecipes([])
+    //         }
+    //     },
+    //     [accumulated]
+    // )
+    const countQuery = useQuery(['recipeCount'], () => axios.get('/api/recipes/count'))
+    const recipesQuery = useQuery(['recipes', accumulated], () => {
+        return axios.get(
+            `/api/recipes/summaries`,
+            {
+                params: accumulated,
+                paramsSerializer: params => params.map(acc => `name=${acc}`).join("&")
+            })
+    })
 
+    if (countQuery.isLoading || recipesQuery.isLoading) {
+        return <span>Loading...</span>
+    }
+    if (countQuery.isError || recipesQuery.isError) {
+        return <span>
+            {countQuery.isError ? <span>Count Error: ${countQuery.error}</span> : <span/>}
+            {recipesQuery.isError ? <span>Recipes Error: ${recipesQuery.error}</span> : <span/>}
+        </span>
+    }
+
+    const recipeCount: number = countQuery.data.data
+    const recipes: Array<RecipeSummary> = recipesQuery.data.data || []
+
+    // todo replace with useMutation
     function handleDeleteRecipe(recipeId: string): void {
         axios
             .delete(`/api/recipes/${recipeId}`)
             .then(response => {
-                setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
+                // setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
                 setConfirmDelete([])
             })
     }
@@ -181,8 +211,8 @@ export default function Home(props: Props): JSX.Element {
                                     <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
                                         <Date epochMillis={
                                             (recipe.modifiedOn !== null ?
-                                                recipe.modifiedOn :
-                                                recipe.createdOn
+                                                    recipe.modifiedOn :
+                                                    recipe.createdOn
                                             ) as number
                                         }/>
                                     </Typography>

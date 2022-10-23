@@ -4,6 +4,57 @@ import SearchIcon from "@mui/icons-material/Search";
 import {useSearch} from "../lib/useSearch";
 import {useRouter} from "next/router";
 
+
+/**
+ * User input that updates the state of the {@link useSearch} hook when the user
+ * adds search terms.
+ * @constructor
+ */
+export default function RecipeSearch(): JSX.Element {
+    const {
+        current,
+        updateCurrent,
+        clearCurrent,
+        addAccumulated
+    } = useSearch()
+
+    const router = useRouter()
+
+    async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> {
+        switch (event.key) {
+            case 'Enter':
+                addAccumulated(current)
+                clearCurrent()
+                await router.push("/")
+                break
+            case 'Escape':
+                clearCurrent()
+                break
+            default:
+        }
+    }
+
+    async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+        const searchValue = event.currentTarget.value
+        updateCurrent(searchValue)
+    }
+
+    return (
+        <Search>
+            <SearchIconWrapper>
+                <SearchIcon/>
+            </SearchIconWrapper>
+            <StyledInputBase
+                placeholder="Search…"
+                value={current || ''}
+                inputProps={{'aria-label': 'search'}}
+                onChange={handleChange}
+                onKeyDown={handleKeyPress}
+            />
+        </Search>
+    )
+}
+
 const Search = styled('div')(({theme}) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
@@ -45,46 +96,3 @@ const StyledInputBase = styled(InputBase)(({theme}) => ({
         },
     },
 }));
-
-export default function RecipeSearch(): JSX.Element {
-    const {
-        current, updateCurrent, clearCurrent,
-        accumulated, addAccumulated
-    } = useSearch()
-
-    const router = useRouter()
-
-    async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> {
-        switch (event.key) {
-            case 'Enter':
-                addAccumulated(current)
-                clearCurrent()
-                await router.push("/")
-                break
-            case 'Escape':
-                clearCurrent()
-                break
-            default:
-        }
-    }
-
-    async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-        const searchValue = event.currentTarget.value
-        updateCurrent(searchValue)
-    }
-
-    return (
-        <Search>
-            <SearchIconWrapper>
-                <SearchIcon/>
-            </SearchIconWrapper>
-            <StyledInputBase
-                placeholder="Search…"
-                value={current || ''}
-                inputProps={{'aria-label': 'search'}}
-                onChange={handleChange}
-                onKeyDown={handleKeyPress}
-            />
-        </Search>
-    )
-}
