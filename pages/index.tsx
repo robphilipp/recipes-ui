@@ -25,7 +25,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -81,24 +81,47 @@ export default function Home(props: Props): JSX.Element {
     //     },
     //     [accumulated]
     // )
-    const countQuery = useQuery(['recipeCount'], () => axios.get('/api/recipes/count'))
-    const recipesQuery = useQuery(['recipes', accumulated], () => {
-        return axios.get(
+    const queryClient = useQueryClient()
+
+    const countQuery = useQuery(
+        ['recipeCount'],
+        () => axios.get('/api/recipes/count')
+    )
+    const recipesQuery = useQuery(
+        ['recipes', accumulated],
+        () => axios.get(
             `/api/recipes/summaries`,
             {
                 params: accumulated,
                 paramsSerializer: params => params.map(acc => `name=${acc}`).join("&")
             })
-    })
+    )
+    const deleteQuery = useMutation(
+        ['delete-recipe'],
+        (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
+        // .then(() => {
+        //     setConfirmDelete([])
+        // })
+    )
 
     if (countQuery.isLoading || recipesQuery.isLoading) {
         return <span>Loading...</span>
     }
     if (countQuery.isError || recipesQuery.isError) {
         return <span>
-            {countQuery.isError ? <span>Count Error: ${countQuery.error}</span> : <span/>}
-            {recipesQuery.isError ? <span>Recipes Error: ${recipesQuery.error}</span> : <span/>}
+            {countQuery.isError ? <span>Count Error: {countQuery.error}</span> : <span/>}
+            {recipesQuery.isError ? <span>Recipes Error: {recipesQuery.error}</span> : <span/>}
         </span>
+    }
+    if (deleteQuery.isLoading) {
+        return <span>Deleting ...</span>
+    }
+    if (deleteQuery.isError) {
+        return <span>Error deleting recipe: {deleteQuery.error}</span>
+    }
+    if (deleteQuery.isSuccess) {
+        setConfirmDelete([])
+        deleteQuery.reset()
     }
 
     const recipeCount: number = countQuery.data.data
@@ -106,12 +129,19 @@ export default function Home(props: Props): JSX.Element {
 
     // todo replace with useMutation
     function handleDeleteRecipe(recipeId: string): void {
-        axios
-            .delete(`/api/recipes/${recipeId}`)
-            .then(response => {
-                // setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
+        // axios
+        //     .delete(`/api/recipes/${recipeId}`)
+        //     .then(response => {
+        //         // setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
+        //         setConfirmDelete([])
+        //     })
+        deleteQuery.mutate(recipeId, {
+            onSuccess: () => {
                 setConfirmDelete([])
-            })
+                queryClient.invalidateQueries(['recipes', accumulated])
+                queryClient.invalidateQueries(['recipeCount'])
+            }
+        })
     }
 
     function renderEditDelete(recipeId: string): JSX.Element {
