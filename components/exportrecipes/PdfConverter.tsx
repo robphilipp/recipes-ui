@@ -374,6 +374,9 @@ export function PdfConverter(props: Props): JSX.Element {
     }
 
     function formatDate(millis: number): string {
+        if (millis === null || millis === undefined) {
+            return ''
+        }
         return DateTime.fromMillis(millis, {zone: 'utc'})
             .toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
     }
