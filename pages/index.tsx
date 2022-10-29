@@ -56,37 +56,17 @@ export default function Home(props: Props): JSX.Element {
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
-    // const [recipeCount, setRecipeCount] = useState<number>(0)
-    // const [recipes, setRecipes] = useState<Array<RecipeSummary>>([])
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
 
-    // useEffect(
-    //     () => {
-    //         axios.get('/api/recipes/count').then(response => setRecipeCount(response.data))
-    //     },
-    //     []
-    // )
-
-    // loads the summaries that match one or more of the accumulated search terms
-    // useEffect(
-    //     () => {
-    //         if (accumulated.length > 0) {
-    //             const queries = accumulated.map(acc => `name=${acc}`).join("&")
-    //             axios
-    //                 .get(`/api/recipes/summaries?${queries}`)
-    //                 .then(response => setRecipes(response.data))
-    //         } else {
-    //             setRecipes([])
-    //         }
-    //     },
-    //     [accumulated]
-    // )
     const queryClient = useQueryClient()
 
+    // loads the recipe count
     const countQuery = useQuery(
         ['recipeCount'],
         () => axios.get('/api/recipes/count')
     )
+
+    // loads the summaries that match one or more of the accumulated search terms
     const recipesQuery = useQuery(
         ['recipes', accumulated],
         () => axios.get(
@@ -99,9 +79,6 @@ export default function Home(props: Props): JSX.Element {
     const deleteQuery = useMutation(
         ['delete-recipe'],
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
-        // .then(() => {
-        //     setConfirmDelete([])
-        // })
     )
 
     if (countQuery.isLoading || recipesQuery.isLoading) {
@@ -119,22 +96,15 @@ export default function Home(props: Props): JSX.Element {
     if (deleteQuery.isError) {
         return <span>Error deleting recipe: {deleteQuery.error}</span>
     }
-    if (deleteQuery.isSuccess) {
-        setConfirmDelete([])
-        deleteQuery.reset()
-    }
 
     const recipeCount: number = countQuery.data.data
     const recipes: Array<RecipeSummary> = recipesQuery.data.data || []
 
-    // todo replace with useMutation
+    /**
+     * Callback for when the confirm to delete button is clicked
+     * @param recipeId The ID of the recripe to delete
+     */
     function handleDeleteRecipe(recipeId: string): void {
-        // axios
-        //     .delete(`/api/recipes/${recipeId}`)
-        //     .then(response => {
-        //         // setRecipes(current => current.filter(recipe => recipe._id !== response.data._id))
-        //         setConfirmDelete([])
-        //     })
         deleteQuery.mutate(recipeId, {
             onSuccess: () => {
                 setConfirmDelete([])
@@ -144,6 +114,13 @@ export default function Home(props: Props): JSX.Element {
         })
     }
 
+    /**
+     * Renders the edit and delete buttons in the recipe card with the specified ID. If the
+     * ID is being deleted, replaces the edit and delete buttons with confirm and cancel
+     * buttons.
+     * @param recipeId The ID of the recipe
+     * @return The edit and delete, or the confirm and cancel buttons.
+     */
     function renderEditDelete(recipeId: string): JSX.Element {
         if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
