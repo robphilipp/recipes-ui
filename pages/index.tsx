@@ -76,28 +76,24 @@ export default function Home(props: Props): JSX.Element {
                 paramsSerializer: params => params.map(acc => `name=${acc}`).join("&")
             })
     )
+
+    // deletes a recipe upon confirmation
     const deleteQuery = useMutation(
         ['delete-recipe'],
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
     )
 
-    if (countQuery.isLoading || recipesQuery.isLoading) {
+    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading) {
         return <span>Loading...</span>
     }
-    if (countQuery.isError || recipesQuery.isError) {
+    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError) {
         return <span>
             {countQuery.isError ? <span>Count Error: {countQuery.error}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {recipesQuery.error}</span> : <span/>}
+            {deleteQuery.isError ? <span>Delete Recipe Error: {deleteQuery.error}</span> : <span/>}
         </span>
     }
-    if (deleteQuery.isLoading) {
-        return <span>Deleting ...</span>
-    }
-    if (deleteQuery.isError) {
-        return <span>Error deleting recipe: {deleteQuery.error}</span>
-    }
 
-    const recipeCount: number = countQuery.data.data
     const recipes: Array<RecipeSummary> = recipesQuery.data.data || []
 
     /**
@@ -187,7 +183,7 @@ export default function Home(props: Props): JSX.Element {
                     paragraph
                     sx={{fontSize: '0.7em', marginTop: '0.25em'}}
                 >
-                    Showing {recipes.length} of {recipeCount} recipes
+                    Showing {recipes.length} of {countQuery.data.data} recipes
                 </Typography>
 
                 {recipes.map(recipe => {
