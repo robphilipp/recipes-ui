@@ -9,9 +9,9 @@ import {Ingredient} from "./Recipe";
 import {formatQuantityFor} from "../lib/utils";
 import {unitNameFor, unitTypeFrom} from "../lib/Measurements";
 import {UUID} from "bson";
-import {Box, Button, ButtonGroup, Divider, Grid, Theme, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {Box, Button, ButtonGroup, Divider, Grid, Theme, Typography, useTheme} from "@mui/material";
 import {styled} from "@mui/system";
-import {failureResult, Result, successResult} from "result-fn";
+import {failureResult, Result, resultFromAll, successResult} from "result-fn";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
@@ -87,9 +87,17 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                 if (update.docChanged) {
                     parseIngredients(update.state.doc.sliceString(0), false, false)
                         .onSuccess(gredients => {
-                            onChange(gredients.map(ingredient => convertIngredient(ingredient)))
-                            setIngredients(gredients)
-                            setParseErrors([])
+                            resultFromAll(gredients.map(ingredient => convertIngredient(ingredient)))
+                                .onSuccess(ingreds => {
+                                    onChange(ingreds)
+                                    setIngredients(gredients)
+                                    setParseErrors([])
+                                })
+                                .onFailure(error => setParseErrors([{
+                                    offset: 0,
+                                    length: 0,
+                                    message: error
+                                } as ILexingError]))
                         })
                         .onFailure(setParseErrors)
                 }
@@ -158,14 +166,21 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
         return failureResult([])
     }
 
+    function convertParsedIngredients(parsedIngredients: Array<ParsedIngredient>): Result<Array<Ingredient>, string> {
+        return resultFromAll(parsedIngredients.map(ingredient => convertIngredient(ingredient)))
+    }
+
     /**
      * Reverts the changes to the initial ingredients. Recall that each change made by the user is updated
      * with the parent, so we need to set the original ingredient list with the parent and the tell the
      * parent to cancel
      */
     function handleCancel(): void {
-        onChange(initialParsedIngredientsRef.current?.map(ingredient => convertIngredient(ingredient)) || [])
-        onCancel()
+        convertParsedIngredients(initialParsedIngredientsRef.current)
+            .onSuccess(ingreds => {
+                onChange(ingreds)
+                onCancel()
+            })
     }
 
     return <>
@@ -176,7 +191,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                 size="small"
                 sx={{textTransform: 'none'}}
                 disabled={parseErrors.length > 0}
-                onClick={() => onApply(ingredients?.map(ingredient => convertIngredient(ingredient)) || [])}
+                onClick={() => onApply(convertParsedIngredients(ingredients).getOrDefault([]))}
             >
                 Accept Changes
             </Button>
@@ -206,29 +221,31 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                     <ArrowCircleDown/>
                 </Grid>
                 <Grid item xs={12} sm={12} md={10} lg={10}>
-                    {ingredients?.map(ingredient => {
-                        const ing = convertIngredient(ingredient)
-                        const sectionHeader = ing.section ?
-                            <Typography
-                                key={ing.section}
-                                sx={{
-                                    fontSize: '1.1em',
-                                    fontWeight: 700,
-                                    color: theme.palette.text.disabled,
-                                    textDecoration: 'underline',
-                                    marginTop: 1
-                                }}
-                            >
-                                {ing.section}
-                            </Typography> :
-                            <></>
-                        return (
-                            <>
-                                {sectionHeader}
-                                <Typography key={ing.id}>{renderIngredientAs(ing, theme)}</Typography>
-                            </>
-                        )
-                    })}
+                    {ingredients?.map(ingredient => convertIngredient(ingredient)
+                            .map(ing => {
+                                const sectionHeader = ing.section ?
+                                    <Typography
+                                        key={ing.section}
+                                        sx={{
+                                            fontSize: '1.1em',
+                                            fontWeight: 700,
+                                            color: theme.palette.text.disabled,
+                                            textDecoration: 'underline',
+                                            marginTop: 1
+                                        }}
+                                    >
+                                        {ing.section}
+                                    </Typography> :
+                                    <></>
+                                return (
+                                    <>
+                                        {sectionHeader}
+                                        <Typography key={ing.id}>{renderIngredientAs(ing, theme)}</Typography>
+                                    </>
+                                )
+                            })
+                            .getOrDefault(<></>)
+                    )}
                 </Grid>
             </Grid>
             <Divider sx={{marginTop: 1}}/>
@@ -273,14 +290,15 @@ function renderIngredientAs(ingredient: Ingredient, theme: Theme): JSX.Element {
 }
 
 
-function convertIngredient(ingredient: ParsedIngredient): Ingredient {
-    return {
-        id: (new UUID()).toString('hex'),
-        section: ingredient.section,
-        amount: {value: ingredient.amount.quantity, unit: unitTypeFrom(ingredient.amount.unit)},
-        name: ingredient.ingredient,
-        brand: ingredient.brand
-    }
+function convertIngredient(ingredient: ParsedIngredient): Result<Ingredient, string> {
+    return unitTypeFrom(ingredient.amount.unit)
+        .map(unit => ({
+            id: (new UUID()).toString('hex'),
+            section: ingredient.section,
+            amount: {value: ingredient.amount.quantity, unit: unit},
+            name: ingredient.ingredient,
+            brand: ingredient.brand
+        }))
 }
 
 function underlineRanges(view: EditorView, ranges: Array<{ from: number, to: number }>): boolean {

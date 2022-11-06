@@ -1,14 +1,14 @@
 import convert, {Force, Mass, Volume} from "convert";
-import {failureResult, Result, successResult} from "result-fn";
+import {failureResult, Result, resultFromAll, successResult} from "result-fn";
 
 export enum UnitName {
     milligram = 'milligram',
     gram = 'gram',
     kilogram = 'kilogram',
-    
+
     ounce = 'ounce',
     pound = 'pound',
-    
+
     milliliter = 'milliliter',
     liter = 'liter',
     teaspoon = 'teaspoon',
@@ -37,9 +37,12 @@ function unitFrom(unit: UnitType, label: UnitName): Unit {
  * @param shorthand the shorthand (e.g. mg, g, oz, etc)
  * @return The {@link UnitType} associated with the shorthand
  */
-export function unitTypeFrom(shorthand: string): UnitType {
-    const [, key] = Object.entries(UnitType).find(([, value]) => value === shorthand)
-    return key
+export function unitTypeFrom(shorthand: string): Result<UnitType, string> {
+    const entry = Object.entries(UnitType).find(([, value]) => value === shorthand)
+    if (entry) {
+        return successResult(entry[1])
+    }
+    return failureResult(`Unable to find unit type for shorthand; shorthand: ${shorthand}`)
 }
 
 /**
@@ -98,6 +101,8 @@ const unitTypeToName = new Map<UnitType, UnitName>([
 ])
 
 export function unitFromName(unitName: UnitName): Unit {
+    // by construction, units.get(unitName) will never return an undefined
+    // @ts-ignore
     return unitFrom(units.get(unitName), unitName)
 }
 
@@ -106,6 +111,8 @@ export function unitFromType(unitType: UnitType): Unit {
 }
 
 export function unitNameFor(unitType: UnitType): UnitName {
+    // by construction, unitTypeToName.get(unitType) will never return an undefined
+    // @ts-ignore
     return unitTypeToName.get(unitType)
 }
 
@@ -125,7 +132,6 @@ export enum UnitCategories {
 export type Unit = {
     // the unit name
     value: UnitType
-    // value: string
     // the human-readable value
     label: UnitName
 }
@@ -147,7 +153,8 @@ export function amountFor(value: number, unit: UnitType): Amount {
  * kg, mg are mass, and pounds, and ounces are weights, and liter
  * and gallon are volume, etc.
  */
-export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
+// export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
+const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     [UnitCategories.MASS, [
         unitFrom(UnitType.MILLIGRAM, UnitName.milligram),
         unitFrom(UnitType.GRAM, UnitName.gram),
@@ -174,16 +181,60 @@ export const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     ]]
 ])
 
+export function unitsForCategory(unitCategories: UnitCategories): Result<Array<Unit>, string> {
+    const units = unitsByCategory.get(unitCategories)
+    if (units !== undefined) {
+        return successResult(units)
+    }
+    return failureResult(`No units found for category; category: ${unitCategories}`)
+}
+
 export const measurementUnits = Array.from(unitsByCategory.values()).flat()
 
 /**
- * Calculates the unit-category for each unit
+ * Calculates the unit-category for each unit and ensures that the code is properly configured.
+ * If the categories and units are properly configured, then unwrap the result, and that can
+ * be used in the functions that follow this code.
  */
-export const categoriesByUnits = new Map<UnitType, UnitCategories>(
-    Array
+const categoriesByUnitsResult: Result<Map<UnitType, UnitCategories>, string> =
+    resultFromAll<[UnitType, UnitCategories], string>(
+        Array
+            .from(unitsByCategory.entries())
+            .flatMap(
+                ([category, units]) => units
+                    .map(unit => unitTypeFrom(unit.value).map(unitType => [unitType, category]))
+            )
+    )
+        .map(items => new Map<UnitType, UnitCategories>(items))
+
+if (categoriesByUnitsResult.failed) {
+    const results = Array
         .from(unitsByCategory.entries())
         .flatMap(([category, units]) => units.map(unit => [unitTypeFrom(unit.value), category]))
-)
+        .filter(([result, ]: [Result<UnitType, string>, UnitCategories]) => result.failed)
+        .map(([result, category]: [Result<UnitType, string>, UnitCategories]) => `[${result.error}, ${category}]`)
+
+    throw Error(
+        `Measurement setup failed. This is a logic/configuration error; ` +
+        `${results.map(error => `${error}\n`)}`
+    )
+}
+
+const categoriesByUnits: Map<UnitType, UnitCategories> = categoriesByUnitsResult.getOrDefault(new Map())
+
+/**
+ * Returns the {@link UnitCategories} for the specified {@link UnitType}
+ * @param unitType The unit type (i.e. mg, pinch, gallon)
+ * @return A {@link Result} holding the {@link UnitCategories} for the specified
+ * {@link UnitType} or a failure.
+ */
+export function categoriesForUnit(unitType: UnitType): Result<UnitCategories, string> {
+    const category = categoriesByUnits.get(unitType)
+    if (category !== undefined) {
+        return successResult(category)
+    }
+    return failureResult(`No unit categories found for unit type; unit_type: ${unitType}`)
+}
 
 type Conversions = 'mg' | 'g' | 'kg' |
     'ounce' | 'pounds' |
@@ -215,33 +266,41 @@ const conversionMap = new Map<UnitType, Conversions>([
  * a failure.
  */
 export function convertAmount(amount: Amount, toUnit: UnitType): Result<Amount, string> {
-    const fromUnits: Conversions = conversionMap.get(amount.unit)
-    const toUnits: Conversions = conversionMap.get(toUnit)
-    if (fromUnits && toUnits) {
-        const category = categoriesByUnits.get(amount.unit)
-        try {
-            switch (category) {
-                case UnitCategories.MASS:
-                    return successResult({
-                        value: convert(amount.value, fromUnits as Mass).to(toUnits as Mass),
-                        unit: toUnit
-                    })
-                case UnitCategories.WEIGHT:
-                    return successResult({
-                        value: convert(amount.value, fromUnits as Force).to(toUnits as Force),
-                        unit: toUnit
-                    })
-                case UnitCategories.VOLUME:
-                    return successResult({
-                        value: convert(amount.value, fromUnits as Volume).to(toUnits as Volume),
-                        unit: toUnit
-                    })
-                default:
-                    return successResult(amount)
-            }
-        } catch (reason) {
-            return failureResult(reason)
+    const fromUnits = conversionMap.get(amount.unit)
+    if (fromUnits === undefined) {
+        return failureResult(
+            `Cannot find conversion for the amount's units to convert from; units: ${amount.unit}`
+        )
+    }
+    const toUnits = conversionMap.get(toUnit)
+    if (toUnits === undefined) {
+        return failureResult(
+            `Cannot find conversion for the units to convert to; units: ${toUnit}`
+        )
+    }
+    const category = categoriesByUnits.get(amount.unit)
+    try {
+        switch (category) {
+            case UnitCategories.MASS:
+                return successResult({
+                    value: convert(amount.value, fromUnits as Mass).to(toUnits as Mass),
+                    unit: toUnit
+                })
+            case UnitCategories.WEIGHT:
+                return successResult({
+                    value: convert(amount.value, fromUnits as Force).to(toUnits as Force),
+                    unit: toUnit
+                })
+            case UnitCategories.VOLUME:
+                return successResult({
+                    value: convert(amount.value, fromUnits as Volume).to(toUnits as Volume),
+                    unit: toUnit
+                })
+            default:
+                return successResult(amount)
         }
+    } catch (reason) {
+        return failureResult(reason)
     }
 }
 
