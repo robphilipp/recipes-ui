@@ -71,7 +71,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
 
     const [parseErrors, setParseErrors] = useState<Array<ILexingError>>([])
     const [ingredients, setIngredients] = useState<Array<ParsedIngredient>>()
-    const initialParsedIngredientsRef = useRef<Array<ParsedIngredient>>()
+    const initialParsedIngredientsRef = useRef<Array<ParsedIngredient>>([])
 
     // holds to the ref to the editor, when the page mounts
     const editorRef = useRef<HTMLDivElement>()
@@ -119,7 +119,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
 
             return () => {
                 setIngredients(undefined)
-                editorViewRef.current.destroy()
+                editorViewRef.current?.destroy()
             }
         },
         []
@@ -191,7 +191,7 @@ export function FreeFormIngredientsEditor(props: Props): JSX.Element {
                 size="small"
                 sx={{textTransform: 'none'}}
                 disabled={parseErrors.length > 0}
-                onClick={() => onApply(convertParsedIngredients(ingredients).getOrDefault([]))}
+                onClick={() => onApply(convertParsedIngredients(ingredients || []).getOrDefault([]))}
             >
                 Accept Changes
             </Button>

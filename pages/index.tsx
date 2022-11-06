@@ -201,7 +201,7 @@ export default function Home(props: Props): JSX.Element {
                             }}
                         >
                             <CardHeader
-                                avatar={inProgress(recipe._id.toString()) ?
+                                avatar={inProgress(recipe._id?.toString()) ?
                                     <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
                                     <span/>
                                 }
@@ -230,7 +230,7 @@ export default function Home(props: Props): JSX.Element {
                                         }
                                     </Typography>
                                 </div>}
-                                action={renderEditDelete(recipe._id.toString())}
+                                action={recipe._id ? renderEditDelete(recipe._id.toString()) : <></>}
                             />
                             <CardContent>
                                 <Box

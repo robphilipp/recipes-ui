@@ -110,7 +110,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
 
             return () => {
                 setSteps(undefined)
-                editorViewRef.current.destroy()
+                editorViewRef.current?.destroy()
             }
         },
         []
@@ -161,6 +161,11 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
                 return failureResult([])
             }
         }
+        return failureResult([{
+            offset: 0,
+            length: 0,
+            message: "Editor view or its state are undefined."
+        } as ILexingError])
     }
 
     /**

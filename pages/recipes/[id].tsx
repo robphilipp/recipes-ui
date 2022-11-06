@@ -4,7 +4,7 @@ import Date from '../../components/Date'
 import React, {useEffect, useState} from "react";
 import {Chip, IconButton, Rating, Typography, useTheme} from "@mui/material";
 import axios from "axios";
-import {ratingsFrom, Recipe, subtractTime} from "../../components/Recipe";
+import {emptyRecipe, ratingsFrom, Recipe, subtractTime} from "../../components/Recipe";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -34,7 +34,7 @@ export default function RecipeView(props: Props): JSX.Element {
     const theme = useTheme()
     const router = useRouter()
 
-    const [recipe, setRecipe] = useState<Recipe>()
+    const [recipe, setRecipe] = useState<Recipe>(emptyRecipe())
 
     useEffect(
         () => {
@@ -72,7 +72,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 <Typography sx={{fontSize: '1.5em', fontWeight: 520}}>
                     {recipe.name}
                     <IconButton
-                        onClick={() => router.push(`/recipes/edit?id=${recipe._id.toString()}`)}
+                        onClick={() => router.push(`/recipes/edit?id=${recipe._id?.toString()}`)}
                         color='primary'
                         size='small'
                     >
@@ -107,7 +107,7 @@ export default function RecipeView(props: Props): JSX.Element {
                         defaultValue={0}
                         precision={1}
                         value={rating.mean}
-                        onChange={(event, newValue) => handleRatingChange(newValue)}
+                        onChange={(event, newValue) => {if (newValue !== null ) handleRatingChange(newValue)}}
                     />
                     <Typography sx={{marginTop: -1, fontSize: '0.7em'}}>
                         {ratingFormatter.format(isNaN(rating.mean) ? 0 : rating.mean)} with {numRatingsFormatter.format(rating.ratings)} ratings
@@ -145,7 +145,7 @@ export default function RecipeView(props: Props): JSX.Element {
 export const getServerSideProps: GetServerSideProps = async context => {
     return {
         props: {
-            recipeId: context.params.id as string
+            recipeId: context.params?.id as string
         }
     }
 }

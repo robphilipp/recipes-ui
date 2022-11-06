@@ -23,7 +23,7 @@ export default function UpdateRecipe() {
 
     function handleSubmitRecipe(recipe: Recipe): void {
         axios
-            .post(`/api/recipes/${recipe._id.toString()}`, updateModifiedTimestamp(recipe))
+            .post(`/api/recipes/${recipe._id?.toString()}`, updateModifiedTimestamp(recipe))
             .then(response => router.push(`/recipes/${response.data._id.toString()}`))
     }
 

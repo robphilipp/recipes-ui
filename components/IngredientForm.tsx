@@ -14,7 +14,7 @@ import {
     Amount,
     categoriesForUnit,
     measurementUnits,
-    UnitCategories,
+    UnitCategories, unitFromType,
     UnitName,
     UnitType,
     unitTypeFrom
@@ -222,7 +222,8 @@ export function IngredientForm(props: Props): JSX.Element {
                         groupBy={option => categoriesForUnit(option.value as UnitType).getOrDefault(UnitCategories.PIECE)}
                         sx={{mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
-                        value={ingredient.amount.unit}
+                        // value={ingredient.amount.unit}
+                        value={unitFromType(ingredient.amount.unit)}
                         isOptionEqualToValue={(option, value) => option !== null && option === value}
                         onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
                     />
