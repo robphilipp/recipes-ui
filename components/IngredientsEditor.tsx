@@ -51,6 +51,7 @@ export function IngredientsEditor(props: Props): JSX.Element {
 
     function handleCancelIngredient(): void {
         setEditorMode(EditorMode.FORM_BASED)
+        setAddingIngredient(false)
     }
 
     function handleMoveIngredient(ingredient: Ingredient, ingredientNumber: number, direction: Movement): void {

@@ -50,6 +50,7 @@ export function StepsEditor(props: Props): JSX.Element {
 
     function handleCancelStep(): void {
         setEditorMode(EditorMode.FORM_BASED)
+        setAddingStep(false)
     }
 
     function handleMoveStep(step: Step, stepNumber: number, direction: Movement): void {
@@ -66,10 +67,6 @@ export function StepsEditor(props: Props): JSX.Element {
 
     function handleParsedStepsChanged(parsed: Array<Step>): void {
         onUpdateSteps(parsed)
-    }
-
-    function handleCancelParsedIngredients(): void {
-        setEditorMode(EditorMode.FORM_BASED)
     }
 
     function FormBasedEditor(): JSX.Element {
