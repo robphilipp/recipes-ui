@@ -21,21 +21,34 @@ type Props = {
     onUpdateIngredients: (ingredients: Array<Ingredient>) => void
 }
 
+/**
+ * Displays an ingredient editor tracks whether the ingredient is being viewed or edited
+ * @param props The properties holding the current ingredients and the callback for updating ingredients
+ * @return The editor element
+ * @constructor
+ */
 export function IngredientsEditor(props: Props): JSX.Element {
     const {ingredients, onUpdateIngredients} = props
 
+    // tracks whether an ingredient is being added or just being edited
     const [addingIngredient, setAddingIngredient] = useState<boolean>(false)
+    // tracks whether the editor mode is view or form
     const [editorMode, setEditorMode] = useState<EditorMode>(EditorMode.FORM_BASED)
 
-    function handleAddingIngredient(): void {
-        setAddingIngredient(true)
-    }
-
+    /**
+     * Handles the submitting of an ingredient
+     * @param ingredient The ingredient that is being submitted
+     * @param andAgain Flag specifying whether to add another ingredient after submitting
+     */
     function handleSubmittedNewIngredient(ingredient: Ingredient, andAgain: boolean): void {
         onUpdateIngredients([...ingredients, ingredient])
         setAddingIngredient(andAgain)
     }
 
+    /**
+     * Handles updating an ingredient
+     * @param ingredient The updated ingredient
+     */
     function handleUpdatedIngredient(ingredient: Ingredient): void {
         const index = ingredients.findIndex(item => item.id === ingredient.id)
         if (index >= 0) {
@@ -43,10 +56,6 @@ export function IngredientsEditor(props: Props): JSX.Element {
             updated[index] = ingredient
             onUpdateIngredients(updated)
         }
-    }
-
-    function handleDeleteIngredient(id: string): void {
-        onUpdateIngredients(ingredients.filter(ing => ing.id !== id))
     }
 
     function handleCancelIngredient(): void {
@@ -85,7 +94,7 @@ export function IngredientsEditor(props: Props): JSX.Element {
                                 ingredient={ingredient}
                                 onSubmit={handleUpdatedIngredient}
                                 onCancel={handleCancelIngredient}
-                                onDelete={handleDeleteIngredient}
+                                onDelete={id => onUpdateIngredients(ingredients.filter(ing => ing.id !== id))}
                                 onMove={handleMoveIngredient}
                             />
                         </ListItem>))}
@@ -104,7 +113,7 @@ export function IngredientsEditor(props: Props): JSX.Element {
                 {
                     !addingIngredient ?
                         <Button
-                            onClick={handleAddingIngredient}
+                            onClick={() => setAddingIngredient(true)}
                             disabled={addingIngredient}
                             startIcon={<AddCircleIcon/>}
                             variant='outlined'
