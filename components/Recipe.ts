@@ -108,7 +108,7 @@ export type Rating = {
  * The recipe summary information
  */
 export type RecipeSummary = {
-    _id?: ObjectId
+    _id?: ObjectId | null
     name: string
     tags: Array<string>
     author: string | null

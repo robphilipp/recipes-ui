@@ -11,14 +11,14 @@ import {failureResult, Result, resultFromAll, successResult} from "result-fn";
 import {ILexingError} from "chevrotain";
 import {unitTypeFrom} from "../lib/Measurements";
 
-export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
-    const {result: recipe, errors} = toRecipe(text, {deDupSections: true})
-    if (errors.length !== 0) {
-        return failureResult(errors)
-    }
-    const ingredients: Array<Ingredient> = convertIngredients((recipe as ParsedRecipe).ingredients).getOrDefault([])
-    const steps: Array<Step> = convertSteps((recipe as ParsedRecipe).steps)
-}
+// export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
+//     const {result: recipe, errors} = toRecipe(text, {deDupSections: true})
+//     if (errors.length !== 0) {
+//         return failureResult(errors)
+//     }
+//     const ingredients: Array<Ingredient> = convertIngredients((recipe as ParsedRecipe).ingredients).getOrDefault([])
+//     const steps: Array<Step> = convertSteps((recipe as ParsedRecipe).steps)
+// }
 
 /**
  * Parses text representing a list of ingredients into an array {@link Ingredient} objects

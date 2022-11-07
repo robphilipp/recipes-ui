@@ -88,7 +88,7 @@ export function RecipeEditor(props: Props): JSX.Element {
     // because yield has a value and unit, and because in the recipe the value is a number
     // and because numbers and text are hard to mix in an input field, we store the value
     // of yield.value as a string
-    const [yieldValue, setYieldValue] = useState<string>(
+    const [yieldValue, setYieldValue] = useState<string | undefined>(
         () => props.recipe ? `${props.recipe.yield.value}` : undefined
     )
 

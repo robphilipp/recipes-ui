@@ -45,13 +45,15 @@ export default function ImportRecipeOcr(): JSX.Element {
         setFileDropped(true)
         setStatus(`Loading ${acceptedFiles[0].name}...`);
         (async () => {
-            const {data: {text}} = await workerRef.current.recognize(acceptedFiles[0])
-            console.log(text)
-            setRecipe(parseText(text))
-            setStatus(undefined)
-            setOcrProgress(undefined)
-            setFileDropped(false)
-            await workerRef.current.terminate()
+            if (workerRef.current !== undefined) {
+                const {data: {text}} = await workerRef.current.recognize(acceptedFiles[0])
+                console.log(text)
+                setRecipe(parseText(text))
+                setStatus(undefined)
+                setOcrProgress(undefined)
+                setFileDropped(false)
+                await workerRef.current.terminate()
+            }
         })();
     }, [])
 

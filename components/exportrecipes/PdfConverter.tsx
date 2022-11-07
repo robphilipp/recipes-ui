@@ -1,15 +1,15 @@
 import {
+    grayscale,
+    layoutMultilineText,
     PageSizes,
     PDFDocument,
-    PDFFont,
-    StandardFonts,
+    PDFPage,
     rgb,
-    grayscale,
-    PDFPageDrawTextOptions,
-    layoutMultilineText,
-    TextAlignment, PDFPage, RGB
+    RGB,
+    StandardFonts,
+    TextAlignment
 } from "pdf-lib";
-import {hexToRgb, IconButton} from "@mui/material";
+import {IconButton} from "@mui/material";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import download from 'downloadjs'
 import {ingredientAsText, Recipe} from "../Recipe";
@@ -97,9 +97,9 @@ export function PdfConverter(props: Props): JSX.Element {
         // recipe id
         page.setFontSize(smallFontSize)
         page.setFontColor(grayscale(0.75))
-        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id.toString(), smallFontSize)
-        const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
-        page.drawText(recipe._id.toString(), {
+        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id?.toString() || "", smallFontSize)
+        // const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
+        page.drawText(recipe._id?.toString() || "", {
             x: width - recipeIdWidth - 3,
             y: height - smallFontSize - 3
         })
@@ -336,7 +336,7 @@ export function PdfConverter(props: Props): JSX.Element {
 
         }
 
-        function newPage(pageNumber: number, author?: string): [PDFPage, number] {
+        function newPage(pageNumber: number, author?: string | null): [PDFPage, number] {
             const page = doc.addPage(size)
             page.setFont(documentFont)
             page.setFontSize(fontSize)
@@ -346,7 +346,7 @@ export function PdfConverter(props: Props): JSX.Element {
             return [page, newPageNumber]
         }
 
-        function addFooter(page: PDFPage, pageNumber: number, author?: string): void {
+        function addFooter(page: PDFPage, pageNumber: number, author?: string | null): void {
             const footerFontSize = 9
             page.drawText(`City Recipes`, {
                 size: footerFontSize,
