@@ -115,7 +115,7 @@ export function PdfConverter(props: Props): JSX.Element {
         const addedBy = recipe.addedBy !== "" && recipe.addedBy !== null ? `(added by: ${recipe.addedBy})` : ""
         if (author !== "" || addedBy !== "") {
             page.moveDown(fontSize + 2 * lineSpacing)
-            page.setFontSize(fontSize-2)
+            page.setFontSize(fontSize - 2)
             page.setFontColor(rgb(0, 0, 0))
             page.drawText(`${author} ${addedBy}`)
         }
@@ -234,14 +234,26 @@ export function PdfConverter(props: Props): JSX.Element {
                 thickness: 1,
             })
             page.drawLine({
-                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 1},
-                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 1},
+                start: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing,
+                    y: page.getY() + headerHeight / 2 - 1
+                },
+                end: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength,
+                    y: page.getY() + headerHeight / 2 - 1
+                },
                 color: grayscale(0.7),
                 thickness: 1,
             })
             page.drawLine({
-                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 3},
-                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 3},
+                start: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing,
+                    y: page.getY() + headerHeight / 2 - 3
+                },
+                end: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength,
+                    y: page.getY() + headerHeight / 2 - 3
+                },
                 color: grayscale(0.7),
                 thickness: 1,
             })
@@ -273,12 +285,15 @@ export function PdfConverter(props: Props): JSX.Element {
          * @param fontColor
          */
         function renderMultilineText(text: string, fontSize: number, fontColor: RGB): void {
-            const multilineText = layoutMultilineText(text, {
-                alignment: TextAlignment.Left,
-                font: documentFont,
-                fontSize: fontSize,
-                bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
-            })
+            const multilineText = layoutMultilineText(
+                text.replaceAll('ℓ', 'ltr'),
+                {
+                    alignment: TextAlignment.Left,
+                    font: documentFont,
+                    fontSize: fontSize,
+                    bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
+                }
+            )
 
             page.setFontSize(fontSize)
             page.setFontColor(fontColor)
