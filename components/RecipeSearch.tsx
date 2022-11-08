@@ -23,8 +23,10 @@ export default function RecipeSearch(): JSX.Element {
     async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> {
         switch (event.key) {
             case 'Enter':
-                addAccumulated(current)
-                clearCurrent()
+                if (current !== undefined) {
+                    addAccumulated(current)
+                    clearCurrent()
+                }
                 await router.push("/")
                 break
             case 'Escape':

@@ -88,9 +88,11 @@ export async function recipeById(id: string): Promise<Recipe> {
     try {
         const client = await clientPromise
         console.log("recipe id", id)
-        return await recipeCollection(client)
-            .findOne({_id: new ObjectId(id)})
-            .then(doc => asRecipe(doc))
+        const doc = await recipeCollection(client).findOne({_id: new ObjectId(id)})
+        if (doc === undefined || doc === null) {
+            return Promise.reject(`Unable to find recipe for specified ID; id: ${id}`)
+        }
+        return asRecipe(doc)
     } catch (e) {
         console.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
@@ -149,7 +151,12 @@ export async function recipeSummariesSearch(words?: Array<string>): Promise<Arra
 export async function allRecipePaths(): Promise<Array<string>> {
     try {
         return await recipeSummaries()
-            .then(recipes => recipes.map(recipe => recipe._id.toString()))
+            .then(recipes => recipes
+                .filter(recipe => recipe._id !== undefined && recipe._id !== null)
+                // no undefined or null recipes make it past the filter
+                // @ts-ignore
+                .map(recipe => recipe._id.toString())
+            )
     } catch (e) {
         console.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
@@ -191,10 +198,13 @@ export async function addRecipe(recipe: Recipe): Promise<Recipe> {
     try {
         const client = await clientPromise
         const result = await recipeCollection(client).insertOne(removeRecipeId(recipe))
-        return await recipeById(result.insertedId?.toString())
+        if (result.insertedId !== undefined && result.insertedId !== null) {
+            return await recipeById(result.insertedId.toString())
+        }
+        return Promise.reject(`Unable to add recipe`)
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error("Unable to add recipe", e)
+        return Promise.reject("Unable to add recipe")
     }
 }
 
@@ -204,6 +214,9 @@ export async function addRecipe(recipe: Recipe): Promise<Recipe> {
  * @return A {@link Promise} to the updated recipe
  */
 export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
+    if (recipe._id === undefined || recipe._id === null) {
+        return Promise.reject(`Cannot update recipe when the ID is null or undefined`)
+    }
     try {
         const client = await clientPromise
         const result = await recipeCollection(client)
