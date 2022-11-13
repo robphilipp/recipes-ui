@@ -35,24 +35,39 @@ export function RequiredTimeForm(props: Props): JSX.Element {
     )
 
     function handleTotalUnitSelect(event: SelectChangeEvent): void {
-        setRequiredTime(current => ({
-            ...current,
-            total: {
-                ...current.total,
-                unit: timeUnitsFrom(event.target.value)
-            }
-        }))
+        timeUnitsFrom(event.target.value)
+            .onSuccess(unit => setRequiredTime(current => ({
+                ...current,
+                total: {...current.total, unit}
+            })))
+
     }
+    // function handleTotalUnitSelect(event: SelectChangeEvent): void {
+    //     setRequiredTime(current => ({
+    //         ...current,
+    //         total: {
+    //             ...current.total,
+    //             unit: timeUnitsFrom(event.target.value)
+    //         }
+    //     }))
+    // }
 
     function handleActiveUnitSelect(event: SelectChangeEvent): void {
-        setRequiredTime(current => ({
-            ...current,
-            active: {
-                ...current.active,
-                unit: timeUnitsFrom(event.target.value)
-            }
-        }))
+        timeUnitsFrom(event.target.value)
+            .onSuccess(unit => setRequiredTime(current => ({
+                ...current,
+                active: {...current.active, unit}
+            })))
     }
+    // function handleActiveUnitSelect(event: SelectChangeEvent): void {
+    //     setRequiredTime(current => ({
+    //         ...current,
+    //         active: {
+    //             ...current.active,
+    //             unit: timeUnitsFrom(event.target.value)
+    //         }
+    //     }))
+    // }
 
     function handleSubmit(): void {
         setMode(DisplayMode.VIEW)

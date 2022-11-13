@@ -73,7 +73,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
     const initialParsedStepsRef = useRef<Array<ParsedStep>>()
 
     // holds to the ref to the editor, when the page mounts
-    const editorRef = useRef<HTMLDivElement>()
+    const editorRef = useRef<HTMLDivElement>(null)
 
     // reference to the editor state for managing changes
     const editorStateRef = useRef<EditorState>(EditorState.create({
@@ -105,7 +105,7 @@ export function FreeFormStepsEditor(props: Props): JSX.Element {
         () => {
             editorViewRef.current = new EditorView({
                 state: editorStateRef.current,
-                parent: editorRef.current,
+                parent: editorRef.current === null ? undefined : editorRef.current,
             })
 
             return () => {
