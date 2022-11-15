@@ -1,10 +1,10 @@
 import Head from "next/head";
 import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
-import React, {useEffect, useState} from "react";
+import React from "react";
 import {Chip, IconButton, Rating, Typography, useTheme} from "@mui/material";
 import axios from "axios";
-import {emptyRecipe, ratingsFrom, Recipe, subtractTime} from "../../components/Recipe";
+import {ratingsFrom, Recipe, subtractTime} from "../../components/Recipe";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {useRouter} from "next/router";
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -13,8 +13,9 @@ import {formatQuantityFor} from "../../lib/utils";
 import {jsx} from "@emotion/react";
 import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
-import JSX = jsx.JSX;
 import {PdfConverter} from "../../components/exportrecipes/PdfConverter";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import JSX = jsx.JSX;
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,
@@ -34,33 +35,48 @@ export default function RecipeView(props: Props): JSX.Element {
     const theme = useTheme()
     const router = useRouter()
 
-    const [recipe, setRecipe] = useState<Recipe>(emptyRecipe())
+    const queryClient = useQueryClient()
 
-    useEffect(
+    // loads the summaries that match one or more of the accumulated search terms
+    const recipeQuery = useQuery(
+        ['recipe'],
         () => {
             const id = recipeId ? recipeId : (router.query.id as string)
-            axios
-                .get(`/api/recipes/${id}`)
-                .then(response => {
-                    const recipe = response.data as Recipe
-                    setRecipe(recipe)
-                })
-        },
-        [recipeId, router.query.id]
+            return axios.get(`/api/recipes/${id}`)
+        }
     )
 
-    function handleRatingChange(rating: number): void {
-        console.log("rating", rating)
-        axios
-            .post(`/api/recipes/ratings/${recipeId}`, {newRating: rating, ratings: recipe.ratings})
-            .then(response => {
-                const recipe = response.data as Recipe
-                setRecipe(recipe)
-            })
+    // query for updating the recipe's rating
+    const updateRatingQuery = useMutation(
+        ['update-recipe-rating'],
+        (rating: number) => axios.post(
+            `/api/recipes/ratings/${recipeId}`,
+            {newRating: rating, ratings: recipeQuery.data?.data.ratings}
+        )
+    )
+
+    if (recipeQuery.isLoading || updateRatingQuery.isLoading) {
+        return <span>Loading...</span>
+    }
+    if (recipeQuery.isError || updateRatingQuery.isError) {
+        return <span>
+            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
+            {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
+        </span>
     }
 
-    if (recipe === undefined) {
-        return <div>Loading...</div>
+    const recipe: Recipe = recipeQuery.data.data
+
+    /**
+     * Handles updates to the recipe's rating
+     * @param rating The new rating
+     */
+    function handleRatingChange(rating: number): void {
+        updateRatingQuery.mutate(rating, {
+            onSuccess: () => {
+                queryClient.invalidateQueries(['recipe'])
+            }
+        })
     }
 
     const rating = ratingsFrom(recipe)
