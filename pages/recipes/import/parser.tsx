@@ -1,5 +1,4 @@
-import {ParseType, toRecipe, Recipe} from "@saucie/recipe-parser"
-// import {useEffect, useState} from "react";
+import {Recipe, toRecipe} from "@saucie/recipe-parser"
 
 import {Button, TextareaAutosize} from "@mui/material";
 import React, {useState} from "react";
@@ -27,30 +26,6 @@ export default function ImportRecipeParser(): JSX.Element {
         setParsedRecipe(parsedRecipe as Recipe)
     }
 
-    //
-    // useEffect(
-    //     () => {
-    //         const {recipe: parsedRecipe, errors} = toRecipe(`dough
-    //         1 1/2 cp all-purpose flour
-    //         1 tsp vanilla extract,
-    //         sauce
-    //         1 cup milk
-    //         1 egg`,
-    //             {deDupSections: true, inputType: ParseType.INGREDIENTS}
-    //         )
-    //         setRecipe(parsedRecipe)
-    //         console.log("parse errors", errors)
-    //     },
-    //     []
-    // )
-    //
-    // return <>
-    //     <ul>
-    //         {recipe.ingredients.map(ingredient => (<li key={ingredient.ingredient}>
-    //             ({ingredient.section}) {ingredient.amount.quantity} {ingredient.amount.unit} {ingredient.ingredient}
-    //         </li>))}
-    //     </ul>
-    // </>
     return (
         <>
             <TextareaAutosize

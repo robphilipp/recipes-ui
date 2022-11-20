@@ -10,7 +10,7 @@ import {
     Divider,
     Drawer,
     List,
-    ListItem,
+    ListItem, ListItemButton,
     ListItemIcon,
     ListItemText,
     Paper, Stack,
@@ -34,11 +34,14 @@ import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import AmountConverter from "../components/AmountConverter";
 import QuantityConverterDialog from "../components/QuantityConverterDialog";
 import {Calculate} from "@mui/icons-material";
+import {QueryClientProvider, QueryClient} from "@tanstack/react-query";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 
 enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
+
+const queryClient = new QueryClient()
 
 const TitleImage = styled('img')({
     borderRadius: 5,
@@ -101,38 +104,25 @@ export default function App(props: AppProps) {
                 </Toolbar>
                 <Divider/>
                 <List>
-                    <ListItem
-                        button
-                        onClick={goHome}
-                    >
+                    <ListItemButton onClick={goHome}>
                         <ListItemIcon><HomeIcon/></ListItemIcon>
                         <ListItemText primary="Home"/>
-                    </ListItem>
-                    <ListItem
-                        button
-                        onClick={goAddRecipe}
-                    >
+                    </ListItemButton>
+                    <ListItemButton onClick={goAddRecipe}>
                         <ListItemIcon><AddCircleIcon/></ListItemIcon>
                         <ListItemText primary="Add Recipe"/>
-                    </ListItem>
-                    <ListItem
-                        button
-                        onClick={goImportRecipe}
-                    >
+                    </ListItemButton>
+                    <ListItemButton onClick={goImportRecipe}>
                         <ListItemIcon><DocumentScannerIcon/></ListItemIcon>
                         <ListItemText primary="Import (OCR)"/>
-                    </ListItem>
+                    </ListItemButton>
                 </List>
                 <Divider/>
                 <List>
-                    <ListItem
-                        button
-                        // onClick={goAddRecipe}
-                        disabled
-                    >
+                    <ListItemButton disabled>
                         <ListItemIcon><SearchIcon/></ListItemIcon>
                         <ListItemText primary="Search"/>
-                    </ListItem>
+                    </ListItemButton>
                 </List>
                 <div>
                     <QuantityConverterDialog
@@ -190,148 +180,150 @@ export default function App(props: AppProps) {
 
     return (
         <ThemeProvider theme={lightTheme}>
-            <SearchProvider>
-                <StatusProvider>
-                    <Box sx={{display: 'flex'}}>
-                        <CssBaseline/>
-                        <AppBar
-                            color="primary"
-                            position="fixed"
-                            elevation={1}
-                            sx={{
-                                width: {
-                                    sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
-                                    md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
-                                },
-                                ml: {sm: `${SMALL_SIDEBAR_NAV_WIDTH}px`},
-                            }}
-                        >
-                            <Toolbar>
-                                <Link href={"/"}>
-                                    <a style={{marginTop: 7}}>
-                                        <TitleImage src="/images/goodoletimes.png" alt="City Year"/>
-                                    </a>
-                                </Link>
-                                <Typography
-                                    variant="h6"
-                                    noWrap
-                                    component="div"
-                                    color="default"
-                                    style={{paddingLeft: 10}}
-                                    sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
+            <QueryClientProvider client={queryClient}>
+                <SearchProvider>
+                    <StatusProvider>
+                        <Box sx={{display: 'flex'}}>
+                            <CssBaseline/>
+                            <AppBar
+                                color="primary"
+                                position="fixed"
+                                elevation={1}
+                                sx={{
+                                    width: {
+                                        sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
+                                        md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
+                                    },
+                                    ml: {sm: `${SMALL_SIDEBAR_NAV_WIDTH}px`},
+                                }}
+                            >
+                                <Toolbar>
+                                    <Link href={"/"}>
+                                        <a style={{marginTop: 7}}>
+                                            <TitleImage src="/images/goodoletimes.png" alt="City Year"/>
+                                        </a>
+                                    </Link>
+                                    <Typography
+                                        variant="h6"
+                                        noWrap
+                                        component="div"
+                                        color="default"
+                                        style={{paddingLeft: 10}}
+                                        sx={{flexGrow: 1, display: {xs: 'none', sm: 'block'}}}
+                                    >
+                                        {process.env.bookTitle}
+                                    </Typography>
+                                    <RecipeSearch/>
+                                </Toolbar>
+                            </AppBar>
+                            <Box
+                                component="nav"
+                                sx={{
+                                    width: {
+                                        sm: SMALL_SIDEBAR_NAV_WIDTH,
+                                        md: MEDIUM_SIDEBAR_NAV_WIDTH
+                                    },
+                                    flexShrink: {sm: 0}
+                                }}
+                                aria-label="mailbox folders"
+                            >
+                                <Drawer
+                                    variant="temporary"
+                                    open={mobileOpen}
+                                    onClose={handleDrawerToggle}
+                                    ModalProps={{
+                                        keepMounted: true,
+                                    }}
+                                    sx={{
+                                        display: {
+                                            xs: 'block',
+                                            sm: 'none',
+                                            md: 'none'
+                                        },
+                                        '& .MuiDrawer-paper': {
+                                            boxSizing: 'border-box',
+                                            width: SMALL_SIDEBAR_NAV_WIDTH
+                                        },
+                                    }}
                                 >
-                                    {process.env.bookTitle}
-                                </Typography>
-                                <RecipeSearch/>
-                            </Toolbar>
-                        </AppBar>
-                        <Box
-                            component="nav"
-                            sx={{
-                                width: {
-                                    sm: SMALL_SIDEBAR_NAV_WIDTH,
-                                    md: MEDIUM_SIDEBAR_NAV_WIDTH
-                                },
-                                flexShrink: {sm: 0}
-                            }}
-                            aria-label="mailbox folders"
-                        >
-                            <Drawer
-                                variant="temporary"
-                                open={mobileOpen}
-                                onClose={handleDrawerToggle}
-                                ModalProps={{
-                                    keepMounted: true,
-                                }}
-                                sx={{
-                                    display: {
-                                        xs: 'block',
-                                        sm: 'none',
-                                        md: 'none'
-                                    },
-                                    '& .MuiDrawer-paper': {
-                                        boxSizing: 'border-box',
-                                        width: SMALL_SIDEBAR_NAV_WIDTH
-                                    },
-                                }}
-                            >
-                                {navbarContents()}
-                            </Drawer>
-                            <Drawer
-                                variant="permanent"
-                                sx={{
-                                    display: {
-                                        xs: 'none',
-                                        sm: 'block',
-                                        md: 'none'
-                                    },
-                                    '& .MuiDrawer-paper': {
-                                        boxSizing: 'border-box',
-                                        width: SMALL_SIDEBAR_NAV_WIDTH
-                                    },
-                                }}
-                                open
-                            >
-                                {navbarContents()}
-                            </Drawer>
-                            <Drawer
-                                variant="permanent"
-                                sx={{
-                                    display: {
-                                        xs: 'none',
-                                        sm: 'none',
-                                        md: 'block'
-                                    },
-                                    '& .MuiDrawer-paper': {
-                                        boxSizing: 'border-box',
-                                        width: MEDIUM_SIDEBAR_NAV_WIDTH
-                                    },
-                                }}
-                                open
-                            >
-                                {navbarContents()}
-                            </Drawer>
-                        </Box>
-                        <Box
-                            component="main"
-                            sx={{
-                                flexGrow: 1,
-                                p: 3,
-                                width: {
-                                    sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
-                                    md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
-                                }
-                            }}
-                        >
-                            <Toolbar/>
-                            <Component {...pageProps} />
-                            <Toolbar/>
-                        </Box>
-                        <Box>
-                            <Paper
-                                sx={{
-                                    position: 'fixed',
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                    zIndex: theme => theme.zIndex.drawer + 1
-                                }}
-                                elevation={3}
-                            >
-                                <BottomNavigation
-                                    showLabels
-                                    value={navItem}
-                                    onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                                    {navbarContents()}
+                                </Drawer>
+                                <Drawer
+                                    variant="permanent"
+                                    sx={{
+                                        display: {
+                                            xs: 'none',
+                                            sm: 'block',
+                                            md: 'none'
+                                        },
+                                        '& .MuiDrawer-paper': {
+                                            boxSizing: 'border-box',
+                                            width: SMALL_SIDEBAR_NAV_WIDTH
+                                        },
+                                    }}
+                                    open
                                 >
-                                    <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
-                                    <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
-                                    <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
-                                </BottomNavigation>
-                            </Paper>
+                                    {navbarContents()}
+                                </Drawer>
+                                <Drawer
+                                    variant="permanent"
+                                    sx={{
+                                        display: {
+                                            xs: 'none',
+                                            sm: 'none',
+                                            md: 'block'
+                                        },
+                                        '& .MuiDrawer-paper': {
+                                            boxSizing: 'border-box',
+                                            width: MEDIUM_SIDEBAR_NAV_WIDTH
+                                        },
+                                    }}
+                                    open
+                                >
+                                    {navbarContents()}
+                                </Drawer>
+                            </Box>
+                            <Box
+                                component="main"
+                                sx={{
+                                    flexGrow: 1,
+                                    p: 3,
+                                    width: {
+                                        sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
+                                        md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
+                                    }
+                                }}
+                            >
+                                <Toolbar/>
+                                <Component {...pageProps} />
+                                <Toolbar/>
+                            </Box>
+                            <Box>
+                                <Paper
+                                    sx={{
+                                        position: 'fixed',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        zIndex: theme => theme.zIndex.drawer + 1
+                                    }}
+                                    elevation={3}
+                                >
+                                    <BottomNavigation
+                                        showLabels
+                                        value={navItem}
+                                        onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                                    >
+                                        <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
+                                        <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
+                                        <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                                    </BottomNavigation>
+                                </Paper>
+                            </Box>
                         </Box>
-                    </Box>
-                </StatusProvider>
-            </SearchProvider>
+                    </StatusProvider>
+                </SearchProvider>
+            </QueryClientProvider>
         </ThemeProvider>
     )
 }

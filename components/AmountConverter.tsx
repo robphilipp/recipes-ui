@@ -1,19 +1,18 @@
 import {
     Amount,
     amountFor,
-    categoriesByUnits,
+    categoriesForUnit,
     convertAmount,
     measurementUnits,
     Unit,
     UnitCategories,
-    unitFromName, unitFromType,
-    UnitName,
-    unitsByCategory,
+    unitFromName,
+    unitFromType,
+    UnitName, unitsForCategory,
     UnitType
 } from '../lib/Measurements'
 import {Autocomplete, Box, Stack, TextField} from "@mui/material";
 import React, {SyntheticEvent, useState} from "react";
-import formatQuantity from "format-quantity";
 import {formatNumber} from "../lib/utils";
 
 type UnitOption = { label: UnitName, value: UnitType }
@@ -93,7 +92,8 @@ export default function AmountConverter(): JSX.Element {
                 id="conversion-from-amount-unit-select"
                 renderInput={(params) => (<TextField {...params} label="units"/>)}
                 options={measurementUnits.map(unit => unitOptionFor(unit))}
-                groupBy={option => categoriesByUnits.get(option.value as UnitType)}
+                groupBy={option => categoriesForUnit(option.value as UnitType).getOrDefault(UnitCategories.PIECE)}
+                // groupBy={option => categoriesByUnits.get(option.value as UnitType)}
                 sx={{mt: 1.2, mr: 0.5, minWidth: 200, maxWidth: 450}}
                 size='small'
                 value={unitOptionFor(unitFromType(conversion.from.unit))}
@@ -115,7 +115,8 @@ export default function AmountConverter(): JSX.Element {
                 id="conversion-to-amount-unit-select"
                 renderInput={(params) => (<TextField {...params} label="units"/>)}
                 options={toOptions}
-                groupBy={option => categoriesByUnits.get(option.value as UnitType)}
+                groupBy={option => categoriesForUnit(option.value as UnitType).getOrDefault(UnitCategories.PIECE)}
+                // groupBy={option => categoriesByUnits.get(option.value as UnitType)}
                 sx={{mt: 1.2, mr: 0.5, minWidth: 200, maxWidth: 450}}
                 size='small'
                 value={unitOptionFor(unitFromType(conversion.to.unit))}
@@ -136,17 +137,20 @@ function unitOptionFor(unit: Unit): UnitOption {
 }
 
 function validToUnitsFor(unit: UnitOption): Array<UnitOption> {
-    const categories: UnitCategories = categoriesByUnits.get(unit.value as UnitType)
-    switch (categories) {
-        case UnitCategories.MASS:
-        case UnitCategories.WEIGHT: {
-            const unitOptions: Array<UnitOption> = []
-            unitOptions.push(...unitsByCategory.get(UnitCategories.MASS).map(unitOptionFor))
-            unitOptions.push(...unitsByCategory.get(UnitCategories.WEIGHT).map(unitOptionFor))
-            return unitOptions
-        }
-        default:
-            return unitsByCategory.get(categories).map(unitOptionFor)
+    return categoriesForUnit(unit.value as UnitType)
+        .map(categories => {
+            switch (categories) {
+                case UnitCategories.MASS:
+                case UnitCategories.WEIGHT: {
+                    const unitOptions: Array<UnitOption> = []
+                    unitOptions.push(...unitsForCategory(UnitCategories.MASS).getOrDefault([]).map(unitOptionFor))
+                    unitOptions.push(...unitsForCategory(UnitCategories.WEIGHT).getOrDefault([]).map(unitOptionFor))
+                    return unitOptions
+                }
+                default:
+                    return unitsForCategory(categories).getOrDefault([]).map(unitOptionFor)
 
-    }
+            }}
+        )
+        .getOrDefault([])
 }

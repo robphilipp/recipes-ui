@@ -1,12 +1,6 @@
 import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
-import {
-    copyIngredient,
-    emptyIngredient,
-    Ingredient,
-    ingredientAsText,
-    isEmptyIngredient,
-} from "./Recipe";
+import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText, isEmptyIngredient,} from "./Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
@@ -16,7 +10,15 @@ import {DisplayMode} from "./FormMode";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import MoveUpIcon from "@mui/icons-material/MoveUp";
 import MoveDownIcon from "@mui/icons-material/MoveDown";
-import {Amount, categoriesByUnits, measurementUnits, UnitName, UnitType, unitTypeFrom} from "../lib/Measurements";
+import {
+    Amount,
+    categoriesForUnit,
+    measurementUnits,
+    UnitCategories, unitFromType,
+    UnitName,
+    UnitType,
+    unitTypeFrom
+} from "../lib/Measurements";
 
 function noop() {
 }
@@ -50,8 +52,11 @@ export function IngredientForm(props: Props): JSX.Element {
 
     function handleIngredientUnitSelect(value: UnitOption): void {
         if (value === null) return
-        const amount: Amount = {...ingredient.amount, unit: unitTypeFrom(value.value)}
-        setIngredient(current => ({...current, amount}))
+        unitTypeFrom(value.value)
+            .onSuccess(unit => {
+                const amount: Amount = {...ingredient.amount, unit}
+                setIngredient(current => ({...current, amount}))
+            })
     }
 
     function handleIngredientAmountChange(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
@@ -214,10 +219,11 @@ export function IngredientForm(props: Props): JSX.Element {
                         id="ingredient-amount-unit-select"
                         renderInput={(params) => (<TextField {...params} label="units" />)}
                         options={measurementUnits.map(unit => ({label: unit.label, value: unit.value}))}
-                        groupBy={option => categoriesByUnits.get(option.value as UnitType)}
+                        groupBy={option => categoriesForUnit(option.value as UnitType).getOrDefault(UnitCategories.PIECE)}
                         sx={{mr: 0.5, minWidth: 100, maxWidth: 150}}
                         size='small'
-                        value={ingredient.amount.unit}
+                        // value={ingredient.amount.unit}
+                        value={unitFromType(ingredient.amount.unit)}
                         isOptionEqualToValue={(option, value) => option !== null && option === value}
                         onChange={(event: SyntheticEvent, newValue: UnitOption) => handleIngredientUnitSelect(newValue)}
                     />

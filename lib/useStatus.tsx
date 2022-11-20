@@ -14,7 +14,7 @@ interface UseStatusValues {
     // map(recipe_id -> set(checked_steps))
     readonly stepsStatus: Map<string, Set<string>>
 
-    inProgress: (recipeId: string) => boolean
+    inProgress: (recipeId?: string) => boolean
 
     isIngredientSelected: (recipeId: string, ingredient: string) => boolean
     selectIngredient: (recipeId: string, ingredient: string) => void
@@ -32,12 +32,12 @@ const initialStatusValues: UseStatusValues = {
     stepsStatus: new Map<string, Set<string>>(),
 
     inProgress: () => false,
-    
+
     isIngredientSelected: () => false,
     selectIngredient: noop,
     unselectIngredient: noop,
     clearIngredients: noop,
-    
+
     isStepSelected: () => false,
     selectStep: noop,
     unselectStep: noop,
@@ -67,8 +67,12 @@ export default function StatusProvider(props: Props): JSX.Element {
      * @param recipeId The ID of the recipe
      * @return `true` when the recipe is in progress; `false` otherwise
      */
-    function inProgress(recipeId: string): boolean {
-        return ingredientsStatus.get(recipeId)?.size > 0 || stepsStatus.get(recipeId)?.size > 0
+    function inProgress(recipeId?: string): boolean {
+        if (recipeId === undefined) {
+            return false
+        }
+        return (ingredientsStatus.get(recipeId)?.size || 0) > 0 ||
+            (stepsStatus.get(recipeId)?.size || 0) > 0
     }
 
     /**
@@ -88,7 +92,7 @@ export default function StatusProvider(props: Props): JSX.Element {
      */
     function selectIngredient(recipeId: string, ingredient: string): void {
         if (ingredientsStatus.has(recipeId)) {
-            ingredientsStatus.get(recipeId).add(ingredient)
+            ingredientsStatus.get(recipeId)?.add(ingredient)
         } else {
             ingredientsStatus.set(recipeId, new Set([ingredient]))
         }
@@ -101,8 +105,8 @@ export default function StatusProvider(props: Props): JSX.Element {
      * @param ingredient The ingredient
      */
     function unselectIngredient(recipeId: string, ingredient: string): void {
-        if (ingredientsStatus.has(recipeId) && ingredientsStatus.get(recipeId).delete(ingredient)) {
-            if (ingredientsStatus.get(recipeId).size === 0) {
+        if (ingredientsStatus.has(recipeId) && ingredientsStatus.get(recipeId)?.delete(ingredient)) {
+            if ((ingredientsStatus.get(recipeId)?.size || 0) === 0) {
                 ingredientsStatus.delete(recipeId)
             }
             setIngredientsStatus(status => new Map(status))
@@ -118,23 +122,31 @@ export default function StatusProvider(props: Props): JSX.Element {
             setIngredientsStatus(status => new Map(status))
         }
     }
-    
+
+    /**
+     * Returns `true` if the step in the recipe is selected; `false` otherwise
+     * @param recipeId The ID of the recipe
+     * @param step The step to check
+     * @return `true` if the step in the recipe is selected; `false` otherwise
+     */
     function isStepSelected(recipeId: string, step: string): boolean {
         return stepsStatus.get(recipeId)?.has(step) || false
     }
-    
+
     function selectStep(recipeId: string, step: string): void {
-        if (stepsStatus.has(recipeId)) {
-            stepsStatus.get(recipeId).add(step)
+        const steps = stepsStatus.get(recipeId)
+        if (steps) {
+            steps.add(step)
         } else {
             stepsStatus.set(recipeId, new Set([step]))
         }
         setStepsStatus(status => new Map(status))
     }
-    
+
     function unselectStep(recipeId: string, step: string): void {
-        if (stepsStatus.has(recipeId) && stepsStatus.get(recipeId).delete(step)) {
-            if (stepsStatus.get(recipeId).size === 0) {
+        const steps = stepsStatus.get(recipeId)
+        if (steps !== undefined && steps.delete(step)) {
+            if ((stepsStatus.get(recipeId)?.size || 0) === 0) {
                 stepsStatus.delete(recipeId)
             }
             setStepsStatus(status => new Map(status))

@@ -1,15 +1,15 @@
 import {
+    grayscale,
+    layoutMultilineText,
     PageSizes,
     PDFDocument,
-    PDFFont,
-    StandardFonts,
+    PDFPage,
     rgb,
-    grayscale,
-    PDFPageDrawTextOptions,
-    layoutMultilineText,
-    TextAlignment, PDFPage, RGB
+    RGB,
+    StandardFonts,
+    TextAlignment
 } from "pdf-lib";
-import {hexToRgb, IconButton} from "@mui/material";
+import {IconButton} from "@mui/material";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import download from 'downloadjs'
 import {ingredientAsText, Recipe} from "../Recipe";
@@ -97,9 +97,9 @@ export function PdfConverter(props: Props): JSX.Element {
         // recipe id
         page.setFontSize(smallFontSize)
         page.setFontColor(grayscale(0.75))
-        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id.toString(), smallFontSize)
-        const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
-        page.drawText(recipe._id.toString(), {
+        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id?.toString() || "", smallFontSize)
+        // const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
+        page.drawText(recipe._id?.toString() || "", {
             x: width - recipeIdWidth - 3,
             y: height - smallFontSize - 3
         })
@@ -115,7 +115,7 @@ export function PdfConverter(props: Props): JSX.Element {
         const addedBy = recipe.addedBy !== "" && recipe.addedBy !== null ? `(added by: ${recipe.addedBy})` : ""
         if (author !== "" || addedBy !== "") {
             page.moveDown(fontSize + 2 * lineSpacing)
-            page.setFontSize(fontSize-2)
+            page.setFontSize(fontSize - 2)
             page.setFontColor(rgb(0, 0, 0))
             page.drawText(`${author} ${addedBy}`)
         }
@@ -234,14 +234,26 @@ export function PdfConverter(props: Props): JSX.Element {
                 thickness: 1,
             })
             page.drawLine({
-                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 1},
-                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 1},
+                start: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing,
+                    y: page.getY() + headerHeight / 2 - 1
+                },
+                end: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength,
+                    y: page.getY() + headerHeight / 2 - 1
+                },
                 color: grayscale(0.7),
                 thickness: 1,
             })
             page.drawLine({
-                start: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing, y: page.getY() + headerHeight / 2 - 3},
-                end: {x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength, y: page.getY() + headerHeight / 2 - 3},
+                start: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing,
+                    y: page.getY() + headerHeight / 2 - 3
+                },
+                end: {
+                    x: margin.left + lineLength + headerWidth + 2 * lineSpacing + lineLength,
+                    y: page.getY() + headerHeight / 2 - 3
+                },
                 color: grayscale(0.7),
                 thickness: 1,
             })
@@ -273,12 +285,15 @@ export function PdfConverter(props: Props): JSX.Element {
          * @param fontColor
          */
         function renderMultilineText(text: string, fontSize: number, fontColor: RGB): void {
-            const multilineText = layoutMultilineText(text, {
-                alignment: TextAlignment.Left,
-                font: documentFont,
-                fontSize: fontSize,
-                bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
-            })
+            const multilineText = layoutMultilineText(
+                text.replaceAll('ℓ', 'ltr'),
+                {
+                    alignment: TextAlignment.Left,
+                    font: documentFont,
+                    fontSize: fontSize,
+                    bounds: {x: margin.left, y: page.getY(), width: width - margin.left - margin.right, height: height}
+                }
+            )
 
             page.setFontSize(fontSize)
             page.setFontColor(fontColor)
@@ -336,7 +351,7 @@ export function PdfConverter(props: Props): JSX.Element {
 
         }
 
-        function newPage(pageNumber: number, author?: string): [PDFPage, number] {
+        function newPage(pageNumber: number, author?: string | null): [PDFPage, number] {
             const page = doc.addPage(size)
             page.setFont(documentFont)
             page.setFontSize(fontSize)
@@ -346,7 +361,7 @@ export function PdfConverter(props: Props): JSX.Element {
             return [page, newPageNumber]
         }
 
-        function addFooter(page: PDFPage, pageNumber: number, author?: string): void {
+        function addFooter(page: PDFPage, pageNumber: number, author?: string | null): void {
             const footerFontSize = 9
             page.drawText(`City Recipes`, {
                 size: footerFontSize,
@@ -374,6 +389,9 @@ export function PdfConverter(props: Props): JSX.Element {
     }
 
     function formatDate(millis: number): string {
+        if (millis === null || millis === undefined) {
+            return ''
+        }
         return DateTime.fromMillis(millis, {zone: 'utc'})
             .toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)
     }

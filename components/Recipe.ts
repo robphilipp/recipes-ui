@@ -3,6 +3,7 @@ import {DateTime} from 'luxon';
 import {UUID} from "bson";
 import {formatQuantityFor} from "../lib/utils";
 import {Amount, convertAmount, UnitType} from "../lib/Measurements";
+import {failureResult, Result, successResult} from "result-fn";
 
 /*
     This file contains:
@@ -108,7 +109,7 @@ export type Rating = {
  * The recipe summary information
  */
 export type RecipeSummary = {
-    _id?: ObjectId
+    _id?: ObjectId | null
     name: string
     tags: Array<string>
     author: string | null
@@ -303,7 +304,13 @@ export function copyRequiredTime(time: RequiredTime): RequiredTime {
     return {total: {...total}, active: {...active}}
 }
 
-export function timeUnitsFrom(unit: string): TimeUnits {
-    const [, key] = Object.entries(TimeUnits).find(([, value]) => value === unit)
-    return key
+export function timeUnitsFrom(unit: string): Result<TimeUnits, string> {
+    const result = Object.entries(TimeUnits).find(([, value]) => value === unit)
+    if (result === undefined) {
+        return failureResult(`Unable to find time-units for unit; unit: ${unit}`)
+    }
+    const [, key] = result
+    return successResult(key)
+    // const [, key] = Object.entries(TimeUnits).find(([, value]) => value === unit)
+    // return key
 }

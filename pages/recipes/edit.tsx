@@ -1,30 +1,65 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {RecipeEditor} from "../../components/RecipeEditor";
 import axios from "axios";
 import {useRouter} from "next/router";
-import {emptyRecipe, Recipe, updateModifiedTimestamp} from "../../components/Recipe";
+import {Recipe, updateModifiedTimestamp} from "../../components/Recipe";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 
-export default function UpdateRecipe() {
+/**
+ * Wraps the recipe editor for updating an existing recipe
+ * @constructor
+ */
+export default function UpdateRecipe(): JSX.Element {
+
     const router = useRouter()
     const objectId = router.query.id as string
 
-    const [recipe, setRecipe] = useState<Recipe>(() => emptyRecipe())
+    const queryClient = useQueryClient()
 
-    useEffect(
+    // loads the summaries that match one or more of the accumulated search terms
+    const recipeQuery = useQuery(
+        ['recipe-by-object-id'],
         () => {
             if (objectId !== undefined) {
-                axios
-                    .get(`/api/recipes/${objectId}`)
-                    .then(response => setRecipe(response.data as Recipe))
+                return axios.get(`/api/recipes/${objectId}`)
             }
-        },
-        [objectId]
+            return Promise.reject("Object ID for recipe is undefined.")
+        }
     )
 
+    // query for updating the recipe's rating
+    const updateRecipeQuery = useMutation(
+        ['update-recipe'],
+        (recipe: Recipe) => axios.post(
+            `/api/recipes/${recipe._id?.toString()}`,
+            updateModifiedTimestamp(recipe)
+        )
+    )
+
+    if (recipeQuery.isLoading || updateRecipeQuery.isLoading) {
+        return <span>Loading...</span>
+    }
+    if (recipeQuery.isError || updateRecipeQuery.isError) {
+        return <span>
+            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
+            {updateRecipeQuery.isError ? <span>Update Recipe Error: {updateRecipeQuery.error}</span> : <span/>}
+        </span>
+    }
+
+    const recipe: Recipe = recipeQuery.data.data
+
+    /**
+     * Handles the submission of the updated recipe
+     * @param recipe The updated recipe
+     */
     function handleSubmitRecipe(recipe: Recipe): void {
-        axios
-            .post(`/api/recipes/${recipe._id.toString()}`, updateModifiedTimestamp(recipe))
-            .then(response => router.push(`/recipes/${response.data._id.toString()}`))
+        updateRecipeQuery.mutate(recipe, {
+            onSuccess: () => {
+                queryClient
+                    .invalidateQueries(['recipe-by-object-id'])
+                    .then(() => router.push(`/recipes/${recipe._id?.toString()}`))
+            }
+        })
     }
 
     return <RecipeEditor recipe={recipe} onSubmit={handleSubmitRecipe}/>
