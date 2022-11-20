@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {RecipeEditor} from "../../components/RecipeEditor";
 import axios from "axios";
 import {useRouter} from "next/router";
-import {emptyRecipe, Recipe, updateModifiedTimestamp} from "../../components/Recipe";
+import {Recipe, updateModifiedTimestamp} from "../../components/Recipe";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 
 /**
