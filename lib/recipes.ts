@@ -94,8 +94,8 @@ export async function recipeById(id: string): Promise<Recipe> {
         }
         return asRecipe(doc)
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error(`Unable to find recipe with ID: recipe_id: ${id}`, e)
+        return Promise.reject(`Unable to find recipe with ID: recipe_id: ${id}`)
     }
 }
 
@@ -112,8 +112,8 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
             .map(doc => asRecipeSummary(doc))
             .toArray()
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error(`Unable to find recipe containing words: [${words.join(", ")}]`, e)
+        return Promise.reject(`Unable to find recipe containing words: [${words.join(", ")}]`)
     }
 }
 
