@@ -14,7 +14,7 @@ export default function NewRecipe(): JSX.Element {
     function handleSubmitRecipe(recipe: Recipe): void {
         axios
             .put('/api/recipes/new', recipe)
-            .then(response => router.push(`/recipes/${response.data._id.toString()}`))
+            .then(response => router.push(`/recipes/${response.data.id}`))
     }
 
     return <RecipeEditor onSubmit={handleSubmitRecipe}/>

@@ -201,11 +201,11 @@ export default function Home(props: Props): JSX.Element {
                             }}
                         >
                             <CardHeader
-                                avatar={inProgress(recipe._id?.toString()) ?
+                                avatar={inProgress(recipe.id) ?
                                     <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
                                     <span/>
                                 }
-                                title={<Link href={`/recipes/${recipe._id}`}>
+                                title={<Link href={`/recipes/${recipe.id}`}>
                                     <a style={{textDecoration: 'none', color: theme.palette.primary.main}}>
                                         {recipe.name.toUpperCase()}
                                     </a>
@@ -230,7 +230,7 @@ export default function Home(props: Props): JSX.Element {
                                         }
                                     </Typography>
                                 </div>}
-                                action={recipe._id ? renderEditDelete(recipe._id.toString()) : <></>}
+                                action={recipe.id ? renderEditDelete(recipe.id) : <></>}
                             />
                             <CardContent>
                                 <Box

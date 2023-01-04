@@ -29,6 +29,11 @@ type Props = {
     recipeId: string
 }
 
+/**
+ * Displays the recipe
+ * @param props The property holding the recipe ID
+ * @constructor
+ */
 export default function RecipeView(props: Props): JSX.Element {
     const {recipeId} = props
 
@@ -88,7 +93,7 @@ export default function RecipeView(props: Props): JSX.Element {
                 <Typography sx={{fontSize: '1.5em', fontWeight: 520}}>
                     {recipe.name}
                     <IconButton
-                        onClick={() => router.push(`/recipes/edit?id=${recipe._id?.toString()}`)}
+                        onClick={() => router.push(`/recipes/edit?id=${recipe.id}`)}
                         color='primary'
                         size='small'
                     >
@@ -97,7 +102,7 @@ export default function RecipeView(props: Props): JSX.Element {
                     <PdfConverter recipe={recipe}/>
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
-                    {recipe._id}
+                    {recipe.id}
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
                     Created: <Date epochMillis={recipe.createdOn as number}/>
@@ -165,23 +170,45 @@ export const getServerSideProps: GetServerSideProps = async context => {
         }
     }
 }
-// export const getStaticPaths: GetStaticPaths = async () => {
-//     console.log("[id] get static paths")
-//     const paths = await allRecipePaths()
-//     return {
-//         paths: paths.map(summary => ({params: {id: summary}})),
-//         fallback: false
-//     }
-// }
-//
-// export const getStaticProps: GetStaticProps = async (context) => {
-//     console.log("[id] get static props")
-//     // const recipe = await recipesById(context.params.id as string)
-//     // return {
-//     //     props: {recipe},
-//     //     // revalidate: 1
-//     // }
-//     return {
-//         props: {recipeId: context.params.id as string}
-//     }
-// }
+
+/*
+ ** the code below "works", but I haven't yet figured out how to have the
+ ** page re-rendered upon save.
+
+export const getStaticProps: GetStaticProps = async (context: GetStaticPropsContext) => {
+    console.log(`[id] get static props`, context.params)
+    const recipeId = context.params?.id as string || ""
+    const recipe = await recipeById(recipeId)
+    console.log("recipe", recipe)
+    // return {
+    //     props: {recipe},
+    //     // revalidate: 1
+    // }
+    // const recipeId = context.params?.id || ""
+    // const recipe: Recipe = await axios
+    //     .get(`http://localhost:3000/api/recipes/${recipeId}`)
+    //     .then(response => response.data)
+    //     .catch(error => console.log(`getStaticProps failed: ${error.error}`))
+    return {
+        props: {recipeId, recipe, revalidate: 3}
+    }
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const ids = await allRecipePaths()
+    // const recipes: Array<Recipe> = await axios
+    //     .get(
+    //         `http://localhost:3000/api/recipes/summaries?name=%20`
+    //     )
+    //     .then(response => response.data)
+    //     .catch(error => console.log(`getStaticPaths failed: ${error.error}`))
+    //
+    // const paths = recipes.map(recipe => ({
+    //     params: { id: recipe._id?.toString() || "" },
+    // }))
+
+    const paths = ids.map(id => ({params: { id }}))
+    return { paths, fallback: false }
+}
+
+*/

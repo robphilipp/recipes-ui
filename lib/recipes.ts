@@ -152,10 +152,9 @@ export async function allRecipePaths(): Promise<Array<string>> {
     try {
         return await recipeSummaries()
             .then(recipes => recipes
-                .filter(recipe => recipe._id !== undefined && recipe._id !== null)
+                .filter(recipe => recipe.id !== undefined && recipe.id !== null)
                 // no undefined or null recipes make it past the filter
-                // @ts-ignore
-                .map(recipe => recipe._id.toString())
+                .map(recipe => recipe.id || "")
             )
     } catch (e) {
         console.error("Unable to update recipe", e)
@@ -214,27 +213,27 @@ export async function addRecipe(recipe: Recipe): Promise<Recipe> {
  * @return A {@link Promise} to the updated recipe
  */
 export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
-    if (recipe._id === undefined || recipe._id === null) {
+    if (recipe.id === undefined || recipe.id === null) {
         return Promise.reject(`Cannot update recipe when the ID is null or undefined`)
     }
     try {
         const client = await clientPromise
         const result = await recipeCollection(client)
-            .replaceOne({_id: new ObjectId(recipe._id)}, removeRecipeId(recipe))
+            .replaceOne({_id: new ObjectId(recipe.id)}, removeRecipeId(recipe))
         if (result.acknowledged) {
             if (result.matchedCount !== 1) {
                 console.log("Unable to save recipe;", result)
-                return Promise.reject(`No recipe found for ID; _id: ${recipe._id}; name: ${recipe.name}`)
+                return Promise.reject(`No recipe found for ID; _id: ${recipe.id}; name: ${recipe.name}`)
             }
             if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
-                return Promise.reject(`Failed to update recipe; _id: ${recipe._id}; name: ${recipe.name}`)
+                return Promise.reject(`Failed to update recipe; _id: ${recipe.id}; name: ${recipe.name}`)
             }
-            return await recipeById(recipe._id.toString())
+            return await recipeById(recipe.id)
         }
     } catch (e) {
         console.error("Unable to update recipe", e)
     }
-    return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe._id}; name: ${recipe.name}`)
+    return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe.id}; name: ${recipe.name}`)
 }
 
 /**

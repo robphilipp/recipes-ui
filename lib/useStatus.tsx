@@ -14,7 +14,7 @@ interface UseStatusValues {
     // map(recipe_id -> set(checked_steps))
     readonly stepsStatus: Map<string, Set<string>>
 
-    inProgress: (recipeId?: string) => boolean
+    inProgress: (recipeId?: string | null) => boolean
 
     isIngredientSelected: (recipeId: string, ingredient: string) => boolean
     selectIngredient: (recipeId: string, ingredient: string) => void

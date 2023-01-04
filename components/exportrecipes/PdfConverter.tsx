@@ -97,9 +97,8 @@ export function PdfConverter(props: Props): JSX.Element {
         // recipe id
         page.setFontSize(smallFontSize)
         page.setFontColor(grayscale(0.75))
-        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe._id?.toString() || "", smallFontSize)
-        // const recipeIdHeight = documentFont.heightAtSize(smallFontSize)
-        page.drawText(recipe._id?.toString() || "", {
+        const recipeIdWidth = documentFont.widthOfTextAtSize(recipe.id || "", smallFontSize)
+        page.drawText(recipe.id || "", {
             x: width - recipeIdWidth - 3,
             y: height - smallFontSize - 3
         })
