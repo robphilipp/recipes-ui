@@ -25,10 +25,6 @@ const numRatingsFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0
 })
 
-// type Props = {
-//     recipeId: string
-//     recipe: Recipe
-// }
 type Props = {
     recipeId: string
 }
@@ -39,7 +35,6 @@ type Props = {
  * @constructor
  */
 export default function RecipeView(props: Props): JSX.Element {
-    // const {recipeId, recipe} = props
     const {recipeId} = props
 
     const theme = useTheme()
@@ -61,7 +56,6 @@ export default function RecipeView(props: Props): JSX.Element {
         ['update-recipe-rating'],
         (rating: number) => axios.post(
             `/api/recipes/ratings/${recipeId}`,
-            // {newRating: rating, ratings: recipe.ratings}
             {newRating: rating, ratings: recipeQuery.data?.data.ratings}
         )
     )
@@ -100,7 +94,6 @@ export default function RecipeView(props: Props): JSX.Element {
                     {recipe.name}
                     <IconButton
                         onClick={() => router.push(`/recipes/edit?id=${recipe.id}`)}
-                        // onClick={() => router.push(`/recipes/edit?id=${recipe._id?.toString()}`)}
                         color='primary'
                         size='small'
                     >
@@ -110,7 +103,6 @@ export default function RecipeView(props: Props): JSX.Element {
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
                     {recipe.id}
-                    {/*{recipe._id}*/}
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
                     Created: <Date epochMillis={recipe.createdOn as number}/>
@@ -178,15 +170,6 @@ export const getServerSideProps: GetServerSideProps = async context => {
         }
     }
 }
-// export const getStaticPaths: GetStaticPaths = async () => {
-//     console.log("[id] get static paths")
-//     const paths = await allRecipePaths()
-//     return {
-//         paths: paths.map(summary => ({params: {id: summary}})),
-//         fallback: false
-//     }
-// }
-//
 
 /*
  ** the code below "works", but I haven't yet figured out how to have the

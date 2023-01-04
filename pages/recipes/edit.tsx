@@ -32,7 +32,6 @@ export default function UpdateRecipe(): JSX.Element {
         ['update-recipe'],
         (recipe: Recipe) => axios.post(
             `/api/recipes/${recipe.id}`,
-            // `/api/recipes/${recipe._id?.toString()}`,
             updateModifiedTimestamp(recipe)
         )
     )
@@ -59,7 +58,6 @@ export default function UpdateRecipe(): JSX.Element {
                 queryClient
                     .invalidateQueries(['recipe-by-object-id'])
                     .then(() => router.push(`/recipes/${recipe.id}`))
-                    // .then(() => router.push(`/recipes/${recipe._id?.toString()}`))
             }
         })
     }

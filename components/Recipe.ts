@@ -109,7 +109,6 @@ export type Rating = {
  * The recipe summary information
  */
 export type RecipeSummary = {
-    // _id?: ObjectId | null
     id?: string | null
     name: string
     tags: Array<string>
@@ -142,7 +141,6 @@ export type Recipe = RecipeSummary & {
  */
 export function asRecipe(doc: WithId<Recipe>): Recipe {
     return {
-        // _id: doc._id,
         id: doc._id.toHexString(),
         story: doc.story,
         name: doc.name,
@@ -168,7 +166,6 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
  */
 export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
     return {
-        // _id: doc._id,
         id: doc._id.toHexString(),
         name: doc.name,
         tags: doc.tags,
@@ -186,7 +183,6 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
  */
 export function emptyRecipe(): Recipe {
     return {
-        // _id: null,
         id: null,
         story: '',
         name: '',
