@@ -31,7 +31,8 @@ export default function UpdateRecipe(): JSX.Element {
     const updateRecipeQuery = useMutation(
         ['update-recipe'],
         (recipe: Recipe) => axios.post(
-            `/api/recipes/${recipe._id?.toString()}`,
+            `/api/recipes/${recipe.id}`,
+            // `/api/recipes/${recipe._id?.toString()}`,
             updateModifiedTimestamp(recipe)
         )
     )
@@ -57,7 +58,8 @@ export default function UpdateRecipe(): JSX.Element {
             onSuccess: () => {
                 queryClient
                     .invalidateQueries(['recipe-by-object-id'])
-                    .then(() => router.push(`/recipes/${recipe._id?.toString()}`))
+                    .then(() => router.push(`/recipes/${recipe.id}`))
+                    // .then(() => router.push(`/recipes/${recipe._id?.toString()}`))
             }
         })
     }

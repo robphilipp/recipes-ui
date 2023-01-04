@@ -1,5 +1,5 @@
 import Head from "next/head";
-import {GetServerSideProps} from "next";
+import {GetStaticPaths, GetStaticProps, GetStaticPropsContext} from "next";
 import Date from '../../components/Date'
 import React from "react";
 import {Chip, IconButton, Rating, Typography, useTheme} from "@mui/material";
@@ -14,7 +14,8 @@ import {jsx} from "@emotion/react";
 import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
 import {PdfConverter} from "../../components/exportrecipes/PdfConverter";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {allRecipePaths, recipeById} from "../../lib/recipes";
 import JSX = jsx.JSX;
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
@@ -27,45 +28,56 @@ const numRatingsFormatter = new Intl.NumberFormat('en-US', {
 
 type Props = {
     recipeId: string
+    recipe: Recipe
 }
+// type Props = {
+//     recipeId: string
+// }
 
+/**
+ * Displays the recipe
+ * @param props The property holding the recipe ID
+ * @constructor
+ */
 export default function RecipeView(props: Props): JSX.Element {
-    const {recipeId} = props
+    const {recipeId, recipe} = props
+    // const {recipeId} = props
 
     const theme = useTheme()
     const router = useRouter()
 
     const queryClient = useQueryClient()
 
-    // loads the summaries that match one or more of the accumulated search terms
-    const recipeQuery = useQuery(
-        ['recipe'],
-        () => {
-            const id = recipeId ? recipeId : (router.query.id as string)
-            return axios.get(`/api/recipes/${id}`)
-        }
-    )
+    // // loads the summaries that match one or more of the accumulated search terms
+    // const recipeQuery = useQuery(
+    //     ['recipe'],
+    //     () => {
+    //         const id = recipeId ? recipeId : (router.query.id as string)
+    //         return axios.get(`/api/recipes/${id}`)
+    //     }
+    // )
 
     // query for updating the recipe's rating
     const updateRatingQuery = useMutation(
         ['update-recipe-rating'],
         (rating: number) => axios.post(
             `/api/recipes/ratings/${recipeId}`,
-            {newRating: rating, ratings: recipeQuery.data?.data.ratings}
+            {newRating: rating, ratings: recipe.ratings}
+            // {newRating: rating, ratings: recipeQuery.data?.data.ratings}
         )
     )
+    //
+    // if (recipeQuery.isLoading || updateRatingQuery.isLoading) {
+    //     return <span>Loading...</span>
+    // }
+    // if (recipeQuery.isError || updateRatingQuery.isError) {
+    //     return <span>
+    //         {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
+    //         {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
+    //     </span>
+    // }
 
-    if (recipeQuery.isLoading || updateRatingQuery.isLoading) {
-        return <span>Loading...</span>
-    }
-    if (recipeQuery.isError || updateRatingQuery.isError) {
-        return <span>
-            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
-            {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
-        </span>
-    }
-
-    const recipe: Recipe = recipeQuery.data.data
+    // const recipe: Recipe = recipeQuery.data.data
 
     /**
      * Handles updates to the recipe's rating
@@ -88,7 +100,8 @@ export default function RecipeView(props: Props): JSX.Element {
                 <Typography sx={{fontSize: '1.5em', fontWeight: 520}}>
                     {recipe.name}
                     <IconButton
-                        onClick={() => router.push(`/recipes/edit?id=${recipe._id?.toString()}`)}
+                        onClick={() => router.push(`/recipes/edit?id=${recipe.id}`)}
+                        // onClick={() => router.push(`/recipes/edit?id=${recipe._id?.toString()}`)}
                         color='primary'
                         size='small'
                     >
@@ -97,7 +110,8 @@ export default function RecipeView(props: Props): JSX.Element {
                     <PdfConverter recipe={recipe}/>
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
-                    {recipe._id}
+                    {recipe.id}
+                    {/*{recipe._id}*/}
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>
                     Created: <Date epochMillis={recipe.createdOn as number}/>
@@ -158,13 +172,13 @@ export default function RecipeView(props: Props): JSX.Element {
 }
 
 // noinspection JSUnusedGlobalSymbols
-export const getServerSideProps: GetServerSideProps = async context => {
-    return {
-        props: {
-            recipeId: context.params?.id as string
-        }
-    }
-}
+// export const getServerSideProps: GetServerSideProps = async context => {
+//     return {
+//         props: {
+//             recipeId: context.params?.id as string
+//         }
+//     }
+// }
 // export const getStaticPaths: GetStaticPaths = async () => {
 //     console.log("[id] get static paths")
 //     const paths = await allRecipePaths()
@@ -174,14 +188,38 @@ export const getServerSideProps: GetServerSideProps = async context => {
 //     }
 // }
 //
-// export const getStaticProps: GetStaticProps = async (context) => {
-//     console.log("[id] get static props")
-//     // const recipe = await recipesById(context.params.id as string)
-//     // return {
-//     //     props: {recipe},
-//     //     // revalidate: 1
-//     // }
-//     return {
-//         props: {recipeId: context.params.id as string}
-//     }
-// }
+export const getStaticProps: GetStaticProps = async (context: GetStaticPropsContext) => {
+    console.log(`[id] get static props`, context.params)
+    const recipeId = context.params?.id as string || ""
+    const recipe = await recipeById(recipeId)
+    console.log("recipe", recipe)
+    // return {
+    //     props: {recipe},
+    //     // revalidate: 1
+    // }
+    // const recipeId = context.params?.id || ""
+    // const recipe: Recipe = await axios
+    //     .get(`http://localhost:3000/api/recipes/${recipeId}`)
+    //     .then(response => response.data)
+    //     .catch(error => console.log(`getStaticProps failed: ${error.error}`))
+    return {
+        props: {recipeId, recipe}
+    }
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+    const ids = await allRecipePaths()
+    // const recipes: Array<Recipe> = await axios
+    //     .get(
+    //         `http://localhost:3000/api/recipes/summaries?name=%20`
+    //     )
+    //     .then(response => response.data)
+    //     .catch(error => console.log(`getStaticPaths failed: ${error.error}`))
+    //
+    // const paths = recipes.map(recipe => ({
+    //     params: { id: recipe._id?.toString() || "" },
+    // }))
+
+    const paths = ids.map(id => ({params: { id }}))
+    return { paths, fallback: false }
+}
