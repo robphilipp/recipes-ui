@@ -1,5 +1,5 @@
 import Head from "next/head";
-import {GetStaticPaths, GetStaticProps, GetStaticPropsContext} from "next";
+import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
 import React from "react";
 import {Chip, IconButton, Rating, Typography, useTheme} from "@mui/material";
@@ -14,8 +14,7 @@ import {jsx} from "@emotion/react";
 import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
 import {PdfConverter} from "../../components/exportrecipes/PdfConverter";
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {allRecipePaths, recipeById} from "../../lib/recipes";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import JSX = jsx.JSX;
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
@@ -26,13 +25,13 @@ const numRatingsFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0
 })
 
-type Props = {
-    recipeId: string
-    recipe: Recipe
-}
 // type Props = {
 //     recipeId: string
+//     recipe: Recipe
 // }
+type Props = {
+    recipeId: string
+}
 
 /**
  * Displays the recipe
@@ -40,44 +39,44 @@ type Props = {
  * @constructor
  */
 export default function RecipeView(props: Props): JSX.Element {
-    const {recipeId, recipe} = props
-    // const {recipeId} = props
+    // const {recipeId, recipe} = props
+    const {recipeId} = props
 
     const theme = useTheme()
     const router = useRouter()
 
     const queryClient = useQueryClient()
 
-    // // loads the summaries that match one or more of the accumulated search terms
-    // const recipeQuery = useQuery(
-    //     ['recipe'],
-    //     () => {
-    //         const id = recipeId ? recipeId : (router.query.id as string)
-    //         return axios.get(`/api/recipes/${id}`)
-    //     }
-    // )
+    // loads the summaries that match one or more of the accumulated search terms
+    const recipeQuery = useQuery(
+        ['recipe'],
+        () => {
+            const id = recipeId ? recipeId : (router.query.id as string)
+            return axios.get(`/api/recipes/${id}`)
+        }
+    )
 
     // query for updating the recipe's rating
     const updateRatingQuery = useMutation(
         ['update-recipe-rating'],
         (rating: number) => axios.post(
             `/api/recipes/ratings/${recipeId}`,
-            {newRating: rating, ratings: recipe.ratings}
-            // {newRating: rating, ratings: recipeQuery.data?.data.ratings}
+            // {newRating: rating, ratings: recipe.ratings}
+            {newRating: rating, ratings: recipeQuery.data?.data.ratings}
         )
     )
-    //
-    // if (recipeQuery.isLoading || updateRatingQuery.isLoading) {
-    //     return <span>Loading...</span>
-    // }
-    // if (recipeQuery.isError || updateRatingQuery.isError) {
-    //     return <span>
-    //         {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
-    //         {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
-    //     </span>
-    // }
 
-    // const recipe: Recipe = recipeQuery.data.data
+    if (recipeQuery.isLoading || updateRatingQuery.isLoading) {
+        return <span>Loading...</span>
+    }
+    if (recipeQuery.isError || updateRatingQuery.isError) {
+        return <span>
+            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
+            {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
+        </span>
+    }
+
+    const recipe: Recipe = recipeQuery.data.data
 
     /**
      * Handles updates to the recipe's rating
@@ -172,13 +171,13 @@ export default function RecipeView(props: Props): JSX.Element {
 }
 
 // noinspection JSUnusedGlobalSymbols
-// export const getServerSideProps: GetServerSideProps = async context => {
-//     return {
-//         props: {
-//             recipeId: context.params?.id as string
-//         }
-//     }
-// }
+export const getServerSideProps: GetServerSideProps = async context => {
+    return {
+        props: {
+            recipeId: context.params?.id as string
+        }
+    }
+}
 // export const getStaticPaths: GetStaticPaths = async () => {
 //     console.log("[id] get static paths")
 //     const paths = await allRecipePaths()
@@ -188,6 +187,11 @@ export default function RecipeView(props: Props): JSX.Element {
 //     }
 // }
 //
+
+/*
+ ** the code below "works", but I haven't yet figured out how to have the
+ ** page re-rendered upon save.
+
 export const getStaticProps: GetStaticProps = async (context: GetStaticPropsContext) => {
     console.log(`[id] get static props`, context.params)
     const recipeId = context.params?.id as string || ""
@@ -203,7 +207,7 @@ export const getStaticProps: GetStaticProps = async (context: GetStaticPropsCont
     //     .then(response => response.data)
     //     .catch(error => console.log(`getStaticProps failed: ${error.error}`))
     return {
-        props: {recipeId, recipe}
+        props: {recipeId, recipe, revalidate: 3}
     }
 }
 
@@ -223,3 +227,5 @@ export const getStaticPaths: GetStaticPaths = async () => {
     const paths = ids.map(id => ({params: { id }}))
     return { paths, fallback: false }
 }
+
+*/
