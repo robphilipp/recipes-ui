@@ -41,8 +41,8 @@ export default function UpdateRecipe(): JSX.Element {
     }
     if (recipeQuery.isError || updateRecipeQuery.isError) {
         return <span>
-            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
-            {updateRecipeQuery.isError ? <span>Update Recipe Error: {updateRecipeQuery.error}</span> : <span/>}
+            {recipeQuery.isError ? <span>Recipe Error: {(recipeQuery.error as Error).message}</span> : <span/>}
+            {updateRecipeQuery.isError ? <span>Update Recipe Error: {(updateRecipeQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 

@@ -88,9 +88,9 @@ export default function Home(props: Props): JSX.Element {
     }
     if (countQuery.isError || recipesQuery.isError || deleteQuery.isError) {
         return <span>
-            {countQuery.isError ? <span>Count Error: {countQuery.error}</span> : <span/>}
-            {recipesQuery.isError ? <span>Recipes Error: {recipesQuery.error}</span> : <span/>}
-            {deleteQuery.isError ? <span>Delete Recipe Error: {deleteQuery.error}</span> : <span/>}
+            {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
+            {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
+            {deleteQuery.isError ? <span>Delete Recipe Error: {(deleteQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
