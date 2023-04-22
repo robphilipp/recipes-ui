@@ -25,8 +25,8 @@ export async function recipeCount(): Promise<number> {
         const client = await clientPromise
         return await recipeCollection(client).countDocuments()
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error("Unable to retrieve recipe count", e)
+        return Promise.reject("Unable to retrieve recipe count")
     }
 }
 
@@ -42,8 +42,8 @@ export async function allRecipes(): Promise<Array<Recipe>> {
             .map(doc => asRecipe(doc))
             .toArray()
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error("Unable to retrieve all recipes", e)
+        return Promise.reject("Unable to retrieve all recipes")
     }
 }
 

@@ -65,8 +65,8 @@ export default function RecipeView(props: Props): JSX.Element {
     }
     if (recipeQuery.isError || updateRatingQuery.isError) {
         return <span>
-            {recipeQuery.isError ? <span>Recipe Error: {recipeQuery.error}</span> : <span/>}
-            {updateRatingQuery.isError ? <span>Update Rating Error: {updateRatingQuery.error}</span> : <span/>}
+            {recipeQuery.isError ? <span>Recipe Error: {(recipeQuery.error as Error).message}</span> : <span/>}
+            {updateRatingQuery.isError ? <span>Update Rating Error: {(updateRatingQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
