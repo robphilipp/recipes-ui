@@ -198,10 +198,8 @@ export default function App(props: AppProps) {
                                 }}
                             >
                                 <Toolbar>
-                                    <Link href={"/"}>
-                                        <a style={{marginTop: 7}}>
-                                            <TitleImage src="/images/goodoletimes.png" alt="City Year"/>
-                                        </a>
+                                    <Link href={"/"} style={{marginTop: 7}}>
+                                        <TitleImage src="/images/goodoletimes.png" alt="City Year"/>
                                     </Link>
                                     <Typography
                                         variant="h6"

@@ -205,10 +205,8 @@ export default function Home(props: Props): JSX.Element {
                                     <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
                                     <span/>
                                 }
-                                title={<Link href={`/recipes/${recipe.id}`}>
-                                    <a style={{textDecoration: 'none', color: theme.palette.primary.main}}>
-                                        {recipe.name.toUpperCase()}
-                                    </a>
+                                title={<Link href={`/recipes/${recipe.id}`} style={{textDecoration: 'none', color: theme.palette.primary.main}}>
+                                    {recipe.name.toUpperCase()}
                                 </Link>}
                                 subheader={<div>
                                     <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
