@@ -7,7 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Paper, {PaperProps} from '@mui/material/Paper';
 import Draggable from 'react-draggable';
-import {ListItem, ListItemIcon, ListItemText} from "@mui/material";
+import {ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
 
 function PaperComponent(props: PaperProps) {
     return (
@@ -38,10 +38,10 @@ export default function QuantityConverterDialog(props: Props): JSX.Element {
 
     return (
         <>
-            <ListItem button onClick={handleClickOpen}>
+            <ListItemButton onClick={handleClickOpen}>
                 <ListItemIcon>{icon}</ListItemIcon>
                 <ListItemText primary={buttonText}/>
-            </ListItem>
+            </ListItemButton>
             <Dialog
                 open={open}
                 onClose={handleClose}

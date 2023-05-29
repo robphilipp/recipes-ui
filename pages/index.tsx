@@ -26,6 +26,9 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {GetServerSideProps, GetServerSidePropsContext} from "next";
+import {ParsedUrlQuery} from "querystring";
+import {useSession, signOut, signIn} from "next-auth/react";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -94,7 +97,7 @@ export default function Home(props: Props): JSX.Element {
         </span>
     }
 
-    const recipes: Array<RecipeSummary> = recipesQuery.data.data || []
+    const recipes: Array<RecipeSummary> = recipesQuery?.data?.data || []
 
     /**
      * Callback for when the confirm to delete button is clicked
@@ -183,7 +186,7 @@ export default function Home(props: Props): JSX.Element {
                     paragraph
                     sx={{fontSize: '0.7em', marginTop: '0.25em'}}
                 >
-                    Showing {recipes.length} of {countQuery.data.data} recipes
+                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes
                 </Typography>
 
                 {recipes.map(recipe => {
@@ -266,6 +269,30 @@ export default function Home(props: Props): JSX.Element {
         </Layout>
     )
 }
+
+// export async function getServerSideProps(context) {
+// export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {
+//     return {
+//         props: {}, // Will be passed to the page component as props
+//     }
+// }
+
+// export const getServerSideProps = withSession(async function ({ req, res }) {
+//     const { user } = req.session
+//
+//     if (!user) {
+//         return {
+//             redirect: {
+//                 destination: '/login',
+//                 permanent: false,
+//             },
+//         }
+//     }
+//
+//     return {
+//         props: { user },
+//     }
+// })
 
 // export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {
 //     const {name} = context.query

@@ -29,4 +29,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+client_secret_*.json
+
 /.idea/
+
+private_notes/

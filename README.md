@@ -147,6 +147,8 @@ pm2 show recipes
 
 To have `pm2` maintain the list of processes and start-up when the server restarts see the [pm2 persistent application docs](https://pm2.keymetrics.io/docs/usage/startup/).
 
+When `pm2` shows that the recipes are `errored`, then cd into the nextjs project directory, stop and delete the old process, and then start a new process with `pm2 start npm --name "recipes" -- start -- -p 8080`.
+
 ### setting up nginx
 
 > A good starting point is [nginx beginners guide](https://nginx.org/en/docs/beginners_guide.html) and [nginx reverse proxy](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/).
@@ -158,7 +160,7 @@ sudo apt update
 sudo apt install nginx
 ```
 
-To verify that `nginx` has been installed properly, show it's version
+To verify that `nginx` has been installed properly, show its version
 
 ```shell
 sudo nginx -version
