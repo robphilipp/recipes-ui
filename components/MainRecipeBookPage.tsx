@@ -2,19 +2,29 @@ import {
     BottomNavigation,
     BottomNavigationAction,
     Box,
-    CssBaseline, Divider,
-    Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem,
+    CssBaseline,
+    Divider,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
     Paper,
     Stack,
     Toolbar,
-    Typography, useTheme
+    Typography,
+    useTheme
 } from "@mui/material";
 import {Header} from "./Header";
 import HomeIcon from "@mui/icons-material/Home";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import React, {useState} from "react";
-import {signIn, signOut, useSession} from "next-auth/react";
+import {signIn, useSession} from "next-auth/react";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
 import QuantityConverterDialog from "./QuantityConverterDialog";
@@ -32,7 +42,8 @@ enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
 
-    const {data: session} = useSession()
+    // const {data: session} = useSession()
+    const session = {}
     const router = useRouter()
     const theme = useTheme()
 

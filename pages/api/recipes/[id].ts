@@ -2,11 +2,16 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/Recipe";
 import { RequestMethod } from "../../../components/RequestMethod";
+import {getServerSession} from "next-auth";
+import { authOptions } from "./auth/[...nextauth]"
 
 export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<Recipe>
 ): Promise<void> {
+    const session = await getServerSession(request, response, authOptions)
+    console.log("Session", session)
+
     switch (request.method) {
         case RequestMethod.GET:
             return recipeById(request.query.id as string)

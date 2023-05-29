@@ -1,8 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, {AuthOptions} from "next-auth";
 import {MongoDBAdapter} from "@next-auth/mongodb-adapter";
-import clientPromise from "./mongodb";
+import clientPromise from "../../../../lib/mongodb";
 
-export default NextAuth({
+export const authOptions: AuthOptions = {
     // no providers because we are providing our own database
     providers: [],
     // same mongo database that holds the recipes (I'm sure I'll
@@ -17,4 +17,6 @@ export default NextAuth({
     session: {
         strategy: 'jwt'
     }
-})
+}
+
+export default NextAuth(authOptions)
