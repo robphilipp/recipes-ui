@@ -11,7 +11,7 @@ module.exports = {
         mongoDatabase: 'recipeBook',
         recipeCollection: 'recipes',
 
-        usersCollections: 'users',
+        usersCollection: 'users',
 
         sidebarNavWidthSmall: 180,
         sidebarNavWidthMedium: 250,

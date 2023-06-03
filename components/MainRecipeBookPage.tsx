@@ -211,13 +211,24 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         </>
     }
 
+    async function onSignIn() {
+        // const result = await signIn('credentials', {}, {email: 'rob@digitalcipher.com', password: 'admin'})
+        await router.push(`/api/auth/signin`)
+        // const result = await signIn(
+        //     'credentials',
+        //     {redirect: false},
+        //     {name: 'admin', email: 'admin@digitalcipher.com', password: 'admin'}
+        // )
+        console.log("signIn returned")
+    }
+
     function MainContent(): JSX.Element {
         if (session) {
             return (<Component {...pageProps} />)
         } else {
             return (<>
                 Please sign in<br/>
-                <button onClick={() => signIn()}>Sign In</button>
+                <button onClick={onSignIn}>Sign In</button>
             </>)
         }
     }
