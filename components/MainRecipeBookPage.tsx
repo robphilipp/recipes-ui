@@ -42,8 +42,8 @@ enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
 
-    // const {data: session} = useSession()
-    const session = {}
+    const {data: session} = useSession()
+    // const session = {}
     const router = useRouter()
     const theme = useTheme()
 

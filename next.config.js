@@ -10,9 +10,8 @@ module.exports = {
         MONGODB_URI: 'mongodb://localhost:27017',
         mongoDatabase: 'recipeBook',
         recipeCollection: 'recipes',
-        authenticationCollections: {
-            users: 'users'
-        },
+
+        usersCollections: 'users',
 
         sidebarNavWidthSmall: 180,
         sidebarNavWidthMedium: 250,

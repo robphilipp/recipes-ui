@@ -3,7 +3,7 @@ import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/re
 import {Recipe} from "../../../components/Recipe";
 import { RequestMethod } from "../../../components/RequestMethod";
 import {getServerSession} from "next-auth";
-import { authOptions } from "./auth/[...nextauth]"
+import { authOptions } from "../auth/[...nextauth]"
 
 export default async function handler(
     request: NextApiRequest,

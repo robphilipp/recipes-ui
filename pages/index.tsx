@@ -26,9 +26,6 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {GetServerSideProps, GetServerSidePropsContext} from "next";
-import {ParsedUrlQuery} from "querystring";
-import {useSession, signOut, signIn} from "next-auth/react";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //

@@ -1,6 +1,6 @@
 import NextAuth, {AuthOptions} from "next-auth";
 import {MongoDBAdapter} from "@next-auth/mongodb-adapter";
-import clientPromise from "../../../../lib/mongodb";
+import clientPromise from "../../../lib/mongodb";
 
 export const authOptions: AuthOptions = {
     // no providers because we are providing our own database
