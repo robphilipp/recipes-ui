@@ -218,14 +218,11 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         await router.push(`/api/auth/signin`)
     }
 
-    function MainContent(): JSX.Element {
-        if (!session) {
-            return (<>
-                Please sign in<br/>
-                <button onClick={onSignIn}>Sign In</button>
-            </>)
-        }
-        return <></>
+    function LoginPage(): JSX.Element {
+        return (<>
+            Please sign in<br/>
+            <button onClick={onSignIn}>Sign In</button>
+        </>)
     }
 
     return (
@@ -320,7 +317,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
             >
                 <Toolbar/>
                 {session && <Component {...pageProps} />}
-                <MainContent/>
+                {!session && <LoginPage/>}
                 <Toolbar/>
             </Box>
             {session && <Box>
