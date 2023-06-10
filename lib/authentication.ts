@@ -1,6 +1,6 @@
 import {compare} from "bcrypt"
 import {Collection, MongoClient} from "mongodb";
-import {User} from "../components/User";
+import {RecipesUser} from "../components/RecipesUser";
 import clientPromise from "./mongodb";
 import {Credentials} from "../pages/api/auth/[...nextauth]";
 
@@ -14,11 +14,11 @@ if (process.env.usersCollection === undefined) {
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const USERS_COLLECTION: string = process.env.usersCollection
 
-function usersCollection(client: MongoClient): Collection<User> {
+function usersCollection(client: MongoClient): Collection<RecipesUser> {
     return client.db(MONGO_DATABASE).collection(USERS_COLLECTION)
 }
 
-export async function authenticate(credentials: Credentials): Promise<User> {
+export async function authenticate(credentials: Credentials): Promise<RecipesUser> {
     try {
         const client = await clientPromise
         const user = await usersCollection(client).findOne({email: credentials.email})

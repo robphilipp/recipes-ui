@@ -1,12 +1,12 @@
 // import {NextApiRequest, NextApiResponse} from "next";
-// import {RequestMethod} from "../../../../components/RequestMethod";
-// import {authenticate} from "../../../../lib/authentication";
-// import {Credentials} from "../[...nextauth]";
-// import {RecipesUser} from "../../../../components/RecipesUser";
+// import {RequestMethod} from "../../../components/RequestMethod";
+// import {authenticate} from "../../../lib/authentication";
+// import {Credentials} from "./[...nextauth]";
+// import {User} from "../../../components/User";
 //
 // export default async function handler(
 //     request: NextApiRequest,
-//     response: NextApiResponse<RecipesUser>
+//     response: NextApiResponse<User>
 // ): Promise<void> {
 //     switch (request.method) {
 //         case RequestMethod.POST:

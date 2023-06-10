@@ -15,11 +15,12 @@ export default function App(props: AppProps): JSX.Element {
     const {pageProps: {session, ...pageProps}} = props
 
     return (
-        <SessionProvider session={pageProps.session}>
+        <SessionProvider session={session}>
             <ThemeProvider theme={lightTheme}>
                 <QueryClientProvider client={queryClient}>
                     <SearchProvider>
                         <StatusProvider>
+                            {/*<MainRecipeBookPage {...pageProps}/>*/}
                             <MainRecipeBookPage {...props}/>
                         </StatusProvider>
                     </SearchProvider>

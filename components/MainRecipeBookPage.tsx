@@ -34,6 +34,7 @@ import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./RecipeSearch";
+import {redirect} from "next/navigation";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -42,7 +43,7 @@ enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
 
-    const {data: session} = useSession()
+    const {data: session, update: updateSession} = useSession()
     // const session = {}
     const router = useRouter()
     const theme = useTheme()
@@ -53,6 +54,8 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
+
+    // const goLogin = async () => router.push("/api/auth/signin")
 
     const goHome = async () => router
         .push("/")
@@ -212,25 +215,17 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     }
 
     async function onSignIn() {
-        // const result = await signIn('credentials', {}, {email: 'rob@digitalcipher.com', password: 'admin'})
         await router.push(`/api/auth/signin`)
-        // const result = await signIn(
-        //     'credentials',
-        //     {redirect: false},
-        //     {name: 'admin', email: 'admin@digitalcipher.com', password: 'admin'}
-        // )
-        console.log("signIn returned")
     }
 
     function MainContent(): JSX.Element {
-        if (session) {
-            return (<Component {...pageProps} />)
-        } else {
+        if (!session) {
             return (<>
                 Please sign in<br/>
                 <button onClick={onSignIn}>Sign In</button>
             </>)
         }
+        return <></>
     }
 
     return (
@@ -324,7 +319,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 }}
             >
                 <Toolbar/>
-                {/*{session && <Component {...pageProps} />}*/}
+                {session && <Component {...pageProps} />}
                 <MainContent/>
                 <Toolbar/>
             </Box>

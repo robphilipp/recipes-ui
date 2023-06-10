@@ -1,6 +1,7 @@
 import {Long} from "mongodb";
+import {User} from "next-auth";
 
-export type User = {
+export interface RecipesUser extends User {
     name: string
     email: string
     password: string
@@ -9,5 +10,4 @@ export type User = {
     modifiedOn: number | null | Long
     deletedOn: number | null | Long
     image: string
-
 }
