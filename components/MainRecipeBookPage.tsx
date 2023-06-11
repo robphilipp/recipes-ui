@@ -24,7 +24,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import React, {useState} from "react";
-import {signIn, useSession} from "next-auth/react";
+import {signOut, useSession} from "next-auth/react";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
 import QuantityConverterDialog from "./QuantityConverterDialog";
@@ -34,7 +34,6 @@ import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./RecipeSearch";
-import {redirect} from "next/navigation";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -43,10 +42,15 @@ enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
 
-    const {data: session, update: updateSession} = useSession()
-    // const session = {}
     const router = useRouter()
     const theme = useTheme()
+
+    const {data: session, status} = useSession({
+        required: true,
+        async onUnauthenticated() {
+            await router.push("/api/auth/signin")
+        }
+    })
 
     const [mobileOpen, setMobileOpen] = useState(false);
     const [navItem, setNavItem] = useState<number>(0)
@@ -210,19 +214,16 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
             >
                 <MenuItem onClick={handleClose}>Profile</MenuItem>
                 <MenuItem onClick={handleClose}>My account</MenuItem>
+                {status === "authenticated" && <MenuItem onClick={() => signOut()}>Sign Out</MenuItem>}
             </Menu>
         </>
     }
 
-    async function onSignIn() {
-        await router.push(`/api/auth/signin`)
+    if (status === "loading") {
+        return <div>Authenticating...</div>
     }
-
-    function LoginPage(): JSX.Element {
-        return (<>
-            Please sign in<br/>
-            <button onClick={onSignIn}>Sign In</button>
-        </>)
+    if (session === null) {
+        return <div>Happy feet!</div>
     }
 
     return (
@@ -317,7 +318,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
             >
                 <Toolbar/>
                 {session && <Component {...pageProps} />}
-                {!session && <LoginPage/>}
+                {/*{!session && <LoginPage/>}*/}
                 <Toolbar/>
             </Box>
             {session && <Box>
