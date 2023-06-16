@@ -20,7 +20,6 @@ export default function App(props: AppProps): JSX.Element {
                 <QueryClientProvider client={queryClient}>
                     <SearchProvider>
                         <StatusProvider>
-                            {/*<MainRecipeBookPage {...pageProps}/>*/}
                             <MainRecipeBookPage {...props}/>
                         </StatusProvider>
                     </SearchProvider>

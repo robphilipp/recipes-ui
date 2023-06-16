@@ -1,4 +1,4 @@
-import {AppBar, Toolbar, Typography} from "@mui/material";
+import {AppBar, Box, Container, Toolbar, Typography} from "@mui/material";
 import Link from "next/link";
 import React from "react";
 import {styled} from "@mui/system";
@@ -43,7 +43,8 @@ export function Header(props: Props): JSX.Element {
                 ml: {sm: `${smallRightOffset}px`},
             }}
         >
-            <Toolbar>
+            <Container maxWidth="xl">
+            <Toolbar disableGutters>
                 <Link href={titleImageLink} style={{marginTop: 7}}>
                     <TitleImage src={titleImageSrc} alt={titleImageAlt}/>
                 </Link>
@@ -59,6 +60,7 @@ export function Header(props: Props): JSX.Element {
                 </Typography>
                 {children}
             </Toolbar>
+            </Container>
         </AppBar>
     )
 }

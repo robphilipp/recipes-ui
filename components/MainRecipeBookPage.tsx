@@ -55,8 +55,6 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [navItem, setNavItem] = useState<number>(0)
 
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
 
     // const goLogin = async () => router.push("/api/auth/signin")
@@ -64,10 +62,10 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const goHome = async () => router
         .push("/")
         .then(() => setNavItem(Navigation.HOME))
-    const goAddRecipe = async () => router
+    const handleAddRecipe = async () => router
         .push("/recipes/new")
         .then(() => setNavItem(Navigation.ADD_RECIPE))
-    const goImportRecipe = async () => router
+    const handleImportRecipe = async () => router
         .push("/recipes/import/ocr")
         .then(() => setNavItem(Navigation.IMPORT_RECIPE_OCR))
 
@@ -78,7 +76,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 await goHome()
                 break
             case Navigation.ADD_RECIPE:
-                await goAddRecipe()
+                await handleAddRecipe()
                 break
         }
     }
@@ -107,11 +105,11 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                         <ListItemIcon><HomeIcon/></ListItemIcon>
                         <ListItemText primary="Home"/>
                     </ListItemButton>
-                    <ListItemButton onClick={goAddRecipe}>
+                    <ListItemButton onClick={handleAddRecipe}>
                         <ListItemIcon><AddCircleIcon/></ListItemIcon>
                         <ListItemText primary="Add Recipe"/>
                     </ListItemButton>
-                    <ListItemButton onClick={goImportRecipe}>
+                    <ListItemButton onClick={handleImportRecipe}>
                         <ListItemIcon><DocumentScannerIcon/></ListItemIcon>
                         <ListItemText primary="Import (OCR)"/>
                     </ListItemButton>
@@ -177,29 +175,31 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         );
     }
 
-    function handleMenu(event: React.MouseEvent<HTMLElement>) {
-        setAnchorEl(event.currentTarget)
-    }
-
-    function handleClose() {
-        setAnchorEl(null)
-    }
-
     function Profile(): JSX.Element {
-        return <>
+        const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
+        function handleOpenUserMenu(event: React.MouseEvent<HTMLElement>) {
+            setAnchorElUser(event.currentTarget)
+        }
+
+        function handleCloseUserMenu() {
+            setAnchorElUser(null)
+        }
+
+        return <Box sx={{ flexGrow: 0 }}>
             <IconButton
                 size="large"
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
-                onClick={handleMenu}
+                onClick={handleOpenUserMenu}
                 color="inherit"
             >
                 <AccountCircle/>
             </IconButton>
             <Menu
                 id="menu-appbar"
-                anchorEl={anchorEl}
+                sx={{ mt: '45px' }}
+                anchorEl={anchorElUser}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: 'right',
@@ -209,14 +209,14 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                     vertical: 'top',
                     horizontal: 'right',
                 }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
             >
-                <MenuItem onClick={handleClose}>Profile</MenuItem>
-                <MenuItem onClick={handleClose}>My account</MenuItem>
+                <MenuItem onClick={handleCloseUserMenu}>Profile</MenuItem>
+                <MenuItem onClick={handleCloseUserMenu}>My account</MenuItem>
                 {status === "authenticated" && <MenuItem onClick={() => signOut()}>Sign Out</MenuItem>}
             </Menu>
-        </>
+        </Box>
     }
 
     if (status === "loading") {
@@ -318,7 +318,6 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
             >
                 <Toolbar/>
                 {session && <Component {...pageProps} />}
-                {/*{!session && <LoginPage/>}*/}
                 <Toolbar/>
             </Box>
             {session && <Box>
