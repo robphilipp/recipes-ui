@@ -49,7 +49,9 @@ export default function QuantityConverterDialog(props: Props): JSX.Element {
                 aria-labelledby="draggable-dialog-title"
             >
                 <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">{title}</DialogTitle>
-                <DialogContent>{children}</DialogContent>
+                <DialogContent>
+                    {children}
+                </DialogContent>
                 <DialogActions>
                     <Button autoFocus onClick={handleClose}>Done</Button>
                 </DialogActions>

@@ -77,7 +77,7 @@ export default function AmountConverter(): JSX.Element {
                 required
                 autoFocus={true}
                 value={conversion.from.value}
-                InputProps={{ inputProps: { min: 0, max: 10 } }}
+                // InputProps={{ inputProps: { min: 0, max: 10 } }}
                 onChange={event => {
                     setConversion(current => {
                         const amount: Amount = {...current.from, value: parseFloat(event.target.value)}
@@ -116,7 +116,6 @@ export default function AmountConverter(): JSX.Element {
                 renderInput={(params) => (<TextField {...params} label="units"/>)}
                 options={toOptions}
                 groupBy={option => categoriesForUnit(option.value as UnitType).getOrDefault(UnitCategories.PIECE)}
-                // groupBy={option => categoriesByUnits.get(option.value as UnitType)}
                 sx={{mt: 1.2, mr: 0.5, minWidth: 200, maxWidth: 450}}
                 size='small'
                 value={unitOptionFor(unitFromType(conversion.to.unit))}

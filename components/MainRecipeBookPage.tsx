@@ -5,14 +5,11 @@ import {
     CssBaseline,
     Divider,
     Drawer,
-    IconButton,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Menu,
-    MenuItem,
     Paper,
     Stack,
     Toolbar,
@@ -24,20 +21,22 @@ import HomeIcon from "@mui/icons-material/Home";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import React, {useState} from "react";
-import {signOut, useSession} from "next-auth/react";
+import {useSession} from "next-auth/react";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
 import QuantityConverterDialog from "./QuantityConverterDialog";
-import {AccountCircle, Calculate} from "@mui/icons-material";
+import {Calculate} from "@mui/icons-material";
 import AmountConverter from "./AmountConverter";
 import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./RecipeSearch";
+import UserProfileMenu from "./userprofile/UserProfileMenu";
+import QuickReference from "./QuickReference";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
-enum Navigation {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR}
+enum BottomNavigationItem {HOME, ADD_RECIPE, IMPORT_RECIPE_OCR, CONVERTER}
 
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
@@ -57,30 +56,36 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
 
     const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
 
-    // const goLogin = async () => router.push("/api/auth/signin")
+    async function handleGoHome(): Promise<void> {
+        await router.push("/")
+        setNavItem(BottomNavigationItem.HOME)
+    }
 
-    const goHome = async () => router
-        .push("/")
-        .then(() => setNavItem(Navigation.HOME))
-    const handleAddRecipe = async () => router
-        .push("/recipes/new")
-        .then(() => setNavItem(Navigation.ADD_RECIPE))
-    const handleImportRecipe = async () => router
-        .push("/recipes/import/ocr")
-        .then(() => setNavItem(Navigation.IMPORT_RECIPE_OCR))
+    async function handleAddRecipe(): Promise<void> {
+        await router.push("/recipes/new")
+        setNavItem(BottomNavigationItem.ADD_RECIPE)
+    }
 
+    async function handleImportRecipe(): Promise<void> {
+        await router.push("/recipes/import/ocr")
+        setNavItem(BottomNavigationItem.IMPORT_RECIPE_OCR)
+    }
 
     async function handleBottomNav(event: React.SyntheticEvent<Element, Event>, newNavItem: number) {
         switch (newNavItem) {
-            case Navigation.HOME:
-                await goHome()
+            case BottomNavigationItem.HOME:
+                await handleGoHome()
                 break
-            case Navigation.ADD_RECIPE:
+            case BottomNavigationItem.ADD_RECIPE:
                 await handleAddRecipe()
+                break
+            case BottomNavigationItem.CONVERTER:
+                await router.push("/recipes/converter")
+                setNavItem(BottomNavigationItem.CONVERTER)
                 break
         }
     }
-    function navbarContents() {
+    function NavbarContents(): JSX.Element {
         return (
             <div>
                 <Toolbar>
@@ -101,7 +106,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 </Toolbar>
                 <Divider/>
                 {session && <><List>
-                    <ListItemButton onClick={goHome}>
+                    <ListItemButton onClick={handleGoHome}>
                         <ListItemIcon><HomeIcon/></ListItemIcon>
                         <ListItemText primary="Home"/>
                     </ListItemButton>
@@ -131,92 +136,9 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                     </QuantityConverterDialog>
                 </div>
                 <Divider/>
-                <List sx={{padding: 0}}>
-                    <ListItem>
-                        <Typography sx={{fontSize: 14, fontWeight: 700}}>Quick Reference</Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.TEASPOON), UnitType.MILLILITER).map(amount => `1 tsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.MILLILITER).map(amount => `1 tbsp ≈ ${Math.round(amount.value)} ml`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.TABLESPOON), UnitType.TEASPOON).map(amount => `1 tbsp = ${Math.round(amount.value)} tsps`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.FLUID_OUNCE), UnitType.TABLESPOON).map(amount => `1 fl oz = ${Math.round(amount.value)} tbsps`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.CUP), UnitType.FLUID_OUNCE).map(amount => `1 cup = ${Math.round(amount.value)} fl ozs`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.QUART), UnitType.PINT).map(amount => `1 qt = ${Math.round(amount.value)} pts`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                    <ListItem sx={{paddingTop: 0, paddingBottom: 0}}>
-                        <Typography sx={{fontSize: 13}}>
-                            {convertAmount(amountFor(1, UnitType.GALLON), UnitType.QUART).map(amount => `1 gal = ${Math.round(amount.value)} qts`).getOrDefault('')}
-                        </Typography>
-                    </ListItem>
-                </List>
+                <QuickReference/>
             </div>
         );
-    }
-
-    function Profile(): JSX.Element {
-        const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
-        function handleOpenUserMenu(event: React.MouseEvent<HTMLElement>) {
-            setAnchorElUser(event.currentTarget)
-        }
-
-        function handleCloseUserMenu() {
-            setAnchorElUser(null)
-        }
-
-        return <Box sx={{ flexGrow: 0 }}>
-            <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenUserMenu}
-                color="inherit"
-            >
-                <AccountCircle/>
-            </IconButton>
-            <Menu
-                id="menu-appbar"
-                sx={{ mt: '45px' }}
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-            >
-                <MenuItem onClick={handleCloseUserMenu}>Profile</MenuItem>
-                <MenuItem onClick={handleCloseUserMenu}>My account</MenuItem>
-                {status === "authenticated" && <MenuItem onClick={() => signOut()}>Sign Out</MenuItem>}
-            </Menu>
-        </Box>
     }
 
     if (status === "loading") {
@@ -236,7 +158,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 titleImageAlt="City Year"
             >
                 {session ? <RecipeSearch/> : <></>}
-                <Profile/>
+                <UserProfileMenu status={status}/>
             </Header>
             <Box
                 component="nav"
@@ -268,7 +190,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                         },
                     }}
                 >
-                    {navbarContents()}
+                    <NavbarContents/>
                 </Drawer>
                 <Drawer
                     variant="permanent"
@@ -285,7 +207,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                     }}
                     open
                 >
-                    {navbarContents()}
+                    <NavbarContents/>
                 </Drawer>
                 <Drawer
                     variant="permanent"
@@ -302,7 +224,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                     }}
                     open
                 >
-                    {navbarContents()}
+                    <NavbarContents/>
                 </Drawer>
             </Box>
             <Box
@@ -339,6 +261,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                         <BottomNavigationAction label="Home" icon={<HomeIcon/>}/>
                         <BottomNavigationAction label="Add Recipe" icon={<AddCircleIcon/>}/>
                         <BottomNavigationAction label="Archive" icon={<ArchiveIcon/>}/>
+                        <BottomNavigationAction label="Converter" icon={<Calculate/>}/>
                     </BottomNavigation>
                 </Paper>
             </Box>}

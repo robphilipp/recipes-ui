@@ -1,4 +1,4 @@
-import convert, {Force, Mass, Volume} from "convert";
+import convert, {Force, Mass, Temperature, Volume} from "convert";
 import {failureResult, Result, resultFromAll, successResult} from "result-fn";
 
 export enum UnitName {
@@ -20,7 +20,11 @@ export enum UnitName {
     gallon = 'gallon',
 
     piece = 'piece',
-    pinch = 'pinch'
+    pinch = 'pinch',
+
+    fahrenheit = 'fahrenheit',
+    celsius = 'celsius',
+    kelvin = 'kelvin',
 }
 
 /**
@@ -53,7 +57,8 @@ export enum UnitType {
     OUNCE = 'oz', POUND = 'lb',
     MILLILITER = 'ml', LITER = 'l', TEASPOON = 'tsp', TABLESPOON = 'tbsp', FLUID_OUNCE = 'fl oz',
     CUP = 'cup', PINT = 'pt', QUART = 'qt', GALLON = 'gal',
-    PIECE = 'piece', PINCH = 'pinch'
+    PIECE = 'piece', PINCH = 'pinch',
+    FAHRENHEIT = 'F', CELSIUS = 'C', KELVIN = 'K'
 }
 
 const units = new Map<UnitName, UnitType>([
@@ -76,6 +81,10 @@ const units = new Map<UnitName, UnitType>([
 
     [UnitName.piece, UnitType.PIECE],
     [UnitName.pinch, UnitType.PINCH],
+
+    [UnitName.fahrenheit, UnitType.FAHRENHEIT],
+    [UnitName.celsius, UnitType.CELSIUS],
+    [UnitName.kelvin, UnitType.KELVIN],
 ])
 
 const unitTypeToName = new Map<UnitType, UnitName>([
@@ -97,7 +106,11 @@ const unitTypeToName = new Map<UnitType, UnitName>([
     [UnitType.GALLON, UnitName.gallon],
 
     [UnitType.PIECE, UnitName.piece],
-    [UnitType.PINCH, UnitName.pinch]
+    [UnitType.PINCH, UnitName.pinch],
+
+    [UnitType.FAHRENHEIT, UnitName.fahrenheit],
+    [UnitType.CELSIUS, UnitName.celsius],
+    [UnitType.KELVIN, UnitName.kelvin],
 ])
 
 export function unitFromName(unitName: UnitName): Unit {
@@ -123,7 +136,8 @@ export enum UnitCategories {
     MASS = 'Mass',
     WEIGHT = 'Weight',
     VOLUME = 'Volume',
-    PIECE = 'Piece'
+    PIECE = 'Piece',
+    TEMPERATURE = 'Temperature'
 }
 
 /**
@@ -178,6 +192,11 @@ const unitsByCategory = new Map<UnitCategories, Array<Unit>>([
     [UnitCategories.PIECE, [
         unitFrom(UnitType.PIECE, UnitName.piece),
         unitFrom(UnitType.PINCH, UnitName.pinch)
+    ]],
+    [UnitCategories.TEMPERATURE, [
+        unitFrom(UnitType.FAHRENHEIT, UnitName.fahrenheit),
+        unitFrom(UnitType.CELSIUS, UnitName.celsius),
+        unitFrom(UnitType.KELVIN, UnitName.kelvin)
     ]]
 ])
 
@@ -238,7 +257,8 @@ export function categoriesForUnit(unitType: UnitType): Result<UnitCategories, st
 
 type Conversions = 'mg' | 'g' | 'kg' |
     'ounce' | 'pounds' |
-    'ml' | 'liter' | 'tsp' | 'tbsp' | 'cup' | 'fl oz' | 'pint' | 'quart' | 'gallon'
+    'ml' | 'liter' | 'tsp' | 'tbsp' | 'cup' | 'fl oz' | 'pint' | 'quart' | 'gallon' |
+    'F' | 'C' | 'K'
 const conversionMap = new Map<UnitType, Conversions>([
     [UnitType.MILLIGRAM, 'mg'],
     [UnitType.GRAM, 'g'],
@@ -255,7 +275,11 @@ const conversionMap = new Map<UnitType, Conversions>([
     [UnitType.FLUID_OUNCE, 'fl oz'],
     [UnitType.PINT, 'pint'],
     [UnitType.QUART, 'quart'],
-    [UnitType.GALLON, 'gallon']
+    [UnitType.GALLON, 'gallon'],
+
+    [UnitType.FAHRENHEIT, 'F'],
+    [UnitType.CELSIUS, 'C'],
+    [UnitType.KELVIN, 'K']
 ])
 
 /**
@@ -294,6 +318,11 @@ export function convertAmount(amount: Amount, toUnit: UnitType): Result<Amount, 
             case UnitCategories.VOLUME:
                 return successResult({
                     value: convert(amount.value, fromUnits as Volume).to(toUnits as Volume),
+                    unit: toUnit
+                })
+            case UnitCategories.TEMPERATURE:
+                return successResult({
+                    value: convert(amount.value, fromUnits as Temperature).to(toUnits as Temperature),
                     unit: toUnit
                 })
             default:
