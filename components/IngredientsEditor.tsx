@@ -1,5 +1,5 @@
 import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";
 import {DisplayMode} from "./FormMode";

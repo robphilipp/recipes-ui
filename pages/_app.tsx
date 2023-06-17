@@ -1,6 +1,6 @@
 import '../styles/global.css'
 import {AppProps} from 'next/app'
-import React from "react";
+import React, {JSX} from "react";
 import SearchProvider from "../lib/useSearch";
 import StatusProvider from "../lib/useStatus";
 import {ThemeProvider} from '@mui/material/styles';

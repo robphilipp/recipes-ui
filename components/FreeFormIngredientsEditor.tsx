@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState, JSX} from "react";
 import {ILexingError} from "chevrotain";
 import {Ingredient as ParsedIngredient, toIngredients} from "@saucie/recipe-parser";
 import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";

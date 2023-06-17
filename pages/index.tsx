@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import Date from '../components/Date'
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 import {
     Avatar,
     Box,

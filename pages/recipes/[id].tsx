@@ -1,7 +1,7 @@
 import Head from "next/head";
 import {GetServerSideProps} from "next";
 import Date from '../../components/Date'
-import React from "react";
+import React, {JSX} from "react";
 import {Chip, IconButton, Rating, Typography, useTheme} from "@mui/material";
 import axios from "axios";
 import {ratingsFrom, Recipe, subtractTime} from "../../components/Recipe";
@@ -15,7 +15,7 @@ import {IngredientsView} from "../../components/IngredientsView";
 import {StepsView} from "../../components/StepsView";
 import {PdfConverter} from "../../components/exportrecipes/PdfConverter";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import JSX = jsx.JSX;
+// import JSX = jsx.JSX;
 
 const ratingFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,

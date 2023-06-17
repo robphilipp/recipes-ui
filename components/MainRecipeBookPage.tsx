@@ -6,7 +6,6 @@ import {
     Divider,
     Drawer,
     List,
-    ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
@@ -20,14 +19,13 @@ import {Header} from "./Header";
 import HomeIcon from "@mui/icons-material/Home";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ArchiveIcon from "@mui/icons-material/Archive";
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 import {useSession} from "next-auth/react";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
 import QuantityConverterDialog from "./QuantityConverterDialog";
 import {Calculate} from "@mui/icons-material";
 import AmountConverter from "./AmountConverter";
-import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./RecipeSearch";
@@ -249,7 +247,12 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        zIndex: theme => theme.zIndex.drawer + 1
+                        zIndex: theme => theme.zIndex.drawer + 1,
+                        display: {
+                            sm: 'none',
+                            md: 'none',
+                            lg: 'none'
+                        }
                     }}
                     elevation={3}
                 >

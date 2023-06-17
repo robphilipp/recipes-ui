@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, {ChangeEvent, useEffect, useState} from "react";
+import React, {ChangeEvent, useEffect, useState, JSX} from "react";
 import {Box, Button, ButtonGroup, TextField, Typography} from "@mui/material";
 import {emptyRecipe, Ingredient, isValidRecipe, Recipe, RequiredTime, Step} from "./Recipe";
 import {IngredientForm} from "./IngredientForm";

@@ -3,7 +3,7 @@ import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {StepForm} from "./StepForm";
 import {DisplayMode} from "./FormMode";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 import {ItemPosition, Movement} from "./RecipeEditor";
 import {EditorMode, EditorModelLabel, EditorModeRadio} from "./EditorMode";
 import {FreeFormStepsEditor} from "./FreeFormStepsEditor";

@@ -12,7 +12,7 @@ import {
     UnitType
 } from '../lib/Measurements'
 import {Autocomplete, Box, Stack, TextField} from "@mui/material";
-import React, {SyntheticEvent, useState} from "react";
+import React, {SyntheticEvent, useState, JSX} from "react";
 import {formatNumber} from "../lib/utils";
 
 type UnitOption = { label: UnitName, value: UnitType }

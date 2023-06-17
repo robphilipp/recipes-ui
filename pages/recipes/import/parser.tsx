@@ -1,7 +1,7 @@
 import {Recipe, toRecipe} from "@saucie/recipe-parser"
 
 import {Button, TextareaAutosize} from "@mui/material";
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 
 export default function ImportRecipeParser(): JSX.Element {
 

@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState, JSX} from "react";
 import {useDropzone} from "react-dropzone";
 import Tesseract, {createWorker} from "tesseract.js";
 import {Box, Icon, lighten, LinearProgress, LinearProgressProps, Stack, Typography, useTheme} from "@mui/material";

@@ -1,6 +1,6 @@
 import {List, ListItem, Typography} from "@mui/material";
 import {amountFor, convertAmount, UnitType} from "../lib/Measurements";
-import React from "react";
+import React, {JSX} from "react";
 
 export default function QuickReference(): JSX.Element {
     return <>

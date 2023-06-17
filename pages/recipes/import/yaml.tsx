@@ -1,5 +1,5 @@
 import {TextareaAutosize} from "@mui/material";
-import {useState} from "react";
+import {useState, JSX} from "react";
 
 const initialYaml = `recipe:
   name: 

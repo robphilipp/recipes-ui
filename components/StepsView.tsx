@@ -1,4 +1,4 @@
-import React from "react";
+import React, {JSX} from "react";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography} from "@mui/material";
 import {useStatus} from "../lib/useStatus";
 import {Recipe, Step} from "./Recipe";

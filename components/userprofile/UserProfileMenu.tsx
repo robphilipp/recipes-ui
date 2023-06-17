@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, JSX} from "react";
 import {Box, IconButton, Menu, MenuItem} from "@mui/material";
 import {AccountCircle} from "@mui/icons-material";
 import {signOut} from "next-auth/react";

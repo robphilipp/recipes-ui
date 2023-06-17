@@ -1,6 +1,6 @@
 import {AppBar, Box, Container, Toolbar, Typography} from "@mui/material";
 import Link from "next/link";
-import React from "react";
+import React, {JSX} from "react";
 import {styled} from "@mui/system";
 
 const TitleImage = styled('img')({
