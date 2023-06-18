@@ -11,7 +11,7 @@ export default function BottomNavBar(): JSX.Element {
     const router = useRouter()
 
     function selectedItemFromRoute(route: string): BottomNavigationItem | undefined {
-        switch(route) {
+        switch (route) {
             case "/":
                 return BottomNavigationItem.HOME
             case "/recipes/new":
@@ -37,40 +37,42 @@ export default function BottomNavBar(): JSX.Element {
         }
     }
 
-    return (<Box>
-        <Paper
-            sx={{
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: theme => theme.zIndex.drawer + 1,
-                display: {
-                    sm: 'none',
-                    md: 'none',
-                    lg: 'none'
-                }
-            }}
-            elevation={3}
-        >
-            <BottomNavigation
-                showLabels
-                value={selectedItemFromRoute(router.route)}
-                onChange={(event, newValue) => handleBottomNav(event, newValue)}
+    return (
+        <Box>
+            <Paper
+                sx={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: theme => theme.zIndex.drawer + 1,
+                    display: {
+                        sm: 'none',
+                        md: 'none',
+                        lg: 'none'
+                    }
+                }}
+                elevation={3}
             >
-                <BottomNavigationAction
-                    label="Home"
-                    icon={<HomeIcon/>}
-                />
-                <BottomNavigationAction
-                    label="Add Recipe"
-                    icon={<AddCircleIcon/>}
-                />
-                <BottomNavigationAction
-                    label="Converter"
-                    icon={<Calculate/>}
-                />
-            </BottomNavigation>
-        </Paper>
-    </Box>)
+                <BottomNavigation
+                    showLabels
+                    value={selectedItemFromRoute(router.route)}
+                    onChange={(event, newValue) => handleBottomNav(event, newValue)}
+                >
+                    <BottomNavigationAction
+                        label="Home"
+                        icon={<HomeIcon/>}
+                    />
+                    <BottomNavigationAction
+                        label="Add Recipe"
+                        icon={<AddCircleIcon/>}
+                    />
+                    <BottomNavigationAction
+                        label="Converter"
+                        icon={<Calculate/>}
+                    />
+                </BottomNavigation>
+            </Paper>
+        </Box>
+    )
 }

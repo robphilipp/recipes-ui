@@ -12,7 +12,7 @@ import MainRecipeBookPage from "../components/MainRecipeBookPage";
 const queryClient = new QueryClient()
 
 export default function App(props: AppProps): JSX.Element {
-    const {pageProps: {session, ...pageProps}} = props
+    const {pageProps: {session}} = props
 
     return (
         <SessionProvider session={session}>
