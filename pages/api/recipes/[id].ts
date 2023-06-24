@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/recipes/Recipe";
-import { RequestMethod } from "../../../components/RequestMethod";
+import { RequestMethod } from "../../../lib/RequestMethod";
 import {getServerSession} from "next-auth";
 import authOptions from "../auth/[...nextauth]"
 

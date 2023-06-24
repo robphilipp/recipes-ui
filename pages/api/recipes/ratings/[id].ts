@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {updateRatings} from "../../../../lib/recipes";
 import {Recipe} from "../../../../components/recipes/Recipe";
-import {RequestMethod} from "../../../../components/RequestMethod";
+import {RequestMethod} from "../../../../lib/RequestMethod";
 
 type UpdateRating = {
     newRating: number

@@ -10,10 +10,10 @@ import {
     unitFromType,
     UnitName, unitsForCategory,
     UnitType
-} from '../lib/Measurements'
+} from '../../lib/Measurements'
 import {Autocomplete, Box, Stack, TextField} from "@mui/material";
 import React, {SyntheticEvent, useState, JSX} from "react";
-import {formatNumber} from "../lib/utils";
+import {formatNumber} from "../../lib/utils";
 
 type UnitOption = { label: UnitName, value: UnitType }
 type Conversion = { from: Amount, to: Amount }

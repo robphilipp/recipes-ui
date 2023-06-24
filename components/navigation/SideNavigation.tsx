@@ -16,9 +16,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
-import QuantityConverterDialog from "../QuantityConverterDialog";
+import QuantityConverterDialog from "../conversions/QuantityConverterDialog";
 import {Calculate} from "@mui/icons-material";
-import AmountConverter from "../AmountConverter";
+import AmountConverter from "../conversions/AmountConverter";
 import QuickReference from "../QuickReference";
 import {useRouter} from "next/router";
 

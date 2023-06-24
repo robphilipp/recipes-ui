@@ -1,6 +1,6 @@
 import {compare} from "bcrypt"
 import {Collection, MongoClient} from "mongodb";
-import {RecipesUser} from "../components/RecipesUser";
+import {RecipesUser} from "./RecipesUser";
 import clientPromise from "./mongodb";
 import {Credentials} from "../pages/api/auth/[...nextauth]";
 

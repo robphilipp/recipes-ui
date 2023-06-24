@@ -1,4 +1,4 @@
-import AmountConverter from "../../components/AmountConverter";
+import AmountConverter from "../../components/conversions/AmountConverter";
 import React, {JSX} from "react";
 import QuickReference from "../../components/QuickReference";
 
