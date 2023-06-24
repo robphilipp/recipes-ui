@@ -4,7 +4,7 @@ import React, {JSX} from "react";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
-import RecipeSearch from "./RecipeSearch";
+import RecipeSearch from "./recipes/RecipeSearch";
 import UserProfileMenu from "./userprofile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";

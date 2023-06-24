@@ -1,6 +1,6 @@
 import React, {ChangeEvent, SyntheticEvent, useRef, useState} from 'react'
 import {Autocomplete, Box, Grid, IconButton, ListItem, ListItemText, TextField} from "@mui/material";
-import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText, isEmptyIngredient,} from "./Recipe";
+import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText, isEmptyIngredient,} from "../Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
@@ -18,7 +18,7 @@ import {
     UnitName,
     UnitType,
     unitTypeFrom
-} from "../lib/Measurements";
+} from "../../../lib/Measurements";
 
 function noop() {
 }

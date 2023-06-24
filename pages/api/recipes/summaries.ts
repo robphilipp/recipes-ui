@@ -1,6 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {recipeSummariesByName, recipeSummariesSearch} from "../../../lib/recipes";
-import {RecipeSummary} from "../../../components/Recipe";
+import {RecipeSummary} from "../../../components/recipes/Recipe";
 
 /**
  * Retrieves the recipes that match the search terms represented in the query-parameter

@@ -12,7 +12,7 @@ import {
 import {IconButton} from "@mui/material";
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import download from 'downloadjs'
-import {ingredientAsText, Recipe} from "../Recipe";
+import {ingredientAsText, Recipe} from "../recipes/Recipe";
 import {DateTime} from "luxon";
 import {formatNumber} from "../../lib/utils";
 

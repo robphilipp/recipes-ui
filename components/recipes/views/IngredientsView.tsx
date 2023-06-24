@@ -1,11 +1,16 @@
 import React, {JSX} from "react";
-import {Ingredient, ingredientAsText, Recipe} from "./Recipe";
+import {Ingredient, ingredientAsText, Recipe} from "../Recipe";
 import {Checkbox, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography} from "@mui/material";
-import {useStatus} from "../lib/useStatus";
+import {useStatus} from "../../../lib/useStatus";
 
 type Props = {
     recipeId: string
     recipe: Recipe
+}
+
+type Accumulator = {
+    currentSection: string,
+    accumulated: Map<string, Array<Ingredient>>
 }
 
 export function IngredientsView(props: Props): JSX.Element {
@@ -23,7 +28,6 @@ export function IngredientsView(props: Props): JSX.Element {
 
     // organize ingredients by section. any ingredient without a section takes on the current
     // section, any ingredient with a section gets added to that section
-    type Accumulator = { currentSection: string, accumulated: Map<string, Array<Ingredient>> }
     const initial: Accumulator = {currentSection: "", accumulated: new Map<string, Array<Ingredient>>()}
     const organizedIngredients = recipe.ingredients.reduce(
         (accum, ingredient) => {

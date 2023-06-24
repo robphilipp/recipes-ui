@@ -1,7 +1,7 @@
 import Head from "next/head";
 import React, {ChangeEvent, useEffect, useState, JSX} from "react";
 import {Box, Button, ButtonGroup, TextField, Typography} from "@mui/material";
-import {emptyRecipe, Ingredient, isValidRecipe, Recipe, RequiredTime, Step} from "./Recipe";
+import {emptyRecipe, Ingredient, isValidRecipe, Recipe, RequiredTime, Step} from "../Recipe";
 import {IngredientForm} from "./IngredientForm";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import {StepForm} from "./StepForm";

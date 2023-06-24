@@ -19,7 +19,7 @@ import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
 import {MenuBook} from "@mui/icons-material";
-import {ratingsFrom, RecipeSummary} from "../components/Recipe";
+import {ratingsFrom, RecipeSummary} from "../components/recipes/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
 import {useRouter} from "next/router";

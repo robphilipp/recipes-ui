@@ -1,4 +1,4 @@
-import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "./Recipe";
+import {copyIngredient, emptyIngredient, Ingredient, ingredientAsText} from "../Recipe";
 import React, {useState, JSX} from "react";
 import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {IngredientForm} from "./IngredientForm";

@@ -1,8 +1,8 @@
 import React from 'react'
-import {RecipeEditor} from "../../components/RecipeEditor";
+import {RecipeEditor} from "../../components/recipes/editors/RecipeEditor";
 import axios from "axios";
 import {useRouter} from "next/router";
-import { Recipe } from '../../components/Recipe';
+import { Recipe } from '../../components/recipes/Recipe';
 
 /**
  * Wraps the recipe editor for creating new recipes

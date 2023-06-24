@@ -1,7 +1,7 @@
 import {alpha, InputBase, styled} from "@mui/material";
 import React, {JSX} from "react";
 import SearchIcon from "@mui/icons-material/Search";
-import {useSearch} from "../lib/useSearch";
+import {useSearch} from "../../lib/useSearch";
 import {useRouter} from "next/router";
 
 

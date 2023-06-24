@@ -5,9 +5,9 @@ import {ArrowCircleDown, ThumbDown, ThumbUp} from "@mui/icons-material";
 import {Decoration, DecorationSet, EditorView} from "@codemirror/view";
 import {EditorState, StateEffect, StateField} from "@codemirror/state";
 import {basicSetup} from "@codemirror/basic-setup"
-import {Ingredient} from "./Recipe";
-import {formatQuantityFor} from "../lib/utils";
-import {unitNameFor, unitTypeFrom} from "../lib/Measurements";
+import {Ingredient} from "../Recipe";
+import {formatQuantityFor} from "../../../lib/utils";
+import {unitNameFor, unitTypeFrom} from "../../../lib/Measurements";
 import {UUID} from "bson";
 import {Box, Button, ButtonGroup, Divider, Grid, Theme, Typography, useTheme} from "@mui/material";
 import {styled} from "@mui/system";

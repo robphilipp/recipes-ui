@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react'
-import {RequiredTime, TimeUnits, timeUnitsFrom} from "./Recipe";
+import {RequiredTime, TimeUnits, timeUnitsFrom} from "../Recipe";
 import {Box, IconButton, MenuItem, Select, SelectChangeEvent, TextField, Typography} from "@mui/material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import {DisplayMode} from "./FormMode";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SaveIcon from '@mui/icons-material/Save';
-import {formatQuantityFor} from "../lib/utils";
+import {formatQuantityFor} from "../../../lib/utils";
 
 function noop() {}
 

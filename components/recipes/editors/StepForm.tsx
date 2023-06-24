@@ -10,7 +10,7 @@ import {
     ListItemText,
     TextField
 } from "@mui/material";
-import {copyStep, emptyStep, isEmptyStep, Step} from "./Recipe";
+import {copyStep, emptyStep, isEmptyStep, Step} from "../Recipe";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from '@mui/icons-material/Cancel';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';

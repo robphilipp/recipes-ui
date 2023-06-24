@@ -1,4 +1,4 @@
-import {copyStep, emptyStep, Step} from "./Recipe";
+import {copyStep, emptyStep, Step} from "../Recipe";
 import {Button, List, ListItem, RadioGroup} from "@mui/material";
 import {StepForm} from "./StepForm";
 import {DisplayMode} from "./FormMode";

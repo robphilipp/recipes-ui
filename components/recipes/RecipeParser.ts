@@ -9,7 +9,7 @@ import {
 } from "@saucie/recipe-parser";
 import {failureResult, Result, resultFromAll, successResult} from "result-fn";
 import {ILexingError} from "chevrotain";
-import {unitTypeFrom} from "../lib/Measurements";
+import {unitTypeFrom} from "../../lib/Measurements";
 
 // export function parseRecipe(text: string): Result<Recipe, Array<ILexingError>> {
 //     const {result: recipe, errors} = toRecipe(text, {deDupSections: true})
