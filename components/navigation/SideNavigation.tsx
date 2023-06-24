@@ -1,4 +1,4 @@
-import React, {JSX, useState} from "react";
+import React, {JSX} from "react";
 import {
     Box,
     Divider,
@@ -32,10 +32,6 @@ export default function SideNavigation(props: Props): JSX.Element {
 
     const theme = useTheme()
     const router = useRouter()
-
-    const [mobileOpen, setMobileOpen] = useState(false);
-
-    const handleDrawerToggle = () => setMobileOpen(!mobileOpen)
 
     async function handleGoHome(): Promise<void> {
         await router.push("/")
@@ -119,8 +115,6 @@ export default function SideNavigation(props: Props): JSX.Element {
         >
             <Drawer
                 variant="temporary"
-                open={mobileOpen}
-                onClose={handleDrawerToggle}
                 ModalProps={{
                     keepMounted: true,
                 }}
