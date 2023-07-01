@@ -11,6 +11,8 @@ import {IngredientsView} from "./IngredientsView";
 import {StepsView} from "./StepsView";
 import {ratingsFrom, Recipe, subtractTime} from "../Recipe";
 import {useRouter} from "next/router";
+import {Star, StarBorder} from "@mui/icons-material";
+import RecipeRating from "../RecipeRating";
 
 type Props = {
     recipe: Recipe
@@ -76,13 +78,7 @@ export default function RecipeView(props: Props): JSX.Element {
                     </span>
                 ))}
                 <Typography sx={{marginTop: 1.75}}>
-                    <Rating
-                        name="recipe-rating"
-                        defaultValue={0}
-                        precision={1}
-                        value={rating.mean}
-                        onChange={(event, newValue) => {if (newValue !== null ) handleRatingChange(newValue)}}
-                    />
+                    <RecipeRating rating={rating} handleRatingChange={handleRatingChange}/>
                     <Typography sx={{marginTop: -1, fontSize: '0.7em'}}>
                         {ratingFormatter.format(isNaN(rating.mean) ? 0 : rating.mean)} with {numRatingsFormatter.format(rating.ratings)} ratings
                     </Typography>

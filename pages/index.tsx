@@ -26,6 +26,7 @@ import {useRouter} from "next/router";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import RecipeRating from "../components/recipes/RecipeRating";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -241,13 +242,7 @@ export default function Home(props: Props): JSX.Element {
                                         marginTop: -1
                                     }}
                                 >
-                                    <Rating
-                                        name="recipe-rating"
-                                        defaultValue={0}
-                                        precision={1}
-                                        value={rating.mean}
-                                        readOnly
-                                    />
+                                    <RecipeRating rating={rating}/>
                                     <Box sx={{paddingLeft: 1, fontSize: '0.8em'}}>
                                         ({rating.ratings})
                                     </Box>
