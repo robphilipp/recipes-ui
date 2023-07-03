@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials"
 import {authenticate} from "../../../lib/authentication";
-import {RecipesUser} from "../../../lib/RecipesUser";
+import {RecipesUser} from "../../../components/users/RecipesUser";
 
 export type Credentials = {
     email: string

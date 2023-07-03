@@ -1,8 +1,9 @@
 import {compare} from "bcrypt"
 import {Collection, MongoClient} from "mongodb";
-import {RecipesUser} from "./RecipesUser";
+import {RecipesUser} from "../components/users/RecipesUser";
 import clientPromise from "./mongodb";
 import {Credentials} from "../pages/api/auth/[...nextauth]";
+import {roleFor} from "./roles";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -18,6 +19,13 @@ function usersCollection(client: MongoClient): Collection<RecipesUser> {
     return client.db(MONGO_DATABASE).collection(USERS_COLLECTION)
 }
 
+/**
+ * Attempts to authenticate the user against the database, and if authenticated,
+ * enriches the database user with their role.
+ * @param credentials The credentials (username, password) to use for authenticating
+ * @return A {@link Promise} holding the {@link RecipesUser} if authenticated; a
+ * rejection otherwise
+ */
 export async function authenticate(credentials: Credentials): Promise<RecipesUser> {
     try {
         const client = await clientPromise
@@ -29,7 +37,8 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
         try {
             const authenticated = await compare(credentials.password, user.password)
             if (authenticated) {
-                return user
+                const role = await roleFor(user._id.toString())
+                return {...user, role}
             } else {
                 return Promise.reject('Invalid credentials')
             }

@@ -12,6 +12,8 @@ module.exports = {
         recipeCollection: 'recipes',
 
         usersCollection: 'users',
+        rolesCollection: 'roles',
+        usersRolesCollection: 'users_roles',
 
         sidebarNavWidthSmall: 180,
         sidebarNavWidthMedium: 250,

@@ -193,15 +193,15 @@ export function RecipeEditor(props: Props): JSX.Element {
                         onChange={event => setRecipe(current => ({...current, author: event.target.value}))}
                     />
                 </div>
-                <div>
-                    <TextField
-                        id="recipe-added-by"
-                        label="Added By"
-                        size="small"
-                        value={recipe.addedBy || ''}
-                        onChange={event => setRecipe(current => ({...current, addedBy: event.target.value}))}
-                    />
-                </div>
+                {/*<div>*/}
+                {/*    <TextField*/}
+                {/*        id="recipe-added-by"*/}
+                {/*        label="Added By"*/}
+                {/*        size="small"*/}
+                {/*        value={recipe.addedBy || ''}*/}
+                {/*        onChange={event => setRecipe(current => ({...current, addedBy: event.target.value}))}*/}
+                {/*    />*/}
+                {/*</div>*/}
                 <div>
                     <TextField
                         id="recipe-yield-amount"

@@ -5,7 +5,7 @@ import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./recipes/RecipeSearch";
-import UserProfileMenu from "./userprofile/UserProfileMenu";
+import UserProfileMenu from "./users/profile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
 

@@ -17,4 +17,5 @@ export default async function handler(
     const queries = typeof request.query.name === 'string' ? [request.query.name] : request.query.name
     return recipeSummariesSearch(queries)
         .then(summaries => response.status(200).json(summaries))
+        .catch(reason => console.log(`Failed to find recipes summaries; reason: ${reason}`))
 }

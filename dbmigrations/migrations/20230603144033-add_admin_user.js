@@ -15,7 +15,6 @@ Then run the following from node
 
 const {baseUsersSchema} = require("./20230529195813-add_users_collectoin_again")
 const bcrypt = require('bcrypt')
-// const {Long} = require("mongodb");
 const {Long} = require("bson")
 const saltRounds = 10
 
