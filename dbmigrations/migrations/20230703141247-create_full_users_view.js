@@ -2,21 +2,14 @@ const {baseUsersSchema} = require("./20230529195813-add_users_collectoin_again")
 const {baseRolesSchema} = require("./20230703121956-create_roles_collection")
 const {baseUserRolesSchema} = require("./20230703125505-create_users_roles_mapping_collection")
 
-
 function viewSchema() {
     const fullUsersViewSchema = {...baseUsersSchema}
     fullUsersViewSchema.$jsonSchema.required.push("roleId", "role_name", "role_description", "userId")
-    fullUsersViewSchema.$jsonSchema.properties.roleId = {
-        bsonType: "string",
-        description: "must be a string and is required"
-    }
+    fullUsersViewSchema.$jsonSchema.properties.roleId = baseUserRolesSchema.$jsonSchema.properties.roleId
     fullUsersViewSchema.$jsonSchema.properties.role_name = baseRolesSchema.$jsonSchema.properties.name
     fullUsersViewSchema.$jsonSchema.properties.role_description = baseRolesSchema.$jsonSchema.properties.description
 
-    fullUsersViewSchema.$jsonSchema.properties.userId = {
-        bsonType: "string",
-        description: "must be a string and is required"
-    }
+    fullUsersViewSchema.$jsonSchema.properties.userId = baseUserRolesSchema.$jsonSchema.properties.userId
 
     return fullUsersViewSchema
 }

@@ -10,11 +10,11 @@ const baseUserRolesSchema = {
         properties: {
             _id: {},
             roleId: {
-                bsonType: "ObjectID",
+                bsonType: "string",
                 description: "must be an object ID associated with a role"
             },
             userId: {
-                bsonType: "ObjectID",
+                bsonType: "string",
                 description: "must be an object ID associated with a user"
             }
         }
