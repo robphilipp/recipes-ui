@@ -1,9 +1,9 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {roles} from "../../../lib/roles";
-import {Role} from "../../../components/users/Role";
+import {roles} from "../../lib/roles";
+import {Role} from "../../components/users/Role";
 import {getServerSession} from "next-auth";
-import authOptions from "../auth/[...nextauth]";
-import {RequestMethod} from "../../../lib/RequestMethod";
+import authOptions from "./auth/[...nextauth]";
+import {RequestMethod} from "../../lib/RequestMethod";
 
 export default async function handler(
     request: NextApiRequest,

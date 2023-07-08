@@ -10,12 +10,12 @@ export type Credentials = {
 
 const credentialsProvider = CredentialsProvider({
     id: 'recipes-provider-mongo-credentials',
-    // The name to display on the sign in form (e.g. 'Sign in with...')
+    // The name to display on the sign-in form (e.g. 'Sign in with...')
     name: 'email and password',
     // use credentials to log in (setting this will cause the authorize function, which
     // is defined below, to be called)
     type: "credentials",
-    // The credentials is used to generate a suitable form on the sign in page.
+    // The credentials are used to generate a suitable form on the sign-in page.
     // You can specify whatever fields you are expecting to be submitted.
     // e.g. domain, username, password, 2FA token, etc.
     // You can pass any HTML attribute to the <input> tag through the object.
@@ -41,5 +41,29 @@ export default NextAuth({
     // use JSON web tokens for managing sessions
     session: {
         strategy: 'jwt'
+    },
+    // added to try to get the role into the user (may want to remove some of these
+    callbacks: {
+        // async signIn({ user, account, profile, email, credentials }): Promise<boolean> {
+        //     const isAllowedToSignIn = true
+        //     if (isAllowedToSignIn) {
+        //         return true
+        //     } else {
+        //         // Return false to display a default error message
+        //         return false
+        //         // Or you can return a URL to redirect to:
+        //         // return '/unauthorized'
+        //     }
+        // },
+        async jwt({ token, user }) {
+            if (user !== undefined) {
+                token.user = user
+            }
+            return token
+        },
+        async session({ session, token, user }) {
+            session.user = token.user as RecipesUser
+            return session
+        }
     }
 })

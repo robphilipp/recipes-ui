@@ -8,6 +8,8 @@ import RecipeSearch from "./recipes/RecipeSearch";
 import UserProfileMenu from "./users/profile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
+import {RecipesUser} from "./users/RecipesUser";
+import {RoleType} from "./users/Role";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -25,11 +27,22 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         }
     })
 
+    const user = session?.user as RecipesUser
+
     if (status === "loading") {
         return <div>Authenticating...</div>
     }
     if (session === null) {
         return <div>Happy feet!</div>
+    }
+
+    // todo remove this and replace it with an admin menu or add admin shit to the
+    //     side nav bar
+    function Admin(): JSX.Element {
+        if (user?.role.name === RoleType.ADMIN) {
+            return <span>Admin</span>
+        }
+        return <span>User</span>
     }
 
     return (
@@ -41,7 +54,8 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 titleImageSrc="/images/goodoletimes.png"
                 titleImageAlt="City Year"
             >
-                 <RecipeSearch/>
+                <RecipeSearch/>
+                <Admin/>
                 <UserProfileMenu status={status}/>
             </Header>
             <SideNavigation

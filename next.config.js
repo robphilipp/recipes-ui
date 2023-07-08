@@ -15,6 +15,10 @@ module.exports = {
         rolesCollection: 'roles',
         usersRolesCollection: 'users_roles',
 
+        // views
+        usersView: 'users_full',
+        rolesView: 'users_full',
+
         sidebarNavWidthSmall: 180,
         sidebarNavWidthMedium: 250,
     },
