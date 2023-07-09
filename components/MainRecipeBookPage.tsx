@@ -27,8 +27,6 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         }
     })
 
-    const user = session?.user as RecipesUser
-
     if (status === "loading") {
         return <div>Authenticating...</div>
     }
@@ -36,10 +34,15 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         return <div>Happy feet!</div>
     }
 
+    // todo this cast of the session's user to a RecipeUser should be in a hook that
+    //      wraps the useSession hook, or need to find a way to have the session understand
+    //      that the user is a RecipesUser
+    // const user = session.user as RecipesUser
+
     // todo remove this and replace it with an admin menu or add admin shit to the
     //     side nav bar
     function Admin(): JSX.Element {
-        if (user?.role.name === RoleType.ADMIN) {
+        if (session?.user.role.name === RoleType.ADMIN) {
             return <span>Admin</span>
         }
         return <span>User</span>

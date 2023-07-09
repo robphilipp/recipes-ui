@@ -1,7 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, {Session} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials"
 import {authenticate} from "../../../lib/authentication";
 import {RecipesUser} from "../../../components/users/RecipesUser";
+import {JWT} from "next-auth/jwt";
 
 export type Credentials = {
     email: string
@@ -55,13 +56,16 @@ export default NextAuth({
         //         // return '/unauthorized'
         //     }
         // },
-        async jwt({ token, user }) {
+        async jwt({ token, user }): Promise<JWT> {
+            // when the user is defined, add the user to the token, which will
+            // then appear in the "session" callback, and we update the session's
+            // user to the recipe user
             if (user !== undefined) {
                 token.user = user
             }
             return token
         },
-        async session({ session, token, user }) {
+        async session({ session, token, user }): Promise<Session> {
             session.user = token.user as RecipesUser
             return session
         }
