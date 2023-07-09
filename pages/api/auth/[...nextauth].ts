@@ -43,7 +43,8 @@ export default NextAuth({
     session: {
         strategy: 'jwt'
     },
-    // added to try to get the role into the user (may want to remove some of these
+    // these callbacks serve mainly to put the RecipeUser into the auth.js User object
+    // and have it passed down into the session for broader use by the app
     callbacks: {
         // async signIn({ user, account, profile, email, credentials }): Promise<boolean> {
         //     const isAllowedToSignIn = true
@@ -61,12 +62,12 @@ export default NextAuth({
             // then appear in the "session" callback, and we update the session's
             // user to the recipe user
             if (user !== undefined) {
-                token.user = user
+                token.user = user as RecipesUser
             }
             return token
         },
-        async session({ session, token, user }): Promise<Session> {
-            session.user = token.user as RecipesUser
+        async session({ session, token }): Promise<Session> {
+            session.user = token.user
             return session
         }
     }

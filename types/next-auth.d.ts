@@ -13,7 +13,8 @@ declare module "next-auth" {
      * `SessionProvider` React Context
      */
     interface Session {
-        user: UserAugmentation & DefaultSession["user"]
+        // user: UserAugmentation & DefaultSession["user"]
+        user: RecipesUser
     }
 
     /**
@@ -22,4 +23,15 @@ declare module "next-auth" {
      * the same. Recall that the {@link RecipesUser} extends the {@link User}.
      */
     interface User extends UserAugmentation {}
+}
+
+import { JWT } from "next-auth/jwt"
+
+declare module "next-auth/jwt" {
+    /**
+     * Returned by the `jwt` callback and `getToken`, when using JWT sessions
+     */
+    interface JWT {
+        user: RecipesUser
+    }
 }
