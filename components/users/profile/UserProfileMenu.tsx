@@ -2,15 +2,24 @@ import React, {useState, JSX} from "react";
 import {Box, IconButton, Menu, MenuItem} from "@mui/material";
 import {AccountCircle} from "@mui/icons-material";
 import {signOut} from "next-auth/react";
+import {RoleType} from "../Role";
 
 type Props = {
     status: "authenticated" | "loading"
+    role: RoleType
+}
+
+const ICON_COLOR = {
+    [RoleType.ADMIN]: "#ff8442",
+    [RoleType.ACCOUNT_ADMIN]: "#ecce56",
+    [RoleType.USER]: "#fff",
 }
 
 export default function UserProfileMenu(props: Props): JSX.Element {
-    const {status} = props
+    const {status, role} = props
 
     const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null)
+
     function handleOpenUserMenu(event: React.MouseEvent<HTMLElement>) {
         setAnchorElUser(event.currentTarget)
     }
@@ -28,7 +37,7 @@ export default function UserProfileMenu(props: Props): JSX.Element {
             onClick={handleOpenUserMenu}
             color="inherit"
         >
-            <AccountCircle/>
+            <AccountCircle sx={{color: ICON_COLOR[role]}}/>
         </IconButton>
         <Menu
             id="menu-appbar"

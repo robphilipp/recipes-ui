@@ -17,10 +17,12 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DocumentScannerIcon from "@mui/icons-material/DocumentScanner";
 import SearchIcon from "@mui/icons-material/Search";
 import QuantityConverterDialog from "../conversions/QuantityConverterDialog";
-import {Calculate} from "@mui/icons-material";
+import {Calculate, Groups, LibraryBooks, ManageAccounts} from "@mui/icons-material";
 import AmountConverter from "../conversions/AmountConverter";
 import QuickReference from "../QuickReference";
 import {useRouter} from "next/router";
+import {useSession} from "next-auth/react";
+import {RoleType} from "../users/Role";
 
 type Props = {
     smallWidth?: string
@@ -32,6 +34,7 @@ export default function SideNavigation(props: Props): JSX.Element {
 
     const theme = useTheme()
     const router = useRouter()
+    const {data: session} = useSession()
 
     async function handleGoHome(): Promise<void> {
         await router.push("/")
@@ -43,6 +46,54 @@ export default function SideNavigation(props: Props): JSX.Element {
 
     async function handleImportRecipe(): Promise<void> {
         await router.push("/recipes/import/ocr")
+    }
+
+    async function handleManageUsers(): Promise<void> {
+        await router.push("/admin/users")
+    }
+
+    async function handleManageUserGroups(): Promise<void> {
+        await router.push("/admin/groups")
+    }
+
+    function RecipeMenuItems(): JSX.Element {
+        return (<>
+            <Divider/>
+            <List>
+                <ListItemButton onClick={handleAddRecipe}>
+                    <ListItemIcon><AddCircleIcon/></ListItemIcon>
+                    <ListItemText primary="Add Recipe"/>
+                </ListItemButton>
+                <ListItemButton onClick={handleAddRecipe}>
+                    <ListItemIcon><LibraryBooks/></ListItemIcon>
+                    <ListItemText primary="Recipe Groups"/>
+                </ListItemButton>
+                <ListItemButton onClick={handleImportRecipe}>
+                    <ListItemIcon><DocumentScannerIcon/></ListItemIcon>
+                    <ListItemText primary="Import (OCR)"/>
+                </ListItemButton>
+            </List>
+        </>)
+    }
+
+    function AdminMenuItems({visible}: {visible: boolean}): JSX.Element {
+        if (visible) {
+            return (<>
+                <Divider/>
+                <List>
+                    <ListItemButton onClick={handleManageUsers}>
+                        <ListItemIcon><ManageAccounts/></ListItemIcon>
+                        <ListItemText primary="Users"/>
+                    </ListItemButton>
+                    <ListItemButton onClick={handleManageUserGroups}>
+                        <ListItemIcon><Groups/></ListItemIcon>
+                        <ListItemText primary="User Groups"/>
+                    </ListItemButton>
+                </List>
+            </>)
+        }
+        return <></>
+
     }
 
     function NavbarContents(): JSX.Element {
@@ -70,15 +121,11 @@ export default function SideNavigation(props: Props): JSX.Element {
                         <ListItemIcon><HomeIcon/></ListItemIcon>
                         <ListItemText primary="Home"/>
                     </ListItemButton>
-                    <ListItemButton onClick={handleAddRecipe}>
-                        <ListItemIcon><AddCircleIcon/></ListItemIcon>
-                        <ListItemText primary="Add Recipe"/>
-                    </ListItemButton>
-                    <ListItemButton onClick={handleImportRecipe}>
-                        <ListItemIcon><DocumentScannerIcon/></ListItemIcon>
-                        <ListItemText primary="Import (OCR)"/>
-                    </ListItemButton>
                 </List>
+                <RecipeMenuItems/>
+                <AdminMenuItems
+                    visible={session !== null && session.user.role.name === RoleType.ADMIN}
+                />
                 <Divider/>
                 <List>
                     <ListItemButton disabled>

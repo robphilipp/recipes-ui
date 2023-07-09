@@ -34,15 +34,6 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
         return <div>Happy feet!</div>
     }
 
-    // todo remove this and replace it with an admin menu or add admin shit to the
-    //     side nav bar
-    function Admin(): JSX.Element {
-        if (session?.user.role.name === RoleType.ADMIN) {
-            return <span>Admin</span>
-        }
-        return <span>User</span>
-    }
-
     return (
         <Box sx={{display: 'flex'}}>
             <CssBaseline/>
@@ -53,8 +44,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 titleImageAlt="City Year"
             >
                 <RecipeSearch/>
-                <Admin/>
-                <UserProfileMenu status={status}/>
+                <UserProfileMenu status={status} role={session.user.role.name}/>
             </Header>
             <SideNavigation
                 smallWidth={SMALL_SIDEBAR_NAV_WIDTH}
