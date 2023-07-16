@@ -1,6 +1,6 @@
 import {User} from "next-auth";
 import {Long} from "mongodb";
-import {Role} from "./Role";
+import {Role, RoleType} from "./Role";
 
 /**
  * Additional fields we want the user to have that aren't part of the
@@ -24,3 +24,15 @@ export type UserAugmentation = {
  * need the {@link UserAugmentation} there.
  */
 export type RecipesUser = User & UserAugmentation
+
+export const emptyUser: RecipesUser = {
+    id: "",
+    // augmented values
+    password: "",
+    emailVerified: null,
+    createdOn: -1,
+    modifiedOn: null,
+    deletedOn: null,
+    image: "",
+    role: {name: null, description: ""}
+}

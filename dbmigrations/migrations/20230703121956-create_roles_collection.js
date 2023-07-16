@@ -6,7 +6,7 @@ const baseRolesSchema = {
             _id: {},
             name: {
                 enum: ["admin", "account_admin", "user"],
-                description: "must be either 'admin' or 'user'"
+                description: "must be either 'admin', 'account_admin', or 'user'"
             },
             description: {
                 bsonType: "string",

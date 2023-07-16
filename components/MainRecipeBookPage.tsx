@@ -10,6 +10,7 @@ import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
 import {RecipesUser} from "./users/RecipesUser";
 import {RoleType} from "./users/Role";
+import {useRecipeSession} from "../lib/RequireRole";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -17,22 +18,7 @@ const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
 
-    const router = useRouter()
-
-    // require that the user be logged in, or send the user to a login screen
-    const {data: session, status} = useSession({
-        required: true,
-        async onUnauthenticated() {
-            await router.push("/api/auth/signin")
-        }
-    })
-
-    if (status === "loading") {
-        return <div>Authenticating...</div>
-    }
-    if (session === null) {
-        return <div>Happy feet!</div>
-    }
+    const {role, status} = useRecipeSession()
 
     return (
         <Box sx={{display: 'flex'}}>
@@ -44,7 +30,7 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
                 titleImageAlt="City Year"
             >
                 <RecipeSearch/>
-                <UserProfileMenu status={status} role={session.user.role.name}/>
+                <UserProfileMenu status={status} role={role}/>
             </Header>
             <SideNavigation
                 smallWidth={SMALL_SIDEBAR_NAV_WIDTH}

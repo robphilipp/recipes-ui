@@ -5,8 +5,8 @@ import {signOut} from "next-auth/react";
 import {RoleType} from "../Role";
 
 type Props = {
-    status: "authenticated" | "loading"
-    role: RoleType
+    status: "authenticated" | "loading" | "unauthenticated"
+    role: RoleType | null
 }
 
 const ICON_COLOR = {
@@ -26,6 +26,10 @@ export default function UserProfileMenu(props: Props): JSX.Element {
 
     function handleCloseUserMenu() {
         setAnchorElUser(null)
+    }
+
+    if (status === "unauthenticated" || role === null) {
+        return <></>
     }
 
     return <Box sx={{ flexGrow: 0 }}>

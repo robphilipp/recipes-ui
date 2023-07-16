@@ -3,17 +3,32 @@ import {failureResult, Result, successResult} from "result-fn";
 export enum RoleType {
     ADMIN = 'admin',
     ACCOUNT_ADMIN = 'account_admin',
-    USER = 'user'
+    USER = 'user',
 }
 
 export type Role = {
-    name: RoleType
+    name: RoleType | null
     description: string
 }
 
 export type RoleLiteral = {
     name: string
     description: string
+}
+
+const roles = new Map<RoleType, number>([
+    [RoleType.ADMIN, 3],
+    [RoleType.ACCOUNT_ADMIN, 2],
+    [RoleType.USER, 1],
+])
+
+export function roleAtLeast(minRole: RoleType): (role: RoleType | null) => boolean {
+    return (role: RoleType | null): boolean => {
+        if (role === null) return false;
+        const roleIndex = roles.get(role) ?? 0
+        const minRoleIndex = roles.get(minRole) ?? Infinity
+        return roleIndex >= minRoleIndex
+    }
 }
 
 export function roleFrom(literal: RoleLiteral): Result<Role, string> {
