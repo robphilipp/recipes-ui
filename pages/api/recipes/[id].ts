@@ -2,15 +2,23 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {addRecipe, deleteRecipe, recipeById, updateRecipe} from "../../../lib/recipes";
 import {Recipe} from "../../../components/recipes/Recipe";
 import { RequestMethod } from "../../../lib/RequestMethod";
-import {getServerSession} from "next-auth";
+import {AuthOptions, getServerSession, Session} from "next-auth";
 import authOptions from "../auth/[...nextauth]"
+import {RecipesUser} from "../../../components/users/RecipesUser";
+import {getSession} from "next-auth/react";
+import {getToken} from "next-auth/jwt";
+import {RoleType} from "../../../components/users/Role";
 
 export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<Recipe>
 ): Promise<void> {
-    const session = await getServerSession(request, response, authOptions)
-    console.log("Session", session)
+    const token = await getToken({req: request})
+    console.log("Token", token)
+    if (token === undefined || token === null) {
+        response.redirect("/")
+        return
+    }
 
     switch (request.method) {
         case RequestMethod.GET:

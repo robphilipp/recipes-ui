@@ -25,14 +25,16 @@ export type UserAugmentation = {
  */
 export type RecipesUser = User & UserAugmentation
 
-export const emptyUser: RecipesUser = {
-    id: "",
-    // augmented values
-    password: "",
-    emailVerified: null,
-    createdOn: -1,
-    modifiedOn: null,
-    deletedOn: null,
-    image: "",
-    role: {name: null, description: ""}
+export function emptyUser(): RecipesUser {
+    return {
+        id: "",
+        // augmented values
+        password: "",
+        emailVerified: null,
+        createdOn: -1,
+        modifiedOn: null,
+        deletedOn: null,
+        image: "",
+        role: {name: RoleType.USER, description: ""}
+    }
 }

@@ -1,4 +1,4 @@
-import {DefaultSession} from "next-auth"
+import NextAuth, {DefaultSession} from 'next-auth'
 import {RecipesUser, UserAugmentation} from "../components/users/RecipesUser";
 
 /**
@@ -13,7 +13,6 @@ declare module "next-auth" {
      * `SessionProvider` React Context
      */
     interface Session {
-        // user: UserAugmentation & DefaultSession["user"]
         user: RecipesUser
     }
 
@@ -25,7 +24,7 @@ declare module "next-auth" {
     interface User extends UserAugmentation {}
 }
 
-import { JWT } from "next-auth/jwt"
+import {JWT} from "next-auth/jwt"
 
 declare module "next-auth/jwt" {
     /**

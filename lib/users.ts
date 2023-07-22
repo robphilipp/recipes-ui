@@ -150,7 +150,7 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
         try {
             await session.withTransaction(async () => {
                 // todo needs to encrypt the password
-                // await usersCollection(client).insertOne(user, {session})
+                await usersCollection(client).insertOne(user, {session})
                 await addUsersRolesMappingFor(user, session)
             })
         } catch (e) {

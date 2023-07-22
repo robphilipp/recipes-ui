@@ -33,11 +33,11 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
         if (user === null) {
             return Promise.reject(`Unable to retrieve information for user with email: ${credentials.email}`)
         }
-        console.log(credentials, user)
         try {
             const authenticated = await compare(credentials.password, user.password)
             if (authenticated) {
                 const role = await roleFor(user._id.toString())
+                console.log(credentials, {...user, role})
                 return {...user, role}
             } else {
                 return Promise.reject('Invalid credentials')

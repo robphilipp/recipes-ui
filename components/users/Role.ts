@@ -7,7 +7,7 @@ export enum RoleType {
 }
 
 export type Role = {
-    name: RoleType | null
+    name: RoleType
     description: string
 }
 

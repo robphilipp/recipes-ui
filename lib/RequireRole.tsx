@@ -1,4 +1,4 @@
-import React, {createContext, JSX, useContext, useState} from "react";
+import React, {createContext, JSX, useContext} from "react";
 import {useSession} from "next-auth/react";
 import {roleAtLeast, RoleType} from "../components/users/Role";
 import {useRouter} from "next/router";
@@ -12,7 +12,7 @@ type UseRecipeSession = Session & {
 }
 
 const initialRecipeSession: UseRecipeSession = {
-    user: emptyUser,
+    user: emptyUser(),
     expires: "",
     role: null,
     status: "unauthenticated",
@@ -77,10 +77,14 @@ export default function RequireRole(props: Props): JSX.Element {
     return <div>Sadly happy!</div>
 }
 
+/**
+ * Hook that provides the next-js {@link Session} enriched with the user's
+ * role-type, status.
+ */
 export function useRecipeSession(): UseRecipeSession {
     const context = useContext<UseRecipeSession>(RecipeSessionContext)
-    const {user, expires, role, status} = context
-    if (user === undefined || expires === undefined || role === undefined || status === undefined) {
+    const {user, expires, role, status, update} = context
+    if (user === undefined || expires === undefined || role === undefined || status === undefined || update === undefined) {
         throw new Error("useSearch hook can only be used when the component is a child of <RequireRole/>")
     }
     return context
