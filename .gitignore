@@ -36,4 +36,4 @@ client_secret_*.json
 
 private_notes/
 
-./.react-email
+/.react-email
