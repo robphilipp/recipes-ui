@@ -33,6 +33,11 @@ module.exports = {
         // users (by ID) for reverse lookups
         rolesView: 'roles_full',
 
+        // routes that are not authenticated
+        unauthenticated: [
+            "/passwords/token/[id]"
+        ],
+
         // layout information
         sidebarNavWidthSmall: 180,
         sidebarNavWidthMedium: 250,
