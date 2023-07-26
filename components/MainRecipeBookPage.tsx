@@ -1,15 +1,11 @@
 import {Box, CssBaseline, Toolbar} from "@mui/material";
 import {Header} from "./Header";
 import React, {JSX} from "react";
-import {useSession} from "next-auth/react";
-import {useRouter} from "next/router";
 import {AppProps} from "next/app";
 import RecipeSearch from "./recipes/RecipeSearch";
 import UserProfileMenu from "./users/profile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
-import {RecipesUser} from "./users/RecipesUser";
-import {RoleType} from "./users/Role";
 import {useRecipeSession} from "../lib/RequireRole";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
