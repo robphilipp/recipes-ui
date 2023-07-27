@@ -3,7 +3,7 @@ module.exports = {
         version: '0.4.2-snapshot',
 
         siteName: 'City Recipes',
-        bookTitle: "B&R Recipes",
+        bookTitle: "City Recipes",
 
         recipesApi: 'http://localhost:9090/rest/v1/recipes',
 

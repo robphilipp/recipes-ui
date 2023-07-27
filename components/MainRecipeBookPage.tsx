@@ -6,19 +6,28 @@ import RecipeSearch from "./recipes/RecipeSearch";
 import UserProfileMenu from "./users/profile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
-import {useRecipeSession} from "../lib/RecipeSessionProvider";
+import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvider";
 import {RoleType} from "./users/Role";
+import {useSession} from "next-auth/react";
+import {useRouter} from "next/router";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
+const UNSECURED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
+const isUnsecuredContent = (path: string) => UNSECURED_CONTENT.find(openPage => openPage === path)
 
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props
+    const router = useRouter()
 
-    const {role, status} = useRecipeSession()
+    const {status} = useSession()
 
-    // if (status === "unauthenticated") {
-    if (status !== "authenticated") {
+    if (status === "loading") {
+        return <div>Hold on. Looking for something Booboo hasn&apos;t yet destroyed...</div>
+    }
+
+    // allow unauthenticated users to view unsecured content
+    if (isUnsecuredContent(router.pathname)) {
         return (
             <UnsecuredContent>
                 <Component {...pageProps}/>
@@ -27,19 +36,19 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     }
 
     return (
-        <SecuredContent role={role} status={status}>
-            <Component {...pageProps}/>
-        </SecuredContent>
+        <RecipeSessionProvider minRole={RoleType.USER}>
+            <SecuredContent>
+                <Component {...pageProps}/>
+            </SecuredContent>
+        </RecipeSessionProvider>
     )
-
 }
 
-type UnsecuredContentProps = {
+type ContentProps = {
     children: JSX.Element
 }
 
-export function UnsecuredContent(props: UnsecuredContentProps): JSX.Element {
-    const {children} = props
+export function UnsecuredContent(props: ContentProps): JSX.Element {
     return (
         <Box sx={{display: 'flex'}}>
             <CssBaseline/>
@@ -61,20 +70,17 @@ export function UnsecuredContent(props: UnsecuredContentProps): JSX.Element {
                 }}
             >
                 <Toolbar/>
-                {children}
+                {props.children}
                 <Toolbar/>
             </Box>
         </Box>
     )
 }
 
-type SecuredContentProps = {
-    role: RoleType | null
-    status: "authenticated" | "unauthenticated" | "loading"
-    children: JSX.Element
-}
-export function SecuredContent(props: SecuredContentProps): JSX.Element {
-    const {role, status, children} = props
+export function SecuredContent(props: ContentProps): JSX.Element {
+    const {children} = props
+
+    const {role, status} = useRecipeSession()
 
     return (
         <Box sx={{display: 'flex'}}>

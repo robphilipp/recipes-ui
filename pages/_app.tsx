@@ -22,9 +22,7 @@ export default function App(props: AppProps): JSX.Element {
                 <QueryClientProvider client={queryClient}>
                     <SearchProvider>
                         <StatusProvider>
-                            <RecipeSessionProvider minRole={RoleType.USER}>
-                                <MainRecipeBookPage {...props}/>
-                            </RecipeSessionProvider>
+                            <MainRecipeBookPage {...props}/>
                         </StatusProvider>
                     </SearchProvider>
                 </QueryClientProvider>

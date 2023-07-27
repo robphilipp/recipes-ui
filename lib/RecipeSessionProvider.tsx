@@ -5,8 +5,6 @@ import {useRouter} from "next/router";
 import {Session} from "next-auth";
 import {emptyUser} from "../components/users/RecipesUser";
 
-const UNAUTHENTICATED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
-
 type UseRecipeSession = Session & {
     role: RoleType | null,
     status: "authenticated" | "loading" | "unauthenticated",
@@ -49,30 +47,12 @@ export default function RecipeSessionProvider(props: Props): JSX.Element {
     const hasSufficientRole = roleAtLeast(minRole)
 
     // require that the user be logged in, or send the user to a login screen
-    // const {data: session, status, update} = useSession({
-    //     required: true,
-    //     async onUnauthenticated() {
-    //         await router.push("/api/auth/signin")
-    //     }
-    // })
-    const {data: session, status, update} = useSession()
-
-    if (status === "loading") {
-        return <div>Hold on. Looking for something Booboo hasn&apos;t yet destroyed...</div>
-    }
-
-    // status is 'loading', and once loaded, becomes either 'unauthenticated' or
-    // 'authenticated'
-    if (status === "unauthenticated") {
-        if (!UNAUTHENTICATED_CONTENT.find(openPage => openPage === router.pathname)) {
-            router
-                .push("/api/auth/signin")
-                .catch(reason => console.error(`Failed to redirect to login screen; reason: ${reason}`))
-            return <div>Redirecting...</div>
+    const {data: session, status, update} = useSession({
+        required: true,
+        async onUnauthenticated() {
+            await router.push("/api/auth/signin")
         }
-        console.log(router.route, router)
-        return <>{children}</>
-    }
+    })
 
     if (session && status === "authenticated" && hasSufficientRole(session.user.role.name)) {
         return (
