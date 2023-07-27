@@ -8,7 +8,7 @@ import {lightTheme} from "../theme/theme";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {SessionProvider} from "next-auth/react";
 import MainRecipeBookPage from "../components/MainRecipeBookPage";
-import RequireRole from "../lib/RequireRole";
+import RecipeSessionProvider from "../lib/RecipeSessionProvider";
 import {RoleType} from "../components/users/Role";
 
 const queryClient = new QueryClient()
@@ -22,9 +22,9 @@ export default function App(props: AppProps): JSX.Element {
                 <QueryClientProvider client={queryClient}>
                     <SearchProvider>
                         <StatusProvider>
-                            <RequireRole minRole={RoleType.USER}>
+                            <RecipeSessionProvider minRole={RoleType.USER}>
                                 <MainRecipeBookPage {...props}/>
-                            </RequireRole>
+                            </RecipeSessionProvider>
                         </StatusProvider>
                     </SearchProvider>
                 </QueryClientProvider>

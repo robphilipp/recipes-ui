@@ -6,7 +6,7 @@ import RecipeSearch from "./recipes/RecipeSearch";
 import UserProfileMenu from "./users/profile/UserProfileMenu";
 import BottomNavBar from "./navigation/BottomNavBar"
 import SideNavigation from "./navigation/SideNavigation";
-import {useRecipeSession} from "../lib/RequireRole";
+import {useRecipeSession} from "../lib/RecipeSessionProvider";
 import {RoleType} from "./users/Role";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
@@ -17,7 +17,8 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
 
     const {role, status} = useRecipeSession()
 
-    if (status === "unauthenticated") {
+    // if (status === "unauthenticated") {
+    if (status !== "authenticated") {
         return (
             <UnsecuredContent>
                 <Component {...pageProps}/>

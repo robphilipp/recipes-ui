@@ -42,7 +42,7 @@ interface Props {
  * @param props Holds the minimum role required to render child components
  * @constructor
  */
-export default function RequireRole(props: Props): JSX.Element {
+export default function RecipeSessionProvider(props: Props): JSX.Element {
     const {minRole, children} = props
     const router = useRouter()
 
@@ -58,7 +58,7 @@ export default function RequireRole(props: Props): JSX.Element {
     const {data: session, status, update} = useSession()
 
     if (status === "loading") {
-        return <div>Authenticating...</div>
+        return <div>Hold on. Looking for something Booboo hasn&apos;t yet destroyed...</div>
     }
 
     // status is 'loading', and once loaded, becomes either 'unauthenticated' or
@@ -87,7 +87,7 @@ export default function RequireRole(props: Props): JSX.Element {
             </RecipeSessionContext.Provider>)
     }
 
-    return <div>Sadly happy!</div>
+    return <div>Sadly, Booboo has destroyed everything!</div>
 }
 
 /**
