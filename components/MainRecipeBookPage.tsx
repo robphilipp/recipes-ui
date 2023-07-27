@@ -1,4 +1,4 @@
-import {Box, CssBaseline, Toolbar} from "@mui/material";
+import {Box, CircularProgress, CssBaseline, Toolbar, Typography} from "@mui/material";
 import {Header} from "./Header";
 import React, {JSX} from "react";
 import {AppProps} from "next/app";
@@ -10,6 +10,7 @@ import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvi
 import {RoleType} from "./users/Role";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
+import Centered from "./Centered";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -23,7 +24,11 @@ export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {status} = useSession()
 
     if (status === "loading") {
-        return <div>Hold on. Looking for something Booboo hasn&apos;t yet destroyed...</div>
+        return (
+            <Typography>
+                Hold on. Looking for something Booboo hasn&apos;t yet destroyed...
+            </Typography>
+        )
     }
 
     // allow unauthenticated users to view unsecured content
@@ -62,16 +67,12 @@ export function UnsecuredContent(props: ContentProps): JSX.Element {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
-                    width: {
-                        sm: `100%`,
-                        md: `100%`,
-                    }
+                    width: {sm: `100%`, md: `100%`,},
+                    padding: 0,
+                    margin: 0
                 }}
             >
-                <Toolbar/>
                 {props.children}
-                <Toolbar/>
             </Box>
         </Box>
     )

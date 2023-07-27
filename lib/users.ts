@@ -1,5 +1,5 @@
 import clientPromise from "./mongodb"
-import {ClientSession, Collection, Filter, FindOptions, MongoClient} from "mongodb"
+import {ClientSession, Collection, Filter, FindOptions, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
 import {addUsersRolesMappingFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
@@ -175,6 +175,37 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
     } catch (e) {
         console.error(`Unable to add user: email: ${user.email}`, e)
         return Promise.reject(`Unable to add user: email: ${user.email}`)
+    }
+}
+
+export async function userByToken(token: string): Promise<RecipesUser> {
+    try {
+        const client: MongoClient = await clientPromise
+
+        // if the token is not found, or if the token has expired, then return
+        // a somewhat cryptic error message
+        const tokenData =
+            await passwordResetTokenCollection(client).findOne({resetToken: token})
+        if (tokenData === undefined || tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
+            const message = `Invalid token; token: ${token}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+
+        // grab the user
+        const user =
+            await usersCollection(client).findOne({_id: new ObjectId(tokenData.userId)})
+        if (user === undefined || user === null) {
+            const message = `Invalid user for token; token: ${token}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+
+        return {...user, password: "yeah, right!"}
+    } catch (e) {
+        const message = `Unable to retrieve user by token; invalid token: ${token}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
