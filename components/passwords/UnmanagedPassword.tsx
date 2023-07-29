@@ -1,4 +1,4 @@
-import {FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput} from "@mui/material";
+import {FormControl, FormHelperText, IconButton, InputAdornment, InputLabel, OutlinedInput} from "@mui/material";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
 import {ChangeEvent, MouseEvent} from "react";
 
@@ -19,6 +19,7 @@ type Props = {
     passwordToggleState: PasswordToggleState
     onPasswordChange: (password: string) => void
     password: string
+    error: boolean
 }
 
 export default function UnmanagedPassword(props: Props): JSX.Element {
@@ -29,7 +30,8 @@ export default function UnmanagedPassword(props: Props): JSX.Element {
         onTogglePassword,
         passwordToggleState,
         onPasswordChange,
-        password
+        password,
+        error
     } = props
 
     // const [showPassword, setShowPassword] = useState(props.passwordToggleState ?? PasswordToggleState.HIDDEN);
@@ -50,7 +52,7 @@ export default function UnmanagedPassword(props: Props): JSX.Element {
 
     return (
         <FormControl style={{margin: 10}}>
-            <InputLabel htmlFor="enter-password">Enter Password</InputLabel>
+            <InputLabel htmlFor="enter-password">{label}</InputLabel>
             <OutlinedInput
                 id={id}
                 aria-describedby={ariaDescribedBy}
@@ -58,6 +60,7 @@ export default function UnmanagedPassword(props: Props): JSX.Element {
                 label={label}
                 onChange={handlePasswordChanged}
                 value={password}
+                error={error}
                 endAdornment={
                     <InputAdornment position="end">
                         <IconButton
@@ -71,6 +74,7 @@ export default function UnmanagedPassword(props: Props): JSX.Element {
                     </InputAdornment>
                 }
             />
+            {error ? <FormHelperText>Passwords do not match</FormHelperText> : <FormHelperText>&nbsp;</FormHelperText>}
         </FormControl>
     )
 }
