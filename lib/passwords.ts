@@ -31,19 +31,20 @@ const PASSWORD_REQUIREMENTS: Array<PasswordRequirement> = [
 /**
  * Calculates if the passwords match. The passwords match if the confirmation password
  * is empty
- * @param password
- * @param confirmPassword
+ * @param password The password
+ * @param confirmPassword The confirmation password
+ * @return `true` if the passwords match; `false` otherwise
  */
 export function passwordsMatch(password: string, confirmPassword: string): boolean {
     return (confirmPassword.length > 0) ? password === confirmPassword : true
 }
 
-export function passwordRequirementsFailed(password: string): Array<string> {
-    return PASSWORD_REQUIREMENTS
-        .filter(rule => !rule.meetsRequirement(password))
-        .map(rule => rule.description)
-}
 
+/**
+ * Calculates which rules/requirements the passwords meets
+ * @param password The password
+ * @return An array holding the descriptions and results
+ */
 export function passwordRequirementsResult(password: string): Array<PasswordRequirementResult> {
     return PASSWORD_REQUIREMENTS
         .map(rule => ({
@@ -52,6 +53,9 @@ export function passwordRequirementsResult(password: string): Array<PasswordRequ
         }))
 }
 
+/**
+ * @return An array holding results that all the passwords failed
+ */
 export function initialPasswordRequirements(): Array<PasswordRequirementResult> {
     return PASSWORD_REQUIREMENTS
         .map(rule => ({

@@ -13,6 +13,10 @@ import {initialPasswordRequirements, passwordRequirementsResult, passwordsMatch}
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 
+/**
+ * Page to allow the user to enter a new password based on a hash digest
+ * @constructor
+ */
 export default function PasswordByToken(): JSX.Element {
     const router = useRouter()
 

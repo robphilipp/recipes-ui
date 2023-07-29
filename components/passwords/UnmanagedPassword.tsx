@@ -22,6 +22,15 @@ type Props = {
     error: boolean
 }
 
+/**
+ * Password input text field that allows the parent component to manage the password
+ * state. Requires a callback to handle the user showing/hiding the password, and
+ * a callback to handle when the user updates the password. The password and the
+ * show/hide password state must be passed from the parent. And, any error conditions
+ * must be passed from the parent
+ * @param props The props
+ * @constructor
+ */
 export default function UnmanagedPassword(props: Props): JSX.Element {
     const {
         id,
@@ -34,16 +43,27 @@ export default function UnmanagedPassword(props: Props): JSX.Element {
         error
     } = props
 
-    // const [showPassword, setShowPassword] = useState(props.passwordToggleState ?? PasswordToggleState.HIDDEN);
-
+    /**
+     * Toggles the show/hide state of the password
+     */
     function handleClickShowPassword() {
         onTogglePassword(passwordToggleState)
     }
 
+    /**
+     * Prevents default event from bubbling up when the mouse is clicked on the
+     * show/hide button
+     * @param event The mouse event
+     */
     function handleMouseDownPassword(event: MouseEvent<HTMLButtonElement>) {
         event.preventDefault();
     }
 
+    /**
+     * Handles updates to the password (as the user types), calling the provided
+     * callback so that the parent can manage the state
+     * @param event The change event
+     */
     function handlePasswordChanged(event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>): void {
         onPasswordChange(event.target.value)
     }
