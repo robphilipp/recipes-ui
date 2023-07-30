@@ -1,10 +1,11 @@
 import clientPromise from "./mongodb"
-import {ClientSession, Collection, Filter, FindOptions, MongoClient, ObjectId} from "mongodb"
+import {ClientSession, Collection, Filter, FindOptions, Long, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
 import {addUsersRolesMappingFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
-import {PasswordResetToken} from "../components/users/PasswordResetToken";
+import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
 import {DateTime} from "luxon";
+import {hashPassword} from "./passwords";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -226,38 +227,45 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
 
         // find the username/id based on the reset token
         try {
-            await session.withTransaction(async () => {
-                // grab the password reset token
-                const tokenData =
-                    await passwordResetTokenCollection(client).findOne({resetToken})
+            // grab the password reset token
+            const tokenData =
+                await passwordResetTokenCollection(client).findOne({resetToken})
 
-                // if the token is not found, or if the token has expired, then return
-                // a somewhat cryptic error message
-                if (tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
-                    const message = `Invalid token; token: ${resetToken}`
-                    console.log(message)
-                    return Promise.reject(message)
-                }
+            // if the token is not found, or if the token has expired, then return
+            // a somewhat cryptic error message
+            if (tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
+                const message = `Invalid token; token: ${resetToken}`
+                console.log(message)
+                return Promise.reject(message)
+            }
 
-                // grab the associated user
-                const user =
-                    await usersCollection(client).findOne({id: tokenData.userId})
+            // grab the associated user
+            const user =
+                await usersCollection(client).findOne({_id: new ObjectId(tokenData.userId)})
 
-                if (user === null) {
-                    const message = `Invalid user for token; token: ${resetToken}`
-                    console.log(message)
-                    return Promise.reject(message)
-                }
+            if (user === null) {
+                const message = `Invalid user for token; token: ${resetToken}; user_id: ${tokenData.userId}`
+                console.log(message)
+                return Promise.reject(message)
+            }
 
+            const hashedPassword = await hashPassword(password)
+            return await session.withTransaction(async () => {
                 // update the password
-                const updatedUser: RecipesUser = {...user, password: password}
-                await usersCollection(client).updateOne({_id: user._id}, updatedUser)
+                const updatedUser = {
+                    ...user,
+                    password: hashedPassword,
+                    createdOn: Long.fromNumber(user.createdOn as number),
+                    emailVerified: Long.fromNumber(user.emailVerified as number),
+                    modifiedOn: Long.fromNumber(DateTime.utc().toMillis())
+                }
+                await usersCollection(client).updateOne({_id: user._id}, {$set: updatedUser})
 
                 // remove the reset token
                 await passwordResetTokenCollection(client).deleteOne({resetToken})
 
                 return updatedUser
-            })
+            }) as RecipesUser
         } catch (e) {
             const message = `Failed to update password; token: ${resetToken}`
             console.error(message, e)

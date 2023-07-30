@@ -1,7 +1,7 @@
 import {useRouter} from "next/router";
 import Centered from "../../../components/Centered";
-import {useQuery} from "@tanstack/react-query";
-import axios from "axios";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import axios, {AxiosError} from "axios";
 import {Button, FormControl, FormGroup, List, ListItem, Typography} from "@mui/material";
 import {emptyUser} from "../../../components/users/RecipesUser";
 import {useState} from "react";
@@ -9,8 +9,13 @@ import UnmanagedPassword, {
     PasswordToggleState,
     togglePasswordState
 } from "../../../components/passwords/UnmanagedPassword";
-import {initialPasswordRequirements, passwordRequirementsResult, passwordsMatch} from "../../../lib/passwords";
+import {
+    initialPasswordRequirements,
+    passwordRequirementsResult,
+    passwordsMatch
+} from "../../../components/passwords/passwordRequirements";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import {NewPassword} from "../../api/passwords/[id]";
 
 
 /**
@@ -21,6 +26,7 @@ export default function PasswordByToken(): JSX.Element {
     const router = useRouter()
 
     const token = router.query.id as string
+    const queryClient = useQueryClient()
 
     // grab the user associated with the password reset token, and if
     // no user is associated with that token, or the token has expired,
@@ -34,6 +40,15 @@ export default function PasswordByToken(): JSX.Element {
                 await router.push("/api/auth/signin")
                 return Promise.reject(emptyUser())
             })
+    )
+
+    // query for updating the recipe's rating
+    const setPasswordQuery = useMutation(
+        ['set-password-from-token'],
+        (passwordInfo: NewPassword) => axios.put(
+            `/api/passwords/${token}`,
+            passwordInfo
+        )
     )
 
     const [passwordVisibility, setPasswordVisibility] = useState(PasswordToggleState.HIDDEN)
@@ -61,11 +76,32 @@ export default function PasswordByToken(): JSX.Element {
         return results.filter(result => !result.met).length > 0
     }
 
+    function handleSetPassword(passwordInfo: NewPassword): void {
+        setPasswordQuery.mutate(passwordInfo, {
+            onSuccess: () => {
+                router.push('/')
+                //     .then(() => queryClient
+                //     .invalidateQueries(['user-by-token-id'])
+                //     .then(() => router.push(`/`))
+                // )
+                // authenticate({email: data?.data.email, password: passwordInfo.password})
+                //     .then(() => queryClient
+                //         .invalidateQueries(['user-by-token-id'])
+                //         .then(() => router.push(`/`))
+                //     )
+            }
+        })
+    }
+
+
     if (isLoading) {
         return <Centered><Typography>Looking for Booboo&apos;s friends...</Typography></Centered>
     }
     if (error) {
         return <Centered><Typography>Invalid password reset token!</Typography></Centered>
+    }
+    if (setPasswordQuery.isError) {
+        return <Centered><Typography>{(setPasswordQuery.error as AxiosError).message}</Typography></Centered>
     }
 
     return (
@@ -116,6 +152,7 @@ export default function PasswordByToken(): JSX.Element {
                             alignSelf: 'center',
                         }}
                         disabled={matchError || passwordFailed() || confirmPassword.length === 0}
+                        onClick={() => handleSetPassword({password: confirmPassword, resetToken: token})}
                     >
                         Set Password
                     </Button>

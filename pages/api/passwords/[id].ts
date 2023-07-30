@@ -8,7 +8,7 @@ export type NewPassword = {
     password: string
 }
 
-export default function handler(
+export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<RecipesUser>
 ): Promise<void> {
@@ -28,5 +28,4 @@ export default function handler(
         default:
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
     }
-
 }
