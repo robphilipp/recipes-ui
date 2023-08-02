@@ -80,10 +80,6 @@ export default function PasswordByToken(): JSX.Element {
         setPasswordQuery.mutate(passwordInfo, {
             onSuccess: () => {
                 router.push('/')
-                //     .then(() => queryClient
-                //     .invalidateQueries(['user-by-token-id'])
-                //     .then(() => router.push(`/`))
-                // )
                 // authenticate({email: data?.data.email, password: passwordInfo.password})
                 //     .then(() => queryClient
                 //         .invalidateQueries(['user-by-token-id'])

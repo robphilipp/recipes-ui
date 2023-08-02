@@ -4,8 +4,8 @@ import {RecipesUser} from "../components/users/RecipesUser";
 import {addUsersRolesMappingFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
-import {DateTime} from "luxon";
-import {hashPassword} from "./passwords";
+import {DateTime, Duration} from "luxon";
+import {hashPassword, passwordResetToken, randomPassword} from "./passwords";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -162,9 +162,18 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
         // const roleId = await roleIdFor(user.role)
         try {
             await session.withTransaction(async () => {
-                // todo needs to encrypt the password
-                await usersCollection(client).insertOne(user, {session})
+                const password = await hashPassword(randomPassword())
+                const newUser: RecipesUser = {
+                    ...user,
+                    password,
+                    createdOn: Long.fromNumber(DateTime.utc().toMillis()),
+                    modifiedOn: Long.fromNumber(-1),
+                    deletedOn: Long.fromNumber(-1),
+                    emailVerified: Long.fromNumber(-1),
+                }
+                const result = await usersCollection(client).insertOne(newUser, {session})
                 await addUsersRolesMappingFor(user, session)
+                const resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
             })
         } catch (e) {
             console.error(`Unable to add user: email: ${user.email}`, e)
@@ -176,6 +185,21 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
     } catch (e) {
         console.error(`Unable to add user: email: ${user.email}`, e)
         return Promise.reject(`Unable to add user: email: ${user.email}`)
+    }
+}
+
+async function addPasswordResetTokenFor(userId: string): Promise<PasswordResetToken> {
+    const expiration = DateTime.utc().plus({days: 14}).toMillis()
+    const resetToken = passwordResetToken()
+    try {
+        const client: MongoClient = await clientPromise
+        const passwordResetToken = {userId, resetToken, expiration}
+        await passwordResetTokenCollection(client).insertOne(passwordResetToken)
+        return passwordResetToken
+    } catch (e) {
+        const message = `Unable to add password reset token; user_id: ${userId}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
@@ -278,8 +302,8 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
         console.error(message, e)
         return Promise.reject(message)
     }
-    return Promise.reject(`Something went wrong when updating the password from the token; token: ${resetToken}`)
 }
+
 // todo update password
 // todo reset password
 

@@ -205,3 +205,15 @@ systemctl status nginx
 ```
 
 And you should be good to go.
+
+# emails
+
+The email templates used to generate emails are using [react email](https://react.email/docs/introduction).
+
+The email templates are in the top-level `emails` folder. 
+
+When developing emails, you can view your progress by typing: 
+
+```shell
+npx react-email dev -p 3030
+```
