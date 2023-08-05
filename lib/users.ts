@@ -4,8 +4,9 @@ import {RecipesUser} from "../components/users/RecipesUser";
 import {addUsersRolesMappingFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
-import {DateTime, Duration} from "luxon";
+import {DateTime} from "luxon";
 import {hashPassword, passwordResetToken, randomPassword} from "./passwords";
+import {roleFrom, RoleType} from "../components/users/Role";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -33,7 +34,49 @@ function usersCollection(client: MongoClient): Collection<RecipesUser> {
     return client.db(MONGO_DATABASE).collection(USERS_COLLECTION)
 }
 
-function usersView(client: MongoClient): Collection<RecipesUser> {
+/*
+createdOn
+:
+1685804966792
+deletedOn
+:
+-1
+emailVerified
+:
+1685804966792
+image
+:
+""
+modifiedOn
+:
+1690730808416
+roleId
+:
+"64b428666ef45e025f154803"
+role_description
+:
+"RecipeBook admin"
+role_name
+:
+"admin"
+userId
+:
+"647b57a62ddb6909b9c69fd4"
+ */
+
+type UserView = {
+    email: string
+    name: string
+    createdOn: number | Long
+    emailVerified: number | Long
+    modifiedOn: number | Long
+    deletedOn: number | Long
+    roleId: string
+    role_name: string
+    role_description: string
+}
+
+function usersView(client: MongoClient): Collection<UserView> {
     return client.db(MONGO_DATABASE).collection(USERS_VIEW)
 }
 
@@ -128,10 +171,27 @@ export async function usersCount(): Promise<number> {
 //     }
 // }
 
-export async function users(filter: Filter<RecipesUser> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
+
+export async function users(filter: Filter<UserView> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
     try {
         const client: MongoClient = await clientPromise
-        return await usersView(client).find(filter).toArray()
+        const userViews = await usersView(client).find(filter).toArray()
+        return userViews.map(user => {
+            const role = roleFrom({name: user.role_name, description: user.role_description}).getOrDefault({name: RoleType.USER, description: ""})
+            return {
+                id: user._id?.toString() || "",
+                password: "",
+                image: "",
+                email: user.email,
+                name: user.name,
+                createdOn: user.createdOn,
+                emailVerified: user.emailVerified,
+                modifiedOn: user.modifiedOn,
+                deletedOn: user.deletedOn,
+                role: role
+            }
+        })
+
     } catch (e) {
         console.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
