@@ -1,4 +1,4 @@
-import React, {JSX, useMemo} from "react"
+import React, {JSX, useMemo, useState} from "react"
 import {useQuery} from "@tanstack/react-query"
 import axios from "axios"
 import {useRouter} from "next/router"
@@ -9,10 +9,10 @@ import {DateTime} from "luxon"
 import {Long} from "mongodb"
 import {PersonAdd} from "@mui/icons-material";
 import UsersTable, {UsersTableRow} from "../../components/users/UsersTable";
+import AddUserForm from "../../components/users/AddUserForm";
 
 export default function ManageUsers(): JSX.Element {
     const router = useRouter()
-
     const {isLoading, error, data} = useQuery(
         ['users-all'],
         () => axios.get<Array<RecipesUser>>(`/api/users`)
@@ -22,6 +22,7 @@ export default function ManageUsers(): JSX.Element {
                 return Promise.reject([])
             })
     )
+    const [isAddUserFormVisible, setAddUserFormVisibility] = useState(false)
 
     const rows: Array<UsersTableRow> = useMemo(
         () => {
@@ -58,12 +59,17 @@ export default function ManageUsers(): JSX.Element {
     return (<>
         <Typography variant="h5">Manage Users</Typography>
         <UsersTable rows={rows}/>
-        <Button
+        {!isAddUserFormVisible && <Button
             variant="outlined"
             startIcon={<PersonAdd/>}
             sx={{textTransform: 'none'}}
+            onClick={() => setAddUserFormVisibility(!isAddUserFormVisible)}
         >
             Add User
-        </Button>
+        </Button>}
+        {isAddUserFormVisible && <AddUserForm
+            onSave={user => {}}
+            onCancel={() => setAddUserFormVisibility(false)}
+        />}
     </>)
 }

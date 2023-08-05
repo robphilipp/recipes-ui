@@ -31,6 +31,19 @@ export function roleAtLeast(minRole: RoleType): (role: RoleType | null) => boole
     }
 }
 
+export function roleTypeFrom(literal: string): Result<RoleType, string> {
+    switch(literal.toLowerCase()) {
+        case RoleType.ADMIN.valueOf():
+            return successResult(RoleType.ADMIN)
+        case RoleType.ACCOUNT_ADMIN.valueOf():
+            return successResult(RoleType.ACCOUNT_ADMIN)
+        case RoleType.USER.valueOf():
+            return successResult(RoleType.USER)
+        default:
+            return failureResult(`Invalid role literal specified; role_literal: ${literal}`)
+    }
+}
+
 export function roleFrom(literal: RoleLiteral): Result<Role, string> {
     switch (literal.name.toLowerCase()) {
         case RoleType.ADMIN.valueOf():
@@ -68,4 +81,8 @@ export function rolesFrom(literals: Array<RoleLiteral>): RolesConversionResults 
         ...conversions,
         succeeded: conversions.failures.length === 0
     }
+}
+
+export function rolesAsLabels(): Array<string> {
+    return Object.keys(RoleType)
 }
