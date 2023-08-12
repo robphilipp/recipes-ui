@@ -1,18 +1,19 @@
 import React, {JSX, useMemo, useState} from "react"
-import {useQuery} from "@tanstack/react-query"
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import axios from "axios"
 import {useRouter} from "next/router"
 import Centered from "../../components/Centered"
 import {Button, Typography} from "@mui/material"
-import {RecipesUser} from "../../components/users/RecipesUser"
+import {emptyUser, RecipesUser} from "../../components/users/RecipesUser"
 import {DateTime} from "luxon"
 import {Long} from "mongodb"
 import {PersonAdd} from "@mui/icons-material";
 import UsersTable, {UsersTableRow} from "../../components/users/UsersTable";
-import AddUserForm from "../../components/users/AddUserForm";
+import AddUserForm, {AddUserFormUser} from "../../components/users/AddUserForm";
 
 export default function ManageUsers(): JSX.Element {
     const router = useRouter()
+    const queryClient = useQueryClient()
     const {isLoading, error, data} = useQuery(
         ['users-all'],
         () => axios.get<Array<RecipesUser>>(`/api/users`)
@@ -22,7 +23,47 @@ export default function ManageUsers(): JSX.Element {
                 return Promise.reject([])
             })
     )
+    const addNewUserQuery = useMutation(
+        ['add-new-user'],
+        (user: RecipesUser) => axios.put("/api/users", user)
+    )
+    const addPasswordResetTokenQuery = useMutation(
+        ['add-password-reset-token'],
+        (userId: string) => axios.put(`/api/passwords/tokens/${userId}`)
+    )
+
     const [isAddUserFormVisible, setAddUserFormVisibility] = useState(false)
+
+    async function handleSaveNewUser(user: AddUserFormUser): Promise<void> {
+        const role = {name: user.role, description: ""}
+        const recipeUser: RecipesUser = {...emptyUser(), name: user.username, email: user.email, role}
+        const response = await addNewUserQuery.mutateAsync(recipeUser)
+        if (response.status !== 200) {
+            console.error(`Failed to add new user; http_status_code: ${response.status}`)
+            return Promise.reject(`Failed to add new user; http_status_code: ${response.status}`)
+        }
+        const tokenResponse = await addPasswordResetTokenQuery.mutateAsync((response.data as RecipesUser).id)
+        if (tokenResponse.status !== 200) {
+            console.error(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
+            return Promise.reject(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
+        }
+        return await queryClient.invalidateQueries(['users-all'])
+    }
+    // async function handleSaveNewUser(user: AddUserFormUser): Promise<void> {
+    //     const role = {name: user.role, description: ""}
+    //     const recipeUser: RecipesUser = {...emptyUser(), name: user.username, email: user.email, role}
+    //     const response = await addNewUserQuery.mutateAsync(recipeUser)
+    //     if (response.status !== 200) {
+    //         console.error(`Failed to add new user; http_status_code: ${response.status}`)
+    //         return Promise.reject(`Failed to add new user; http_status_code: ${response.status}`)
+    //     }
+    //     const tokenResponse = await addPasswordResetTokenQuery.mutateAsync((response.data as RecipesUser).id)
+    //     if (tokenResponse.status !== 200) {
+    //         console.error(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
+    //         return Promise.reject(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
+    //     }
+    //     return await queryClient.invalidateQueries(['users-all'])
+    // }
 
     const rows: Array<UsersTableRow> = useMemo(
         () => {
@@ -45,10 +86,10 @@ export default function ManageUsers(): JSX.Element {
         [data?.data, error, isLoading]
     )
 
-    if (isLoading) {
+    if (isLoading || addNewUserQuery.isLoading) {
         return <Centered><Typography>Looking for Booboo&apos;s friends...</Typography></Centered>
     }
-    if (error) {
+    if (error || addNewUserQuery.isLoading) {
         return <Centered><Typography>Unable to locate Booboo&apos;s friends!</Typography></Centered>
     }
 
@@ -68,7 +109,7 @@ export default function ManageUsers(): JSX.Element {
             Add User
         </Button>}
         {isAddUserFormVisible && <AddUserForm
-            onSave={user => {}}
+            onSave={handleSaveNewUser}
             onCancel={() => setAddUserFormVisibility(false)}
         />}
     </>)

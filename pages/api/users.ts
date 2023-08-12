@@ -11,7 +11,7 @@ const userNotAdmin: (role: Role) => boolean = (role: Role) => !roleAtLeast(RoleT
 
 export default async function handler(
     request: NextApiRequest,
-    response: NextApiResponse<Array<RecipesUser>>
+    response: NextApiResponse<Array<RecipesUser> | RecipesUser>
 ): Promise<void> {
     // when user isn't logged in or doesn't have access to view the roles,
     // redirect them to the login screen
@@ -25,9 +25,10 @@ export default async function handler(
         case RequestMethod.GET:
             return users()
                 .then(users => response.status(200).json(users))
+
         case RequestMethod.PUT:
-            return addUser(request.body)
-                .then(user => response.status(200).json([user]))
+            return addUser(request.body as RecipesUser)
+                .then(user => response.status(200).json(user))
         default:
             console.log(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)

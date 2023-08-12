@@ -1,7 +1,7 @@
 import clientPromise from "./mongodb"
 import {ClientSession, Collection, Filter, FindOptions, Long, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
-import {addUsersRolesMappingFor} from "./roles";
+import {addUsersRolesMappingFor, roleIdFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
 import {DateTime} from "luxon";
@@ -233,7 +233,7 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
                 }
                 const result = await usersCollection(client).insertOne(newUser, {session})
                 if (result.acknowledged && result.insertedId) {
-                    return await addUsersRolesMappingFor(user, session)
+                    return await addUsersRolesMappingFor(result.insertedId.toString(), user.role, session)
                 }
                 // const resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
                 return Promise.reject(`Unable to add user; rolling back transaction; email: ${user.email}`)

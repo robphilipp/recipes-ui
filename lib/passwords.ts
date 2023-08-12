@@ -4,15 +4,15 @@ import {Collection, MongoClient, ObjectId} from "mongodb";
 import clientPromise from "./mongodb";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
 
-const SALT_ROUNDS = 10
+const SALT_ROUNDS: number = 10
 
 const LETTERS_LOWER: string = "abcdefghijklmnopqrstuvwxyz"
 const LETTERS_UPPER: string = LETTERS_LOWER.toUpperCase()
 const NUMBERS: string = "0123456789"
 const SPECIALS: string = "-_.#$^%&*"
-const CHARACTERS = LETTERS_LOWER + LETTERS_UPPER + NUMBERS + SPECIALS
-const NUM_CHARS = CHARACTERS.length
-const ROUTE_HASH_CHARS = LETTERS_LOWER + LETTERS_UPPER + NUMBERS
+const CHARACTERS: string = LETTERS_LOWER + LETTERS_UPPER + NUMBERS + SPECIALS
+const NUM_CHARS: number = CHARACTERS.length
+const ROUTE_HASH_CHARS: string = LETTERS_LOWER + LETTERS_UPPER + NUMBERS
 const PASSWORD_RESET_TOKEN_EXPIRATION_DAYS: number = 7
 
 if (process.env.mongoDatabase === undefined) {

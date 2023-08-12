@@ -60,11 +60,57 @@ This will create a migration file in the `dbmigrations/migrations` directory, to
 migrate-mongo up
 ```
 
-And to revert to the prvious version
+And to revert to the previous version
 
 ```shell
 migrate-mongo down
 ```
+
+### converting standalone mongo to cluster
+
+[Official Instructions](https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/)
+
+Backup your database
+
+```shell
+mongodump -h localhost -o ~/some/good/place/to/store/the/backup/pre-replica-set-mongo-backup
+```
+where `localhost` is the host mongodb is running on, and `-o` tells where the backup will be placed.
+
+On mac with brew, shut down the mongo server:
+```shell
+brew services stop mongodb-community
+```
+
+Edit the mongo configuration file. For example,
+```shell
+code -n /usr/local/etc/mongod.conf
+```
+and add the following:
+```yaml
+replication:
+   replSetName: rs0
+```
+
+Then restart the mongo server
+```shell
+brew services start mongodb-community
+```
+
+Go into the mongo shell
+```shell
+mongosh
+```
+
+then type
+```shell
+use admin
+rs.initiate()
+```
+
+If everything works, then you're good to go.
+
+
 
 
 ## raspberry π for recipes

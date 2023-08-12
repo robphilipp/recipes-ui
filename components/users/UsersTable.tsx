@@ -1,11 +1,7 @@
-import React, {JSX, useMemo} from "react"
-import {useQuery} from "@tanstack/react-query"
-import axios from "axios"
-import {useRouter} from "next/router"
-import Centered from "../../components/Centered"
+import React, {useMemo} from "react"
 import {
     alpha,
-    Box, Button, FormControl,
+    Box,
     IconButton,
     Paper,
     Table,
@@ -20,13 +16,11 @@ import {
     Tooltip,
     Typography
 } from "@mui/material"
-import {RecipesUser} from "../../components/users/RecipesUser"
 import {DateTime} from "luxon"
 import {visuallyHidden} from "@mui/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import FilterListIcon from '@mui/icons-material/FilterList'
-import {Long} from "mongodb"
-import {PersonAdd, PersonOff, PlusOneOutlined, TaskAlt} from "@mui/icons-material";
+import {PersonOff, TaskAlt} from "@mui/icons-material";
 
 export type UsersTableRow = {
     email: string
@@ -181,7 +175,7 @@ export default function UsersTable(props: TableProps) {
     const [orderBy, setOrderBy] = React.useState<keyof UsersTableRow>('email')
     const [selected, setSelected] = React.useState<readonly string[]>([])
     const [page, setPage] = React.useState(0)
-    const [rowsPerPage, setRowsPerPage] = React.useState(25)
+    const [rowsPerPage, setRowsPerPage] = React.useState(5)
 
     function handleRequestSort(event: React.MouseEvent<unknown>, property: keyof UsersTableRow): void {
         const isAsc = orderBy === property && order === 'asc'
