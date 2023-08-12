@@ -24,7 +24,7 @@ module.exports = {
 
         // mongo collection holding the password set/reset tokens
         // and associated users
-        passwordResetToken: 'password_reset_tokens',
+        passwordResetTokenCollection: 'password_reset_tokens',
 
         // mongo view that holds the users and their role information
         // together for easier access

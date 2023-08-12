@@ -12,14 +12,16 @@ import {
     Typography
 } from "@mui/material";
 import {Role, roleAtLeast, RoleType, roleTypeFrom} from "./Role";
-import React, {useState} from "react";
+import React, {useReducer} from "react";
 import {useRecipeSession} from "../../lib/RecipeSessionProvider";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {useRouter} from "next/router";
 import Centered from "../Centered";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
 
-const UserFormControl = styled(FormControl)(({theme}) => ({
+const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
 }))
 
@@ -28,6 +30,10 @@ export type AddUserFormUser = {
     email: string
     role: RoleType
 }
+
+const INITIAL_USER = {username: "", email: "", role: RoleType.USER}
+
+const reducer = (user: AddUserFormUser, action: Partial<AddUserFormUser>): AddUserFormUser => ({...user, ...action})
 
 type Props = {
     maxWidth?: number
@@ -40,7 +46,7 @@ export default function AddUserForm(props: Props): JSX.Element {
 
     const router = useRouter()
     const {role: adminRole} = useRecipeSession()
-    const [selectedRole, setSelectedRole] = useState(RoleType.USER as string)
+    const [user, updateUser] = useReducer(reducer, INITIAL_USER)
 
     // need the roles for the role selection dropdown
     const {isLoading, error, data} = useQuery(
@@ -55,7 +61,7 @@ export default function AddUserForm(props: Props): JSX.Element {
 
     function handleRoleSelected(event: SelectChangeEvent): void {
         roleTypeFrom(event.target.value)
-            .onSuccess(selection => setSelectedRole(selection as string))
+            .onSuccess(selection => updateUser({role: selection}))
     }
 
     if (isLoading) {
@@ -68,14 +74,38 @@ export default function AddUserForm(props: Props): JSX.Element {
     const roles: Array<Role> = data?.data || []
     return (<>
         <FormGroup style={{maxWidth}}>
+            <ButtonGroup style={{justifyContent: 'left', paddingTop: 0}}>
+                <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon/>}
+                    sx={{textTransform: 'none'}}
+                    onClick={onCancel}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    variant="outlined"
+                    startIcon={<SaveIcon/>}
+                    sx={{textTransform: 'none'}}
+                    onClick={() => onSave(user)}
+                >
+                    Save
+                </Button>
+            </ButtonGroup>
             <UserFormControl>
                 <InputLabel htmlFor="username">Username</InputLabel>
-                <OutlinedInput label="Username"/>
+                <OutlinedInput
+                    label="Username"
+                    onChange={event => updateUser({username: event.target.value})}
+                />
             </UserFormControl>
 
             <UserFormControl>
                 <InputLabel htmlFor="email">Email</InputLabel>
-                <OutlinedInput label="Email"/>
+                <OutlinedInput
+                    label="Email"
+                    onChange={event => updateUser({email: event.target.value})}
+                />
             </UserFormControl>
 
             <UserFormControl>
@@ -83,21 +113,23 @@ export default function AddUserForm(props: Props): JSX.Element {
                 <Select
                     labelId="role-select-label"
                     id="role-select"
-                    value={selectedRole}
+                    value={user.role}
                     label="Role"
                     onChange={handleRoleSelected}
                 >
                     {roles
                         .filter(availRole => roleAtLeast(availRole.name)(adminRole))
-                        .map(role => (<MenuItem key={role.name} value={role.name}>{role.description}</MenuItem>))
+                        .map(role => (
+                            <MenuItem
+                                key={role.name}
+                                value={role.name}
+                            >
+                                {role.description}
+                            </MenuItem>
+                        ))
                     }
                 </Select>
             </UserFormControl>
-
-            <ButtonGroup style={{justifyContent: 'right', paddingTop: 20}}>
-                <Button>Save</Button>
-                <Button onClick={onCancel}>Cancel</Button>
-            </ButtonGroup>
         </FormGroup>
     </>)
 }

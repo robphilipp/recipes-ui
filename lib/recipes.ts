@@ -74,8 +74,8 @@ export async function recipesByName(words: Array<string>): Promise<Array<Recipe>
             .map(doc => asRecipe(doc))
             .toArray()
     } catch (e) {
-        console.error("Unable to update recipe", e)
-        return Promise.reject("Unable to update recipe")
+        console.error(`Unable to find recipe whose name has: (${words.join(', ')})`, e)
+        return Promise.reject(`Unable to find recipe whose name has: (${words.join(', ')})`)
     }
 }
 

@@ -29,7 +29,7 @@ export default async function handler(
             return addUser(request.body)
                 .then(user => response.status(200).json([user]))
         default:
-            console.log(`Unsupported HTTP method; method: ${request.method}`)
-            return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
+            console.log(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
+            return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
     }
 }

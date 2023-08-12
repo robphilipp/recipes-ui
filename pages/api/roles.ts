@@ -23,6 +23,6 @@ export default async function handler(
         case RequestMethod.GET:
             return roles().then(roles => response.status(200).json(roles))
         default:
-            return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
+            return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
     }
 }

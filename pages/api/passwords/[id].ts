@@ -26,6 +26,6 @@ export default async function handler(
         case RequestMethod.POST:
 
         default:
-            return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
+            return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
     }
 }
