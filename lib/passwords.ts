@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 import {DateTime} from "luxon";
-import {Collection, MongoClient, ObjectId} from "mongodb";
+import {Collection, Long, MongoClient, ObjectId} from "mongodb";
 import clientPromise from "./mongodb";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
 
@@ -25,10 +25,31 @@ if (process.env.passwordResetTokenCollection === undefined) {
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const PASSWORD_RESET_TOKEN_COLLECTION: string = process.env.passwordResetTokenCollection
 
-function passwordResetTokenCollection(client: MongoClient): Collection<PasswordResetToken> {
+function passwordResetTokenCollection(client: MongoClient): Collection<MongoPasswordResetToken> {
     return client.db(MONGO_DATABASE).collection(PASSWORD_RESET_TOKEN_COLLECTION)
 }
 
+type MongoPasswordResetToken = {
+    _id?: ObjectId
+    userId: string
+    resetToken: string
+    expiration: Long
+}
+
+const emptyToken = (): MongoPasswordResetToken => ({
+    userId: '',
+    resetToken: '',
+    expiration: Long.fromNumber(-1)
+})
+
+function convertToPasswordResetToken(mongoToken: MongoPasswordResetToken): PasswordResetToken {
+    return ({
+        _id: mongoToken._id,
+        userId: mongoToken.userId,
+        resetToken: mongoToken.resetToken,
+        expiration: mongoToken.expiration.toNumber()
+    })
+}
 
 export async function hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, SALT_ROUNDS)
@@ -59,9 +80,10 @@ function randomString(length: number, characters: string): string {
 export async function tokensFor(userId: string): Promise<Array<PasswordResetToken>> {
     try {
         const client = await clientPromise
-        return await passwordResetTokenCollection(client)
+        const mongoTokens = await passwordResetTokenCollection(client)
             .find({userId: {$eq: userId}})
             .toArray()
+        return mongoTokens.map(convertToPasswordResetToken)
     } catch (e) {
         console.error(`Unable to retrieve password reset tokens for user; user_id: ${userId}`, e)
         return Promise.reject(`Unable to retrieve password reset tokens for user; user_id: ${userId}`)
@@ -76,10 +98,11 @@ export async function tokensFor(userId: string): Promise<Array<PasswordResetToke
 export async function retrieveExpiredTokens(): Promise<Array<PasswordResetToken>> {
     try {
         const client = await clientPromise
-        const now = DateTime.utc().endOf('day').toMillis()
-        return await passwordResetTokenCollection(client)
+        const now = Long.fromNumber(DateTime.utc().endOf('day').toMillis())
+        const mongoTokens = await passwordResetTokenCollection(client)
             .find({expiration: {$lt: now}})
             .toArray()
+        return mongoTokens.map(convertToPasswordResetToken)
     } catch (e) {
         console.error("Unable to find expired password reset tokens", e)
         return Promise.reject("Unable to find expired password reset tokens")
@@ -144,18 +167,20 @@ export async function addPasswordResetTokenFor(
     userId: string,
     expiresInDays: number = PASSWORD_RESET_TOKEN_EXPIRATION_DAYS
 ): Promise<PasswordResetToken> {
-    const resetToken: PasswordResetToken = {
+    const expirationMillis = DateTime.utc().plus({days: expiresInDays > 1 ? expiresInDays : PASSWORD_RESET_TOKEN_EXPIRATION_DAYS}).toMillis()
+    const resetToken: MongoPasswordResetToken = {
         userId,
         resetToken: passwordResetToken(),
-        expiration: DateTime.utc().plus({days: expiresInDays > 1 ? expiresInDays : PASSWORD_RESET_TOKEN_EXPIRATION_DAYS}).toMillis()
+        expiration: Long.fromNumber(expirationMillis)
     }
     try {
         const client = await clientPromise
-        const result = await passwordResetTokenCollection(client).insertOne(resetToken)
+        const result = await passwordResetTokenCollection(client)
+            .insertOne(resetToken)
         if (result.insertedId === undefined || result.insertedId === null) {
             return Promise.reject(`Unable to add password reset token for user: user_id: ${userId}`)
         }
-        return resetToken
+        return convertToPasswordResetToken(resetToken)
     } catch (e) {
         console.error(`Unable to add password reset token for user: user_id: ${userId}`, e)
         return Promise.reject(`Unable to add password reset token for user: user_id: ${userId}`)

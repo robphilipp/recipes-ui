@@ -1,4 +1,4 @@
-const {baseUsersSchema} = require("./20230529195813-add_users_collectoin_again")
+const {baseUsersSchema} = require("./20230529195813-add_users_collection")
 const {baseRolesSchema} = require("./20230703121956-create_roles_collection")
 const {baseUserRolesSchema} = require("./20230703125505-create_users_roles_mapping_collection")
 
@@ -52,50 +52,9 @@ module.exports = {
                 {$unwind: "$role_description"}
             ]
         })
-        await db.createCollection("users_full", {
-            viewOn: "roles_full",
-            pipeline: [
-                {
-                    $lookup:
-                        {
-                            from: "users",
-                            localField: "usersId",
-                            foreignField: "userId",
-                            as: "userDocs"
-                        },
-                },
-                {
-                    $project:
-                        {
-                            _id: 0,
-                            userId: "$userDocs._id",
-                            name: "$userDocs.name",
-                            email: "$userDocs.email",
-                            emailVerified: "$userDocs.emailVerified",
-                            createdOn: "$userDocs.createdOn",
-                            modifiedOn: "$userDocs.modifiedOn",
-                            deletedOn: "$userDocs.deletedOn",
-                            image: "$userDocs.image",
-                            roleId: 1,
-                            role_name: 1,
-                            role_description: 1
-                        }
-                },
-                {$unwind: "$userId"},
-                {$unwind: "$name"},
-                {$unwind: "$email"},
-                {$unwind: "$emailVerified"},
-                {$unwind: "$createdOn"},
-                {$unwind: "$modifiedOn"},
-                {$unwind: "$deletedOn"},
-                {$unwind: "$image"}
-            ],
-            validator: fullUsersViewSchema
-        })
     },
 
     async down(db) {
         await db.collection("roles_full").drop()
-        await db.collection("users_full").drop()
     }
 }

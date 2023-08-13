@@ -1,7 +1,6 @@
 import clientPromise from "./mongodb"
 import {ClientSession, Collection, MongoClient, ObjectId} from "mongodb"
 import {Role, roleFrom, rolesFrom} from "../components/users/Role"
-import {RecipesUser} from "../components/users/RecipesUser";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -15,14 +14,14 @@ if (process.env.usersRolesCollection === undefined) {
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const ROLES_COLLECTION: string = process.env.rolesCollection
-const USERS_ROLES_COLLECTION: string = process.env.usersRolesCollection
+export const USERS_ROLES_COLLECTION: string = process.env.usersRolesCollection
 
 type UserRole = {
     name: string
     description: string
 }
 
-type UsersToRoles = {
+export type UsersToRoles = {
     userId: ObjectId
     roleId: ObjectId
 }
@@ -62,21 +61,16 @@ export async function roleIdFor(role: Role): Promise<string> {
     }
 }
 
-// export async function addUsersRolesMappingFor(user: RecipesUser, session?: ClientSession): Promise<string> {
 export async function addUsersRolesMappingFor(userId: string, role: Role, session?: ClientSession): Promise<string> {
     try {
         const client: MongoClient = await clientPromise
-        // const roleId = await roleIdFor(user.role)
         const roleId = await roleIdFor(role)
         const result = await usersRolesCollection(client)
-            // .insertOne({userId: new ObjectId(user.id), roleId: new ObjectId(roleId)}, {session})
             .insertOne({userId: new ObjectId(userId), roleId: new ObjectId(roleId)}, {session})
         return result.insertedId.toString()
     } catch (e) {
         console.error(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`, e)
         return Promise.reject(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`)
-        // console.error(`Unable to add user-to-role mapping; user: ${user.email}; role: ${user.role.name}`, e)
-        // return Promise.reject(`Unable to add user-to-role mapping; user: ${user.email}; role: ${user.role.name}`)
     }
 }
 

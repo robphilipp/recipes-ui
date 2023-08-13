@@ -1,4 +1,4 @@
-import {ObjectId} from "mongodb";
+import {Long, ObjectId} from "mongodb";
 
 export type PasswordResetToken = {
     _id?: ObjectId
@@ -6,3 +6,9 @@ export type PasswordResetToken = {
     resetToken: string
     expiration: number
 }
+
+export const emptyToken = (): PasswordResetToken => ({
+    userId: '',
+    resetToken: '',
+    expiration: -1
+})

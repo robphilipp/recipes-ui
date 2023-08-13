@@ -27,43 +27,24 @@ export default function ManageUsers(): JSX.Element {
         ['add-new-user'],
         (user: RecipesUser) => axios.put("/api/users", user)
     )
-    const addPasswordResetTokenQuery = useMutation(
-        ['add-password-reset-token'],
-        (userId: string) => axios.put(`/api/passwords/tokens/${userId}`)
-    )
+    // const addPasswordResetTokenQuery = useMutation(
+    //     ['add-password-reset-token'],
+    //     (userId: string) => axios.put(`/api/passwords/tokens/${userId}`)
+    // )
 
     const [isAddUserFormVisible, setAddUserFormVisibility] = useState(false)
 
     async function handleSaveNewUser(user: AddUserFormUser): Promise<void> {
-        const role = {name: user.role, description: ""}
+        const role = {name: user.role, description: user.roleDescription || ""}
         const recipeUser: RecipesUser = {...emptyUser(), name: user.username, email: user.email, role}
         const response = await addNewUserQuery.mutateAsync(recipeUser)
         if (response.status !== 200) {
             console.error(`Failed to add new user; http_status_code: ${response.status}`)
             return Promise.reject(`Failed to add new user; http_status_code: ${response.status}`)
         }
-        const tokenResponse = await addPasswordResetTokenQuery.mutateAsync((response.data as RecipesUser).id)
-        if (tokenResponse.status !== 200) {
-            console.error(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
-            return Promise.reject(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
-        }
+        console.log(`Added user`, response.data)
         return await queryClient.invalidateQueries(['users-all'])
     }
-    // async function handleSaveNewUser(user: AddUserFormUser): Promise<void> {
-    //     const role = {name: user.role, description: ""}
-    //     const recipeUser: RecipesUser = {...emptyUser(), name: user.username, email: user.email, role}
-    //     const response = await addNewUserQuery.mutateAsync(recipeUser)
-    //     if (response.status !== 200) {
-    //         console.error(`Failed to add new user; http_status_code: ${response.status}`)
-    //         return Promise.reject(`Failed to add new user; http_status_code: ${response.status}`)
-    //     }
-    //     const tokenResponse = await addPasswordResetTokenQuery.mutateAsync((response.data as RecipesUser).id)
-    //     if (tokenResponse.status !== 200) {
-    //         console.error(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
-    //         return Promise.reject(`Failed to add password reset token; http_status_code: ${tokenResponse.status}`)
-    //     }
-    //     return await queryClient.invalidateQueries(['users-all'])
-    // }
 
     const rows: Array<UsersTableRow> = useMemo(
         () => {
@@ -75,7 +56,7 @@ export default function ManageUsers(): JSX.Element {
             return users.map(user => ({
                 email: user.email || "",
                 username: user.name || "",
-                role: user.role.name || "",
+                role: user.role.description || "",
                 emailVerified: user.emailVerified !== null,
                 emailVerifiedOn: convertTimestamp(user.emailVerified),
                 createdOn: convertTimestamp(user.createdOn) || DateTime.utc(),

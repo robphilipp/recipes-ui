@@ -13,7 +13,7 @@ Then run the following from node
     '$2b$10$YM26qPpJlu9zujLWrr9oDeAyKAk/rAzKbLhwnAyd1isgM.eMcw8cq'
 */
 
-const {baseUsersSchema} = require("./20230529195813-add_users_collectoin_again")
+const {baseUsersSchema} = require("./20230529195813-add_users_collection")
 const bcrypt = require('bcrypt')
 const {Long} = require("bson")
 const saltRounds = 10
@@ -36,7 +36,8 @@ module.exports = {
             createdOn: now,
             modifiedOn: -1,
             deletedOn: -1,
-            image: ""
+            image: "",
+            role: {name: "admin", description: "RecipeBook admin"}
         }
         await usersCollection.insertOne(admin)
     },

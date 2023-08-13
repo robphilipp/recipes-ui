@@ -21,7 +21,7 @@ export default async function handler(
         // new password set
         case RequestMethod.PUT:
             return setPasswordFromToken(request.body as NewPassword)
-                .then(summaries => response.status(200).json(summaries))
+                .then(password => response.status(200).json(password))
 
         default:
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)

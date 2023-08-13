@@ -16,8 +16,7 @@ export default async function handler(
 
         // add new password reset token
         case RequestMethod.PUT:
-            // const tokenInfo = request.body as PasswordResetToken
-            return addPasswordResetTokenFor(request.query.userId as string)
+            return addPasswordResetTokenFor(request.query.userid as string)
                 .then(token => response.status(200).json(token))
 
         default:

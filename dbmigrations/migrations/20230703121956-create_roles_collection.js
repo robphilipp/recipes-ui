@@ -9,7 +9,7 @@ const baseRolesSchema = {
                 description: "must be either 'admin', 'account_admin', or 'user'"
             },
             description: {
-                bsonType: "string",
+                enum: ["RecipeBook admin", "Account admin", "Regular user"],
                 description: "must be a string and is required"
             }
         }

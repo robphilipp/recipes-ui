@@ -20,6 +20,7 @@ import {useRouter} from "next/router";
 import Centered from "../Centered";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import {RecipesUser} from "./RecipesUser";
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
@@ -29,6 +30,7 @@ export type AddUserFormUser = {
     username: string
     email: string
     role: RoleType
+    roleDescription?: string
 }
 
 const INITIAL_USER = {username: "", email: "", role: RoleType.USER}
@@ -72,6 +74,16 @@ export default function AddUserForm(props: Props): JSX.Element {
     }
 
     const roles: Array<Role> = data?.data || []
+
+
+    function enrichUser(): AddUserFormUser {
+        const role = roles.find(role => role.name === user.role)
+        if (role === undefined) {
+            return user
+        }
+        return {...user, roleDescription: role.description}
+    }
+
     return (<>
         <FormGroup style={{maxWidth}}>
             <ButtonGroup style={{justifyContent: 'left', paddingTop: 0}}>
@@ -87,7 +99,7 @@ export default function AddUserForm(props: Props): JSX.Element {
                     variant="outlined"
                     startIcon={<SaveIcon/>}
                     sx={{textTransform: 'none'}}
-                    onClick={() => onSave(user)}
+                    onClick={() => onSave(enrichUser())}
                 >
                     Save
                 </Button>

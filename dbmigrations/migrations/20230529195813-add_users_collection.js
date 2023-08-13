@@ -36,6 +36,20 @@ const baseUsersSchema = {
                 bsonType: "string",
                 description: "must be a string"
             },
+            role: {
+                bsonType: "object",
+                required: ["name", "description"],
+                properties: {
+                    name: {
+                        enum: ["admin", "account_admin", "user"],
+                        description: "'name' must be a string describing the role"
+                    },
+                    description: {
+                        enum: ["RecipeBook admin", "Account admin", "Regular user"],
+                        description: "'description' must be a string describing the role"
+                    }
+                }
+            }
         }
     }
 }

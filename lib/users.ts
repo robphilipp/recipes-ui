@@ -1,12 +1,11 @@
 import clientPromise from "./mongodb"
 import {ClientSession, Collection, Filter, FindOptions, Long, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
-import {addUsersRolesMappingFor, roleIdFor} from "./roles";
+import {addUsersRolesMappingFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
-import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
+import {emptyToken, PasswordResetToken} from "../components/passwords/PasswordResetToken";
 import {DateTime} from "luxon";
-import {addPasswordResetTokenFor, hashPassword, passwordResetToken, randomPassword} from "./passwords";
-import {roleFrom, RoleType} from "../components/users/Role";
+import {addPasswordResetTokenFor, hashPassword, randomPassword} from "./passwords";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -23,61 +22,11 @@ if (process.env.passwordResetTokenCollection === undefined) {
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const USERS_COLLECTION: string = process.env.usersCollection
-// the users view has users joined with their role information
-// this is a richer set of data than what is found in the users
-// collection
-const USERS_VIEW: string = process.env.usersView
 
 const PASSWORD_RESET_TOKEN_COLLECTION: string = process.env.passwordResetTokenCollection
 
 function usersCollection(client: MongoClient): Collection<RecipesUser> {
     return client.db(MONGO_DATABASE).collection(USERS_COLLECTION)
-}
-
-/*
-createdOn
-:
-1685804966792
-deletedOn
-:
--1
-emailVerified
-:
-1685804966792
-image
-:
-""
-modifiedOn
-:
-1690730808416
-roleId
-:
-"64b428666ef45e025f154803"
-role_description
-:
-"RecipeBook admin"
-role_name
-:
-"admin"
-userId
-:
-"647b57a62ddb6909b9c69fd4"
- */
-
-type UserView = {
-    email: string
-    name: string
-    createdOn: number | Long
-    emailVerified: number | Long
-    modifiedOn: number | Long
-    deletedOn: number | Long
-    roleId: string
-    role_name: string
-    role_description: string
-}
-
-function usersView(client: MongoClient): Collection<UserView> {
-    return client.db(MONGO_DATABASE).collection(USERS_VIEW)
 }
 
 function passwordResetTokenCollection(client: MongoClient): Collection<PasswordResetToken> {
@@ -171,27 +120,10 @@ export async function usersCount(): Promise<number> {
 //     }
 // }
 
-
-export async function users(filter: Filter<UserView> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
+export async function users(filter: Filter<RecipesUser> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
     try {
         const client: MongoClient = await clientPromise
-        const userViews = await usersView(client).find(filter).toArray()
-        return userViews.map(user => {
-            const role = roleFrom({name: user.role_name, description: user.role_description}).getOrDefault({name: RoleType.USER, description: ""})
-            return {
-                id: user._id?.toString() || "",
-                password: "",
-                image: "",
-                email: user.email,
-                name: user.name,
-                createdOn: user.createdOn,
-                emailVerified: user.emailVerified,
-                modifiedOn: user.modifiedOn,
-                deletedOn: user.deletedOn,
-                role: role
-            }
-        })
-
+        return await usersCollection(client).find(filter).toArray()
     } catch (e) {
         console.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
@@ -213,7 +145,12 @@ export async function userByEmail(email: string): Promise<RecipesUser> {
     }
 }
 
-export async function addUser(user: RecipesUser): Promise<RecipesUser> {
+export type AddedUserInfo = {
+    user: RecipesUser
+    resetToken: PasswordResetToken
+}
+
+export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
     try {
         const client: MongoClient = await clientPromise
         const session = client.startSession()
@@ -221,9 +158,11 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
         // grab the roleId for the roles table
         // const roleId = await roleIdFor(user.role)
         try {
+            let newUser: RecipesUser = {...user}
+            let resetToken: PasswordResetToken = emptyToken()
             await session.withTransaction(async () => {
                 const password = await hashPassword(randomPassword())
-                const newUser: RecipesUser = {
+                newUser = {
                     ...user,
                     password,
                     createdOn: Long.fromNumber(DateTime.utc().toMillis()),
@@ -233,11 +172,15 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
                 }
                 const result = await usersCollection(client).insertOne(newUser, {session})
                 if (result.acknowledged && result.insertedId) {
-                    return await addUsersRolesMappingFor(result.insertedId.toString(), user.role, session)
+                    await addUsersRolesMappingFor(result.insertedId.toString(), user.role, session)
+                    newUser = {...newUser, id: result.insertedId.toString()}
+                    resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
+                    // return {...newUser, _id: result.insertedId}
+                    return
                 }
-                // const resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
                 return Promise.reject(`Unable to add user; rolling back transaction; email: ${user.email}`)
             })
+            return {user: newUser, resetToken}
         } catch (e) {
             console.error(`Unable to add user: email: ${user.email}`, e)
             return Promise.reject(`Unable to add user; email: ${user.email}`)
@@ -245,27 +188,12 @@ export async function addUser(user: RecipesUser): Promise<RecipesUser> {
             await session.endSession()
         }
         // return user
-        return Promise.reject(`Unable to add user; email: ${user.email}`)
+        // return Promise.reject(`Unable to add user; email: ${user.email}`)
     } catch (e) {
         console.error(`Unable to add user: email: ${user.email}`, e)
         return Promise.reject(`Unable to add user; email: ${user.email}`)
     }
 }
-
-// async function addPasswordResetTokenFor(userId: string): Promise<PasswordResetToken> {
-//     const expiration = DateTime.utc().plus({days: 14}).toMillis()
-//     const resetToken = passwordResetToken()
-//     try {
-//         const client: MongoClient = await clientPromise
-//         const passwordResetToken = {userId, resetToken, expiration}
-//         await passwordResetTokenCollection(client).insertOne(passwordResetToken)
-//         return passwordResetToken
-//     } catch (e) {
-//         const message = `Unable to add password reset token; user_id: ${userId}`
-//         console.error(message, e)
-//         return Promise.reject(message)
-//     }
-// }
 
 export async function userByToken(token: string): Promise<RecipesUser> {
     try {
@@ -276,7 +204,7 @@ export async function userByToken(token: string): Promise<RecipesUser> {
         const tokenData =
             await passwordResetTokenCollection(client).findOne({resetToken: token})
         if (tokenData === undefined || tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
-            const message = `Invalid token; token: ${token}`
+            const message = `Invalid token (user from token); token: ${token}`
             console.error(message)
             return Promise.reject(message)
         }
@@ -322,7 +250,7 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
             // if the token is not found, or if the token has expired, then return
             // a somewhat cryptic error message
             if (tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
-                const message = `Invalid token; token: ${resetToken}`
+                const message = `Invalid token (set password from token); token: ${resetToken}`
                 console.log(message)
                 return Promise.reject(message)
             }

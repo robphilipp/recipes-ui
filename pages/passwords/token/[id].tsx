@@ -42,7 +42,7 @@ export default function PasswordByToken(): JSX.Element {
             })
     )
 
-    // query for updating the recipe's rating
+    // query for setting the password from a token
     const setPasswordQuery = useMutation(
         ['set-password-from-token'],
         (passwordInfo: NewPassword) => axios.put(
