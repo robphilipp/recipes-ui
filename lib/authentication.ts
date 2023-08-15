@@ -33,6 +33,12 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
         if (user === null) {
             return Promise.reject(`Unable to retrieve information for user with email: ${credentials.email}`)
         }
+        // if the user has been deleted, then they can't log in
+        if (user.deletedOn === null || user.deletedOn as number > 0) {
+            return Promise.reject(`No user exists with email of ${credentials.email}`)
+        }
+        // todo error message if the user's email hasn't been verified, which means that the user
+        //      hasn't yet set up their password
         try {
             const authenticated = await compare(credentials.password, user.password)
             if (authenticated) {

@@ -1,7 +1,7 @@
 import React, {useMemo} from "react"
 import {
     alpha,
-    Box,
+    Box, Button,
     IconButton,
     Paper,
     Table,
@@ -20,7 +20,7 @@ import {DateTime} from "luxon"
 import {visuallyHidden} from "@mui/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import FilterListIcon from '@mui/icons-material/FilterList'
-import {PersonOff, TaskAlt} from "@mui/icons-material";
+import {Mail, PersonAdd, PersonOff, TaskAlt} from "@mui/icons-material";
 
 export type UsersTableRow = {
     email: string
@@ -157,10 +157,6 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
     )
 }
 
-type TableProps = {
-    rows: Array<UsersTableRow>
-}
-
 function formatDatetime(dateTime: DateTime | null, format: string = 'yyyy-MM-dd HH:mm'): string {
     if (dateTime == null) {
         return ""
@@ -168,8 +164,14 @@ function formatDatetime(dateTime: DateTime | null, format: string = 'yyyy-MM-dd 
     return dateTime.toFormat(format)
 }
 
+type TableProps = {
+    rows: Array<UsersTableRow>
+    onResendEmail: (user: UsersTableRow) => void
+    onEdit: (user: UsersTableRow) => void
+}
+
 export default function UsersTable(props: TableProps) {
-    const {rows} = props
+    const {rows, onResendEmail, onEdit} = props
 
     const [order, setOrder] = React.useState<Order>('asc')
     const [orderBy, setOrderBy] = React.useState<keyof UsersTableRow>('email')
@@ -285,7 +287,22 @@ export default function UsersTable(props: TableProps) {
                                         <TableCell align='center'>
                                             <Tooltip title={`Email verified on ${formatDatetime(row.emailVerifiedOn)}`}>
                                                 <span>
-                                                    {row.emailVerified ? <TaskAlt sx={{color: "#308330"}}/> : <></>}
+                                                    {row.emailVerified ?
+                                                        <TaskAlt sx={{color: "#308330"}}/> :
+                                                        <Button
+                                                            key={row.email}
+                                                            variant="outlined"
+                                                            startIcon={<Mail/>}
+                                                            size='small'
+                                                            sx={{textTransform: 'none'}}
+                                                            onClick={event => {
+                                                                event.preventDefault()
+                                                                onResendEmail(row)
+                                                            }}
+                                                        >
+                                                            Resend
+                                                        </Button>
+                                                    }
                                                 </span>
                                             </Tooltip>
                                         </TableCell>

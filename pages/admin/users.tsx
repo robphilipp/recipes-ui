@@ -57,7 +57,7 @@ export default function ManageUsers(): JSX.Element {
                 email: user.email || "",
                 username: user.name || "",
                 role: user.role.description || "",
-                emailVerified: user.emailVerified !== null,
+                emailVerified: user.emailVerified !== null && user.emailVerified as number > 0,
                 emailVerifiedOn: convertTimestamp(user.emailVerified),
                 createdOn: convertTimestamp(user.createdOn) || DateTime.utc(),
                 modifiedOn: convertTimestamp(user.modifiedOn),
@@ -78,9 +78,17 @@ export default function ManageUsers(): JSX.Element {
         return time === null || time === -1 ? null : DateTime.fromMillis(time as number)
     }
 
+    function handleResendEmail(userRow: UsersTableRow): void {
+
+    }
+
+    function handleEditUser(userRow: UsersTableRow): void {
+
+    }
+
     return (<>
         <Typography variant="h5">Manage Users</Typography>
-        <UsersTable rows={rows}/>
+        <UsersTable rows={rows} onResendEmail={handleResendEmail} onEdit={handleEditUser}/>
         {!isAddUserFormVisible && <Button
             variant="outlined"
             startIcon={<PersonAdd/>}
