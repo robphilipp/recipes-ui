@@ -1,26 +1,25 @@
 import {
     Button,
-    ButtonGroup,
     FormControl,
     FormGroup,
     InputLabel,
     MenuItem,
-    OutlinedInput,
     Select,
     SelectChangeEvent,
+    Stack,
     styled,
+    TextField,
     Typography
 } from "@mui/material";
-import {Role, roleAtLeast, RoleType, roleTypeFrom} from "./Role";
-import React, {useReducer} from "react";
-import {useRecipeSession} from "../../lib/RecipeSessionProvider";
+import {Role, roleAtLeast, RoleType, roleTypeFrom} from "../Role";
+import React, {useReducer, useState} from "react";
+import {useRecipeSession} from "../../../lib/RecipeSessionProvider";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
 import {useRouter} from "next/router";
-import Centered from "../Centered";
+import Centered from "../../Centered";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
-import {RecipesUser} from "./RecipesUser";
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
@@ -36,6 +35,11 @@ export type AddUserFormUser = {
 const INITIAL_USER = {username: "", email: "", role: RoleType.USER}
 
 const reducer = (user: AddUserFormUser, action: Partial<AddUserFormUser>): AddUserFormUser => ({...user, ...action})
+const stringLengthConstraint = (name: string, value: string, min: number = 6, max: number = 30): string =>
+    (value.length > 0 && (value.length < min || value.length > max)) ?
+        `length (${value.length}) of the ${name} must be between ${min} and ${max} characters` :
+        ""
+const EMAIL_REGEX: RegExp = /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)$/
 
 type Props = {
     maxWidth?: number
@@ -44,7 +48,7 @@ type Props = {
 }
 
 export default function AddUserForm(props: Props): JSX.Element {
-    const {maxWidth = 400, onSave, onCancel} = props
+    const {maxWidth = 600, onSave, onCancel} = props
 
     const router = useRouter()
     const {role: adminRole} = useRecipeSession()
@@ -60,6 +64,15 @@ export default function AddUserForm(props: Props): JSX.Element {
                 return Promise.reject([])
             })
     )
+
+    const [emailError, setEmailError] = useState("")
+
+
+    function handleUpdateEmail(email: string): void {
+        let error = stringLengthConstraint("email address", email)
+        setEmailError(error)
+        updateUser({email})
+    }
 
     function handleRoleSelected(event: SelectChangeEvent): void {
         roleTypeFrom(event.target.value)
@@ -86,37 +99,22 @@ export default function AddUserForm(props: Props): JSX.Element {
 
     return (<>
         <FormGroup style={{maxWidth}}>
-            <ButtonGroup style={{justifyContent: 'left', paddingTop: 0}}>
-                <Button
-                    variant="outlined"
-                    startIcon={<CancelIcon/>}
-                    sx={{textTransform: 'none'}}
-                    onClick={onCancel}
-                >
-                    Cancel
-                </Button>
-                <Button
-                    variant="outlined"
-                    startIcon={<SaveIcon/>}
-                    sx={{textTransform: 'none'}}
-                    onClick={() => onSave(enrichUser())}
-                >
-                    Save
-                </Button>
-            </ButtonGroup>
             <UserFormControl>
-                <InputLabel htmlFor="username">Username</InputLabel>
-                <OutlinedInput
+                <TextField
                     label="Username"
+                    maxRows={40}
                     onChange={event => updateUser({username: event.target.value})}
+                    helperText="Please enter the name of the user that will be displayed on the recipes"
                 />
             </UserFormControl>
 
             <UserFormControl>
-                <InputLabel htmlFor="email">Email</InputLabel>
-                <OutlinedInput
+                <TextField
                     label="Email"
-                    onChange={event => updateUser({email: event.target.value})}
+                    error={emailError.length > 0}
+                    helperText={emailError.length === 0 ? "Please enter a unique email address for the new user" : emailError}
+                    maxRows={40}
+                    onChange={event => handleUpdateEmail(event.target.value)}
                 />
             </UserFormControl>
 
@@ -142,6 +140,24 @@ export default function AddUserForm(props: Props): JSX.Element {
                     }
                 </Select>
             </UserFormControl>
+            <Stack direction='row' style={{justifyContent: 'right', paddingTop: 20}}>
+                <Button
+                    startIcon={<CancelIcon/>}
+                    sx={{textTransform: 'none'}}
+                    size='small'
+                    onClick={onCancel}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    startIcon={<SaveIcon/>}
+                    size='small'
+                    sx={{textTransform: 'none'}}
+                    onClick={() => onSave(enrichUser())}
+                >
+                    Save
+                </Button>
+            </Stack>
         </FormGroup>
     </>)
 }

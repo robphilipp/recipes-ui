@@ -1,9 +1,10 @@
-import React, {useMemo} from "react"
+import React, {useMemo, useState} from "react"
 import {
     alpha,
-    Box, Button,
+    Box,
+    Button, Checkbox,
     IconButton,
-    Paper,
+    Paper, Stack,
     Table,
     TableBody,
     TableCell,
@@ -21,6 +22,7 @@ import {visuallyHidden} from "@mui/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import FilterListIcon from '@mui/icons-material/FilterList'
 import {Mail, PersonAdd, PersonOff, TaskAlt} from "@mui/icons-material";
+import {read} from "fs";
 
 export type UsersTableRow = {
     email: string
@@ -77,6 +79,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
     return (
         <TableHead>
             <TableRow>
+                <TableCell/>
                 {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
@@ -105,10 +108,11 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 
 type EnhancedTableToolbarProps = {
     numSelected: number
+    onDelete: () => void
 }
 
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-    const {numSelected} = props
+    const {numSelected, onDelete} = props
 
     return (
         <Toolbar
@@ -142,7 +146,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             )}
             {numSelected > 0 ? (
                 <Tooltip title="Delete">
-                    <IconButton>
+                    <IconButton onClick={onDelete}>
                         <DeleteIcon/>
                     </IconButton>
                 </Tooltip>
@@ -168,16 +172,19 @@ type TableProps = {
     rows: Array<UsersTableRow>
     onResendEmail: (user: UsersTableRow) => void
     onEdit: (user: UsersTableRow) => void
+    onAddUser: () => void
+    onDeleteUsers: (users: readonly UsersTableRow[]) => void
+    isAddingUser: boolean
 }
 
 export default function UsersTable(props: TableProps) {
-    const {rows, onResendEmail, onEdit} = props
+    const {rows, onResendEmail, onEdit, onAddUser, onDeleteUsers, isAddingUser} = props
 
-    const [order, setOrder] = React.useState<Order>('asc')
-    const [orderBy, setOrderBy] = React.useState<keyof UsersTableRow>('email')
-    const [selected, setSelected] = React.useState<readonly string[]>([])
-    const [page, setPage] = React.useState(0)
-    const [rowsPerPage, setRowsPerPage] = React.useState(5)
+    const [order, setOrder] = useState<Order>('asc')
+    const [orderBy, setOrderBy] = useState<keyof UsersTableRow>('email')
+    const [selected, setSelected] = useState<readonly UsersTableRow[]>([])
+    const [page, setPage] = useState(0)
+    const [rowsPerPage, setRowsPerPage] = useState(5)
 
     function handleRequestSort(event: React.MouseEvent<unknown>, property: keyof UsersTableRow): void {
         const isAsc = orderBy === property && order === 'asc'
@@ -185,21 +192,21 @@ export default function UsersTable(props: TableProps) {
         setOrderBy(property)
     }
 
-    function handleSelectAllClick(event: React.ChangeEvent<HTMLInputElement>): void {
-        if (event.target.checked) {
-            const newSelected = rows.map((n) => n.email)
-            setSelected(newSelected)
-            return
-        }
-        setSelected([])
-    }
+    // function handleSelectAllClick(event: React.ChangeEvent<HTMLInputElement>): void {
+    //     if (event.target.checked) {
+    //         const newSelected = rows.map((n) => n.email)
+    //         setSelected(newSelected)
+    //         return
+    //     }
+    //     setSelected([])
+    // }
 
-    function handleSelectUser(event: React.MouseEvent<unknown>, name: string): void {
-        const selectedIndex = selected.indexOf(name)
-        let newSelected: readonly string[] = []
+    function handleSelectUser(row: UsersTableRow): void {
+        const selectedIndex = selected.map(user => user.email).indexOf(row.email)
+        let newSelected: readonly UsersTableRow[] = []
 
         if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, name)
+            newSelected = newSelected.concat(selected, row)
         } else if (selectedIndex === 0) {
             newSelected = newSelected.concat(selected.slice(1))
         } else if (selectedIndex === selected.length - 1) {
@@ -223,7 +230,8 @@ export default function UsersTable(props: TableProps) {
         setPage(0)
     }
 
-    const isSelected = (name: string) => selected.indexOf(name) !== -1
+    const isSelected = (row: UsersTableRow) =>
+        selected.findIndex(user => user.email === row.email) !== -1
 
     // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0
@@ -238,31 +246,32 @@ export default function UsersTable(props: TableProps) {
     return (
         <Box sx={{width: '100%'}}>
             <Paper sx={{width: '100%', mb: 2}}>
-                <EnhancedTableToolbar numSelected={selected.length}/>
+                <EnhancedTableToolbar
+                    numSelected={selected.length}
+                    onDelete={() => onDeleteUsers(selected)}
+                />
                 <TableContainer>
                     <Table
                         sx={{minWidth: 750}}
                         aria-labelledby="tableTitle"
                         size='small'
-                        // size={dense ? 'small' : 'medium'}
                     >
                         <EnhancedTableHead
                             numSelected={selected.length}
                             order={order}
                             orderBy={orderBy}
-                            onSelectAllClick={handleSelectAllClick}
+                            onSelectAllClick={() => {}}
                             onRequestSort={handleRequestSort}
                             rowCount={rows.length}
                         />
                         <TableBody>
                             {visibleRows.map((row, index) => {
-                                const isItemSelected = isSelected(row.email)
+                                const isItemSelected = isSelected(row)
                                 const labelId = `enhanced-table-checkbox-${index}`
 
                                 return (
                                     <TableRow
                                         hover
-                                        onClick={(event) => handleSelectUser(event, row.email)}
                                         role="checkbox"
                                         aria-checked={isItemSelected}
                                         tabIndex={-1}
@@ -271,20 +280,46 @@ export default function UsersTable(props: TableProps) {
                                         sx={{cursor: 'pointer'}}
                                     >
                                         <TableCell
+                                            padding="checkbox"
+                                            onClick={() => handleSelectUser(row)}
+                                        >
+                                            <Checkbox
+                                                color="primary"
+                                                checked={isItemSelected}
+                                                inputProps={{
+                                                    'aria-labelledby': labelId,
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell
                                             component="th"
                                             id={labelId}
                                             scope="row"
+                                            onClick={() => handleSelectUser(row)}
                                         >
                                             {row.email}
                                         </TableCell>
-                                        <TableCell>{row.username}</TableCell>
-                                        <TableCell>{row.role}</TableCell>
-                                        <TableCell>
+                                        <TableCell
+                                            onClick={() => handleSelectUser(row)}
+                                        >
+                                            {row.username}
+                                        </TableCell>
+                                        <TableCell
+                                            onClick={() => handleSelectUser(row)}
+                                        >
+                                            {row.role}
+                                        </TableCell>
+                                        <TableCell
+                                            onClick={() => handleSelectUser(row)}
+                                        >
                                             <Tooltip title={`User created on ${formatDatetime(row.createdOn)}`}>
                                                 <span>{formatDatetime(row.createdOn, 'yyyy-MM-dd')}</span>
                                             </Tooltip>
                                         </TableCell>
-                                        <TableCell align='center'>
+                                        <TableCell
+                                            align='center'
+                                            onClick={() => {if (row.emailVerified) handleSelectUser(row)}}
+                                        >
                                             <Tooltip title={`Email verified on ${formatDatetime(row.emailVerifiedOn)}`}>
                                                 <span>
                                                     {row.emailVerified ?
@@ -306,12 +341,16 @@ export default function UsersTable(props: TableProps) {
                                                 </span>
                                             </Tooltip>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell
+                                            onClick={() => handleSelectUser(row)}
+                                        >
                                             <Tooltip title={`Last modified on ${formatDatetime(row.modifiedOn)}`}>
                                                 <span>{formatDatetime(row.modifiedOn, 'yyyy-MM-dd')}</span>
                                             </Tooltip>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell
+                                            onClick={() => handleSelectUser(row)}
+                                        >
                                             {row.deletedOn === null ?
                                                 <span></span> :
                                                 <Tooltip title={`User deleted on ${formatDatetime(row.deletedOn)}`}>
@@ -335,8 +374,18 @@ export default function UsersTable(props: TableProps) {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
+                <Stack direction='row'>
+                    <Button
+                        startIcon={<PersonAdd/>}
+                        sx={{textTransform: 'none', minWidth: 150}}
+                        onClick={onAddUser}
+                        disabled={isAddingUser}
+                    >
+                        Add User
+                    </Button>
+                    <TablePagination
+                    sx={{flex: '1 2 100%'}}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
                     count={rows.length}
                     rowsPerPage={rowsPerPage}
@@ -344,6 +393,7 @@ export default function UsersTable(props: TableProps) {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
+                </Stack>
             </Paper>
         </Box>
     )

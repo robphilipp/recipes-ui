@@ -155,8 +155,6 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
         const client: MongoClient = await clientPromise
         const session = client.startSession()
 
-        // grab the roleId for the roles table
-        // const roleId = await roleIdFor(user.role)
         try {
             let newUser: RecipesUser = {...user}
             let resetToken: PasswordResetToken = emptyToken()
@@ -175,23 +173,35 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
                     await addUsersRolesMappingFor(result.insertedId.toString(), user.role, session)
                     newUser = {...newUser, id: result.insertedId.toString()}
                     resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
-                    // return {...newUser, _id: result.insertedId}
                     return
                 }
                 return Promise.reject(`Unable to add user; rolling back transaction; email: ${user.email}`)
             })
             return {user: newUser, resetToken}
         } catch (e) {
-            console.error(`Unable to add user: email: ${user.email}`, e)
+            console.error(`Unable to add user (transaction): email: ${user.email}`, e)
             return Promise.reject(`Unable to add user; email: ${user.email}`)
         } finally {
             await session.endSession()
         }
-        // return user
-        // return Promise.reject(`Unable to add user; email: ${user.email}`)
     } catch (e) {
-        console.error(`Unable to add user: email: ${user.email}`, e)
+        console.error(`Unable to add user (db): email: ${user.email}`, e)
         return Promise.reject(`Unable to add user; email: ${user.email}`)
+    }
+}
+
+export async function deleteUsers(emails: Array<string>): Promise<number> {
+    try {
+        const client: MongoClient = await clientPromise
+
+        const result = await usersCollection(client).deleteMany({email: {$in: emails}})
+        if (result.acknowledged) {
+            return result.deletedCount
+        }
+        return -1
+    } catch (e) {
+        console.error(`Unable to delete specified users; emails: [${emails?.join(", ")}]`, e)
+        return Promise.reject(`Unable to delete specified users; emails: [${emails?.join(", ")}]`)
     }
 }
 

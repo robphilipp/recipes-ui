@@ -3,13 +3,29 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import axios from "axios"
 import {useRouter} from "next/router"
 import Centered from "../../components/Centered"
-import {Button, Typography} from "@mui/material"
+import {Typography} from "@mui/material"
 import {emptyUser, RecipesUser} from "../../components/users/RecipesUser"
 import {DateTime} from "luxon"
 import {Long} from "mongodb"
-import {PersonAdd} from "@mui/icons-material";
-import UsersTable, {UsersTableRow} from "../../components/users/UsersTable";
-import AddUserForm, {AddUserFormUser} from "../../components/users/AddUserForm";
+import UsersTable, {UsersTableRow} from "../../components/users/manage/UsersTable";
+import AddUserForm, {AddUserFormUser} from "../../components/users/manage/AddUserForm";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import Paper, {PaperProps} from "@mui/material/Paper";
+import Draggable from "react-draggable";
+import {Role} from "../../components/users/Role";
+
+function PaperComponent(props: PaperProps) {
+    return (
+        <Draggable
+            handle="#draggable-dialog-title"
+            cancel={'[class*="MuiDialogContent-root"]'}
+        >
+            <Paper {...props}/>
+        </Draggable>
+    );
+}
 
 export default function ManageUsers(): JSX.Element {
     const router = useRouter()
@@ -27,10 +43,29 @@ export default function ManageUsers(): JSX.Element {
         ['add-new-user'],
         (user: RecipesUser) => axios.put("/api/users", user)
     )
+
     // const addPasswordResetTokenQuery = useMutation(
     //     ['add-password-reset-token'],
     //     (userId: string) => axios.put(`/api/passwords/tokens/${userId}`)
     // )
+
+    const deleteUsersQuery = useMutation(
+        ['delete-users'],
+        (users: Array<UsersTableRow>) => axios.patch(
+            "/api/users",
+            {action: "delete", emails: users.map(user => user.email)}
+        )
+    )
+
+    const rolesQuery = useQuery(
+        ['roles-all'],
+        () => axios.get<Array<Role>>(`/api/roles`)
+            .catch(async reason => {
+                console.error(reason)
+                await router.push("/api/auth/signin")
+                return Promise.reject([])
+            })
+    )
 
     const [isAddUserFormVisible, setAddUserFormVisibility] = useState(false)
 
@@ -39,10 +74,12 @@ export default function ManageUsers(): JSX.Element {
         const recipeUser: RecipesUser = {...emptyUser(), name: user.username, email: user.email, role}
         const response = await addNewUserQuery.mutateAsync(recipeUser)
         if (response.status !== 200) {
-            console.error(`Failed to add new user; http_status_code: ${response.status}`)
-            return Promise.reject(`Failed to add new user; http_status_code: ${response.status}`)
+            const message = `Failed to add new user; http_status_code: ${response.status}`
+            console.error(message)
+            return Promise.reject(message)
         }
         console.log(`Added user`, response.data)
+        setAddUserFormVisibility(false)
         return await queryClient.invalidateQueries(['users-all'])
     }
 
@@ -67,16 +104,18 @@ export default function ManageUsers(): JSX.Element {
         [data?.data, error, isLoading]
     )
 
-    if (isLoading || addNewUserQuery.isLoading) {
+    if (isLoading || addNewUserQuery.isLoading || rolesQuery.isLoading) {
         return <Centered><Typography>Looking for Booboo&apos;s friends...</Typography></Centered>
     }
-    if (error || addNewUserQuery.isLoading) {
+    if (error || addNewUserQuery.isError || rolesQuery.isError) {
         return <Centered><Typography>Unable to locate Booboo&apos;s friends!</Typography></Centered>
     }
 
     function convertTimestamp(time: number | Long | null): DateTime | null {
         return time === null || time === -1 ? null : DateTime.fromMillis(time as number)
     }
+
+    const roles = rolesQuery.data.data
 
     function handleResendEmail(userRow: UsersTableRow): void {
 
@@ -86,20 +125,42 @@ export default function ManageUsers(): JSX.Element {
 
     }
 
+    async function handleDeleteUsers(users: Array<UsersTableRow>): Promise<void> {
+        const response = await deleteUsersQuery.mutateAsync(users)
+        if (response.status !== 200) {
+            const message = `Failed to delete users; http_status_code: ${response.status}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+        console.log(`Deleted users: [${users.map(user => user.email)}]`)
+        return await queryClient.invalidateQueries(['users-all'])
+    }
+
     return (<>
         <Typography variant="h5">Manage Users</Typography>
-        <UsersTable rows={rows} onResendEmail={handleResendEmail} onEdit={handleEditUser}/>
-        {!isAddUserFormVisible && <Button
-            variant="outlined"
-            startIcon={<PersonAdd/>}
-            sx={{textTransform: 'none'}}
-            onClick={() => setAddUserFormVisibility(!isAddUserFormVisible)}
+        <UsersTable
+            rows={rows}
+            onResendEmail={handleResendEmail}
+            onAddUser={() => setAddUserFormVisibility(!isAddUserFormVisible)}
+            onEdit={handleEditUser}
+            onDeleteUsers={handleDeleteUsers}
+            isAddingUser={isAddUserFormVisible}
+        />
+        <Dialog
+            open={isAddUserFormVisible}
+            onClose={() => setAddUserFormVisibility(false)}
+            PaperComponent={PaperComponent}
+            aria-labelledby="draggable-dialog-title"
+            fullWidth={true}
+            maxWidth='sm'
         >
-            Add User
-        </Button>}
-        {isAddUserFormVisible && <AddUserForm
-            onSave={handleSaveNewUser}
-            onCancel={() => setAddUserFormVisibility(false)}
-        />}
+            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">Add User</DialogTitle>
+            <DialogContent>
+                <AddUserForm
+                    onSave={handleSaveNewUser}
+                    onCancel={() => setAddUserFormVisibility(false)}
+                />
+            </DialogContent>
+        </Dialog>
     </>)
 }
