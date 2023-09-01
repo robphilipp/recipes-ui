@@ -6,6 +6,7 @@ import {NewPassword} from "../pages/api/passwords/[id]";
 import {emptyToken, PasswordResetToken} from "../components/passwords/PasswordResetToken";
 import {DateTime} from "luxon";
 import {addPasswordResetTokenFor, hashPassword, randomPassword} from "./passwords";
+import {Document} from "bson"
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -33,10 +34,10 @@ function passwordResetTokenCollection(client: MongoClient): Collection<PasswordR
     return client.db(MONGO_DATABASE).collection(PASSWORD_RESET_TOKEN_COLLECTION)
 }
 
-export async function usersCount(): Promise<number> {
+export async function usersCount(filter?: Document): Promise<number> {
     try {
         const client: MongoClient = await clientPromise
-        return await usersCollection(client).countDocuments()
+        return await usersCollection(client).countDocuments(filter)
     } catch (e) {
         console.error("Unable to retrieve user count", e)
         return Promise.reject("Unable to retrieve user count")
@@ -127,6 +128,28 @@ export async function users(filter: Filter<RecipesUser> = {}, options?: FindOpti
     } catch (e) {
         console.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
+    }
+}
+
+export async function usernameExists(name: string): Promise<boolean> {
+    try {
+        const numUsers = await usersCount({name})
+        return numUsers > 0
+    } catch (e) {
+        const message = `Unable to determine whether username already exists; name: ${name}`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
+
+export async function emailExists(email: string): Promise<boolean> {
+    try {
+        const numUsers = await usersCount({email})
+        return numUsers > 0
+    } catch (e) {
+        const message = `Unable to determine whether email already exists; name: ${email}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 

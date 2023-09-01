@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {RecipesUser} from "../../components/users/RecipesUser";
 import {RequestMethod} from "../../lib/RequestMethod";
-import {AddedUserInfo, addUser, deleteUsersByEmail, users} from "../../lib/users";
+import {AddedUserInfo, addUser, deleteUsersByEmail, emailExists, usernameExists, users} from "../../lib/users";
 import {getToken} from "next-auth/jwt";
 import {Role, roleAtLeast, roleFrom, RoleLiteral, RoleType} from "../../components/users/Role";
 
@@ -18,9 +18,17 @@ export type UsersPatchAction = {
     emails: Array<string>
 }
 
+export type AttributeExists = {
+    field: string
+    exists: boolean
+}
+
+export const NAME_EXISTENCE = "name_existence"
+export const EMAIL_EXISTENCE = "email_existence"
+
 export default async function handler(
     request: NextApiRequest,
-    response: NextApiResponse<Array<RecipesUser> | AddedUserInfo | DeletedCount>
+    response: NextApiResponse<Array<RecipesUser> | AddedUserInfo | DeletedCount | AttributeExists>
 ): Promise<void> {
     // when user isn't logged in or doesn't have access to view the roles,
     // redirect them to the login screen
@@ -32,7 +40,15 @@ export default async function handler(
 
     switch (request.method) {
         case RequestMethod.GET:
-            return users()
+            if (request.query.hasOwnProperty(NAME_EXISTENCE)) {
+                return usernameExists(request.query[NAME_EXISTENCE] as string)
+                    .then(exists => response.status(200).json({field: "name", exists}))
+            }
+            if (request.query.hasOwnProperty(EMAIL_EXISTENCE)) {
+                return emailExists(request.query[EMAIL_EXISTENCE] as string)
+                    .then(exists => response.status(200).json({field: "email", exists}))
+            }
+            return users(request.query)
                 .then(users => response.status(200).json(users))
 
         case RequestMethod.PUT:
@@ -43,9 +59,6 @@ export default async function handler(
         case RequestMethod.PATCH:
             const {action, emails} = request.body as UsersPatchAction
             console.log(`Delete users with patch; action: ${action}`)
-            // const emails: Array<string> = [request.query.email || ""]
-            //     .flatMap(email => email)
-            //     .filter(email => email.length > 0)
             if (emails.length === 0) {
                 return response.status(200).json({deletedCount: 0})
             }

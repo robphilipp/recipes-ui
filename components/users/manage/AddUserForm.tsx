@@ -40,6 +40,8 @@ const stringLengthConstraint = (name: string, value: string, min: number = 6, ma
         `length (${value.length}) of the ${name} must be between ${min} and ${max} characters` :
         ""
 const EMAIL_REGEX: RegExp = /^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)$/
+export const NAME_EXISTENCE = "name_existence"
+export const EMAIL_EXISTENCE = "email_existence"
 
 type Props = {
     maxWidth?: number
@@ -65,11 +67,21 @@ export default function AddUserForm(props: Props): JSX.Element {
             })
     )
 
+    const [usernameError, setUsernameError] = useState("")
     const [emailError, setEmailError] = useState("")
 
+    async function handleUpdateUsername(username: string): Promise<void> {
+        const response = await axios.get(`/api/users?${NAME_EXISTENCE}=${username}`)
+        const error = stringLengthConstraint("username", username) +
+            (response.data.exists ? "Username already exists" : "")
+        setUsernameError(error)
+        updateUser({username})
+    }
 
-    function handleUpdateEmail(email: string): void {
-        let error = stringLengthConstraint("email address", email)
+    async function handleUpdateEmail(email: string): Promise<void> {
+        const response = await axios.get(`/api/users?${EMAIL_EXISTENCE}=${email}`)
+        const error = stringLengthConstraint("email address", email) +
+            (response.data.exists ? "Email already exists" : "")
         setEmailError(error)
         updateUser({email})
     }
@@ -102,9 +114,12 @@ export default function AddUserForm(props: Props): JSX.Element {
             <UserFormControl>
                 <TextField
                     label="Username"
+                    error={usernameError.length > 0}
                     maxRows={40}
-                    onChange={event => updateUser({username: event.target.value})}
-                    helperText="Please enter the name of the user that will be displayed on the recipes"
+                    onChange={event => handleUpdateUsername(event.target.value)}
+                    helperText={usernameError.length === 0 ?
+                        "Please enter the name of the user that will be displayed on the recipes" :
+                        usernameError}
                 />
             </UserFormControl>
 
@@ -112,7 +127,9 @@ export default function AddUserForm(props: Props): JSX.Element {
                 <TextField
                     label="Email"
                     error={emailError.length > 0}
-                    helperText={emailError.length === 0 ? "Please enter a unique email address for the new user" : emailError}
+                    helperText={emailError.length === 0 ?
+                        "Please enter a unique email address for the new user" :
+                        emailError}
                     maxRows={40}
                     onChange={event => handleUpdateEmail(event.target.value)}
                 />
