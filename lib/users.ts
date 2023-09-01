@@ -1,7 +1,7 @@
 import clientPromise from "./mongodb"
 import {ClientSession, Collection, Filter, FindOptions, Long, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
-import {addUsersRolesMappingFor} from "./roles";
+import {addUsersRolesMappingFor, deleteUsersRoleMappingsFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
 import {emptyToken, PasswordResetToken} from "../components/passwords/PasswordResetToken";
 import {DateTime} from "luxon";
@@ -130,7 +130,7 @@ export async function users(filter: Filter<RecipesUser> = {}, options?: FindOpti
     }
 }
 
-export async function userByEmail(email: string): Promise<RecipesUser> {
+export async function userFor(email: string): Promise<RecipesUser> {
     try {
         const client: MongoClient = await clientPromise
         const user = await usersCollection(client).findOne({email: email})
@@ -140,16 +140,92 @@ export async function userByEmail(email: string): Promise<RecipesUser> {
         }
         return user
     } catch(e) {
-        console.log(`Unable to retrieve user: email: ${email}`, e)
+        console.error(`Unable to retrieve user: email: ${email}`, e)
         return Promise.reject(`Unable to retrieve user: email: ${email}`)
     }
 }
 
+/*
+ * Helper types and function for retrieving users based on their email address and
+ * manipulating the results
+ */
+type EmailId = {email: string, id: string}
+type EmailToIdsResult = {
+    foundEmailIds: Array<EmailId>
+    notFoundEmails: Array<string>
+}
+
+function splitIdsFromEmails(idEmails: Array<EmailId>): [ids: Array<string>, emails: Array<string>] {
+    return idEmails.reduce(
+        (result, emailId) => {
+            result[0].push(emailId.id)
+            result[1].push(emailId.email)
+            return result
+        },
+        [[], []] as [Array<string>, Array<string>]
+    )
+}
+
+/**
+ * Attempts to find the user IDs for the specified array of emails. Returns a result
+ * object that holds a list of (email, ID) tuples for all the users associated with the
+ * specified emails, and a list of emails for all the emails for which no user was
+ * found.
+ * @param emails A list of users for which to retrieve emails
+ * @return A {@link EmailToIdsResult} object holding the emails that were found and
+ * the emails that were not found.
+ */
+export async function userIdsFor(emails: Array<string>): Promise<EmailToIdsResult> {
+    try {
+        const client: MongoClient = await clientPromise
+
+        // grab the user associated with each email address
+        const users = await usersCollection(client)
+            .find({email: {$in: emails as string[]}})
+            .toArray()
+        // convert the user to a (email, id) tuple for each user whose email address and
+        // user ID is not an empty string
+        const emailIds = users
+            .map(user => ({email: user.email || "", id: user._id.toString()}))
+            .filter((emailId: EmailId) => emailId.email.length > 0 && emailId.id.length > 0)
+
+        // construct the results object the holds the ids that were found
+        return emails.reduce(
+            (result: EmailToIdsResult, email: string) => {
+                const ei: EmailId | undefined = emailIds.find((ei: EmailId) => ei.email === email)
+                if (ei !== undefined && ei.id.length > 0) {
+                    result.foundEmailIds.push(ei)
+                } else {
+                    result.notFoundEmails.push(email)
+                }
+                return result
+            },
+            {foundEmailIds: [], notFoundEmails: []} as EmailToIdsResult
+        )
+    } catch (e) {
+        const message = `Unable to find user IDs for emails; emails: [${emails?.join(", ")}]`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
+
+/*
+ * Helper type for holding the results of adding a user
+ */
 export type AddedUserInfo = {
     user: RecipesUser
     resetToken: PasswordResetToken
 }
 
+/**
+ * Transactional add of a user, the user-to-role mapping, and a password-reset
+ * token. Accepts a {@link RecipesUser}, creates a random password for the user,
+ * and returns user info that contains the added user along with a password-reset
+ * token. This password-reset token allows the user to set their initial password.
+ * @param user The user to add to the system
+ * @return A {@link AddedUserInfo} object holding the added user and the
+ * reset-password token.
+ */
 export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
     try {
         const client: MongoClient = await clientPromise
@@ -159,7 +235,10 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
             let newUser: RecipesUser = {...user}
             let resetToken: PasswordResetToken = emptyToken()
             await session.withTransaction(async () => {
+                // create a hash of a random password (will need to be reset by the user)
                 const password = await hashPassword(randomPassword())
+
+                // add the user to mongo
                 newUser = {
                     ...user,
                     password,
@@ -169,14 +248,20 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
                     emailVerified: Long.fromNumber(-1),
                 }
                 const result = await usersCollection(client).insertOne(newUser, {session})
+
+                // if the user was added successfully, attempt to add user-to-role mapping,
+                // and if that succeeds, then add the password-reset token to mongo
                 if (result.acknowledged && result.insertedId) {
                     await addUsersRolesMappingFor(result.insertedId.toString(), user.role, session)
                     newUser = {...newUser, id: result.insertedId.toString()}
                     resetToken = await addPasswordResetTokenFor(result.insertedId.toString())
                     return
                 }
+
+                // failed to add the user, so complain
                 return Promise.reject(`Unable to add user; rolling back transaction; email: ${user.email}`)
             })
+            // successfully added the user, user-to-role mapping, and the password reset token
             return {user: newUser, resetToken}
         } catch (e) {
             console.error(`Unable to add user (transaction): email: ${user.email}`, e)
@@ -190,15 +275,51 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
     }
 }
 
-export async function deleteUsers(emails: Array<string>): Promise<number> {
+/**
+ * Attempts to delete the users by the specified email address
+ * @param emails A list of email address to delete
+ */
+export async function deleteUsersByEmail(emails: Array<string>): Promise<number> {
     try {
         const client: MongoClient = await clientPromise
+        const session = client.startSession()
 
-        const result = await usersCollection(client).deleteMany({email: {$in: emails}})
-        if (result.acknowledged) {
-            return result.deletedCount
-        }
-        return -1
+        let numDeleted = 0
+        await session.withTransaction(async () => {
+            // grab the user IDs **before** the users are deleted, and figure out which
+            // emails had associated IDs (which they all should)
+            const {foundEmailIds, notFoundEmails} = await userIdsFor(emails)
+            if (notFoundEmails.length > 0) {
+                console.warn(`Failed to find IDs for ${notFoundEmails.length} emails, will continue; emails: [${notFoundEmails.join((", "))}]`)
+            }
+            // no need to continue if none of the emails were in the database
+            if (foundEmailIds.length === 0) {
+                return Promise.reject(`Failed to find any IDs for emails; emails: [${emails.join(", ")}]`)
+            }
+
+            // decompose (email, id) tuples into an array of found IDs and found emails
+            const [foundIds, foundEmails] = splitIdsFromEmails(foundEmailIds)
+
+            // delete the users
+            const result = await usersCollection(client).deleteMany({email: {$in: foundEmails}})
+            if (result.acknowledged) {
+                numDeleted = result.deletedCount
+                return
+            }
+
+            // remove the user-to-role mappings and make sure that the same number of role mappings
+            // were removed
+            const mappingsRemoved = await deleteUsersRoleMappingsFor(foundIds)
+            if (mappingsRemoved !== numDeleted) {
+                numDeleted = -1
+                return Promise.reject(`Refusing to delete users because could not remove user-to-role mappings (rollback); emails: [${emails?.join(", ")}]`)
+            }
+
+            // todo delete an password-reset tokens (failure here is ok)
+
+            return Promise.reject(`Failed to delete users (rollback); emails: [${emails?.join(", ")}]`)
+        })
+        return numDeleted
     } catch (e) {
         console.error(`Unable to delete specified users; emails: [${emails?.join(", ")}]`, e)
         return Promise.reject(`Unable to delete specified users; emails: [${emails?.join(", ")}]`)

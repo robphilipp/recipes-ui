@@ -1,7 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {RecipesUser} from "../../components/users/RecipesUser";
 import {RequestMethod} from "../../lib/RequestMethod";
-import {AddedUserInfo, addUser, deleteUsers, users} from "../../lib/users";
+import {AddedUserInfo, addUser, deleteUsersByEmail, users} from "../../lib/users";
 import {getToken} from "next-auth/jwt";
 import {Role, roleAtLeast, roleFrom, RoleLiteral, RoleType} from "../../components/users/Role";
 
@@ -49,7 +49,7 @@ export default async function handler(
             if (emails.length === 0) {
                 return response.status(200).json({deletedCount: 0})
             }
-            return deleteUsers(emails)
+            return deleteUsersByEmail(emails)
                 .then(count => response.status(200).json({deletedCount: count}))
 
         default:

@@ -61,6 +61,13 @@ export async function roleIdFor(role: Role): Promise<string> {
     }
 }
 
+/**
+ * Attempts to add the user-to-role mapping.
+ * @param userId The ID of the user
+ * @param role The user's role
+ * @param session An optional mongo client session
+ * @return A string that holds the ID of the user-to-role mapping
+ */
 export async function addUsersRolesMappingFor(userId: string, role: Role, session?: ClientSession): Promise<string> {
     try {
         const client: MongoClient = await clientPromise
@@ -71,6 +78,38 @@ export async function addUsersRolesMappingFor(userId: string, role: Role, sessio
     } catch (e) {
         console.error(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`, e)
         return Promise.reject(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`)
+    }
+}
+
+export async function deleteUsersRoleMappingsFor(userIds: Array<string>, session?: ClientSession): Promise<number> {
+    try {
+        const client: MongoClient = await clientPromise
+        const ids = userIds.map(userId => new ObjectId(userId))
+        const result = await usersRolesCollection(client).deleteMany({_id: {$in: ids}}, {session})
+        if (result.acknowledged) {
+            return result.deletedCount
+        }
+        return -1
+    } catch (e) {
+        const message = `Unable to delete user-to-role mapping for user; user_ids: [${userIds.join(", ")}]`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
+
+export async function removeUsersRoleMappingFor(userId: string, session?: ClientSession): Promise<boolean> {
+    try {
+        const client: MongoClient = await clientPromise
+        const result = await usersRolesCollection(client).deleteOne({_id: new ObjectId(userId)}, {session})
+        if (result.acknowledged) {
+            return result.deletedCount > 0
+        }
+        return false
+
+    } catch (e) {
+        const message = `Unable to delete user-to-role mapping for user; user_id: ${userId}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
