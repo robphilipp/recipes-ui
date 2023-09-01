@@ -12,7 +12,7 @@ import {
     Typography
 } from "@mui/material";
 import {Role, roleAtLeast, RoleType, roleTypeFrom} from "../Role";
-import React, {useReducer, useState} from "react";
+import React, {useReducer, useRef, useState} from "react";
 import {useRecipeSession} from "../../../lib/RecipeSessionProvider";
 import {useQuery} from "@tanstack/react-query";
 import axios from "axios";
@@ -20,6 +20,7 @@ import {useRouter} from "next/router";
 import Centered from "../../Centered";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
+import useThrottling from "../../../lib/useThrottling";
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
@@ -70,20 +71,27 @@ export default function AddUserForm(props: Props): JSX.Element {
     const [usernameError, setUsernameError] = useState("")
     const [emailError, setEmailError] = useState("")
 
+    const usernameThrottle = useThrottling<string>(100, "", "username")
+    const emailThrottle = useThrottling<string>(100, "", "email")
+
     async function handleUpdateUsername(username: string): Promise<void> {
-        const response = await axios.get(`/api/users?${NAME_EXISTENCE}=${username}`)
-        const error = stringLengthConstraint("username", username) +
-            (response.data.exists ? "Username already exists" : "")
-        setUsernameError(error)
-        updateUser({username})
+        usernameThrottle(username, async name => {
+            const response = await axios.get(`/api/users?${NAME_EXISTENCE}=${name}`)
+            const error = stringLengthConstraint("username", name) +
+                (response.data.exists ? "Username already exists" : "")
+            setUsernameError(error)
+            updateUser({username})
+        })
     }
 
     async function handleUpdateEmail(email: string): Promise<void> {
-        const response = await axios.get(`/api/users?${EMAIL_EXISTENCE}=${email}`)
-        const error = stringLengthConstraint("email address", email) +
-            (response.data.exists ? "Email already exists" : "")
-        setEmailError(error)
-        updateUser({email})
+        emailThrottle(email, async email => {
+            const response = await axios.get(`/api/users?${EMAIL_EXISTENCE}=${email}`)
+            const error = stringLengthConstraint("email address", email) +
+                (response.data.exists ? "Email already exists" : "")
+            setEmailError(error)
+            updateUser({email})
+        })
     }
 
     function handleRoleSelected(event: SelectChangeEvent): void {
