@@ -31,7 +31,6 @@ const EMAIL_REGEX: RegExp = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-
 export function emailFormatConstraint(email: string, pattern: RegExp = EMAIL_REGEX): string {
     const lengthMatch = email.length >= 6 && email.length <= 50
     const patternMatch = (email.match(pattern)?.length || -1) > 0
-    console.log(patternMatch)
     return !lengthMatch || !patternMatch ?
         `must be a valid email address between 6 and 50 characters` :
         ""

@@ -2,9 +2,11 @@ import React, {useMemo, useState} from "react"
 import {
     alpha,
     Box,
-    Button, Checkbox,
+    Button,
+    Checkbox,
     IconButton,
-    Paper, Stack,
+    Paper,
+    Stack,
     Table,
     TableBody,
     TableCell,
@@ -22,7 +24,7 @@ import {visuallyHidden} from "@mui/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import FilterListIcon from '@mui/icons-material/FilterList'
 import {Mail, PersonAdd, PersonOff, TaskAlt} from "@mui/icons-material";
-import {read} from "fs";
+import ModeEditIcon from "@mui/icons-material/ModeEdit";
 
 export type UsersTableRow = {
     email: string
@@ -109,10 +111,11 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 type EnhancedTableToolbarProps = {
     numSelected: number
     onDelete: () => void
+    onEdit: () => void
 }
 
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-    const {numSelected, onDelete} = props
+    const {numSelected, onDelete, onEdit} = props
 
     return (
         <Toolbar
@@ -144,8 +147,13 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
                     City Users
                 </Typography>
             )}
+            {numSelected === 1 && <Tooltip title="Edit User">
+                <IconButton onClick={onEdit}>
+                    <ModeEditIcon/>
+                </IconButton>
+            </Tooltip>}
             {numSelected > 0 ? (
-                <Tooltip title="Delete">
+                <Tooltip title="Delete User">
                     <IconButton onClick={onDelete}>
                         <DeleteIcon/>
                     </IconButton>
@@ -249,6 +257,7 @@ export default function UsersTable(props: TableProps) {
                 <EnhancedTableToolbar
                     numSelected={selected.length}
                     onDelete={() => onDeleteUsers(selected)}
+                    onEdit={() => onEdit(selected[0])}
                 />
                 <TableContainer>
                     <Table
