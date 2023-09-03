@@ -1,4 +1,4 @@
-import {Long, ObjectId} from "mongodb";
+import {ObjectId} from "mongodb";
 
 export type PasswordResetToken = {
     _id?: ObjectId

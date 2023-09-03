@@ -8,6 +8,24 @@ import {useRef} from "react";
  * WARNING: Interleaving calls will reek havoc UNLESS you pass in a unique ID for each invocation
  * of {@link useThrottling}.
  *
+ * @example
+// set up the throttler to allow one call every 100 ms, has an empty string
+// as the initial/default value, and a "unique" ID
+const throttle = useThrottling<string>(100, "", "my-unique-throttler-id")
+
+// form update handler that checks the value using a throttled REST call
+async function handleUpdate(value: string): Promise<void> {
+    throttle(value, async name => {
+        // make a REST call that needs to be throttled
+        const response = await axios.get(`/api/users/${name}`)
+        // do some stuff with the response (e.g. validation)
+        // ...
+    })
+    // update the value outside the throttler so that the form doesn't stutter
+    updateValue(value)
+}
+
+ *
  * @param throttlePeriodMs The minimum number of milliseconds between calls to the callback.
  * @param defaultValue The default value of what is handed to the callback
  * @param id A unique ID for the throttler
@@ -16,7 +34,8 @@ import {useRef} from "react";
  */
 export default function useThrottling<P>(
     throttlePeriodMs: number,
-    defaultValue: P, id: string
+    defaultValue: P,
+    id: string
 ): (value: P, callback: (value: P) => void) => void {
     const isThrottling = useRef<Map<string, boolean>>(new Map<string, boolean>())
     // if this is the first invocation of the throttle function with the specified ID, then
