@@ -47,7 +47,10 @@ function convertToPasswordResetToken(mongoToken: MongoPasswordResetToken): Passw
         _id: mongoToken._id,
         userId: mongoToken.userId,
         resetToken: mongoToken.resetToken,
-        expiration: mongoToken.expiration.toNumber()
+        // this shouldn't be needed but for some reason mongo returns a number in some cases,
+        // and a mongo Long in others
+        expiration: typeof mongoToken.expiration === "number" ? mongoToken.expiration : mongoToken.expiration.toNumber()
+        // expiration: mongoToken.expiration.toNumber()
     })
 }
 

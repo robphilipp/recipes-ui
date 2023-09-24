@@ -27,6 +27,7 @@ import {Mail, PersonAdd, PersonOff, TaskAlt} from "@mui/icons-material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 
 export type UsersTableRow = {
+    id: string
     email: string
     username: string
     createdOn: DateTime

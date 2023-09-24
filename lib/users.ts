@@ -124,10 +124,31 @@ export async function usersCount(filter?: Document): Promise<number> {
 export async function users(filter: Filter<RecipesUser> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
     try {
         const client: MongoClient = await clientPromise
-        return await usersCollection(client).find(filter).toArray()
+        return await usersCollection(client)
+            .find(filter)
+            .map(user => ({...user, id: user._id.toString()}))
+            .toArray()
     } catch (e) {
         console.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
+    }
+}
+
+export async function userById(id: string): Promise<RecipesUser> {
+    try {
+        const client: MongoClient = await clientPromise
+        const user = await usersCollection(client)
+            .findOne({_id: new ObjectId(id)})
+        if (user === null) {
+            const message: string = `Unable to retrieve user by ID; user_id: ${id}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+        return user
+    } catch (e) {
+        const message: string = `Unable to retrieve user by ID; user_id: ${id}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
