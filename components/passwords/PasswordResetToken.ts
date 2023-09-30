@@ -12,3 +12,5 @@ export const emptyToken = (): PasswordResetToken => ({
     resetToken: '',
     expiration: -1
 })
+
+export type UrlEnrichedPasswordResetToken = PasswordResetToken & {url: string}

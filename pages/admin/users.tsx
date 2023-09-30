@@ -140,7 +140,8 @@ export default function ManageUsers(): JSX.Element {
             return Promise.reject(message)
         }
         await queryClient.invalidateQueries(['users-all'])
-        await router.push(`/admin/email/${userRow.id}`)
+        // await router.push(`/admin/email/${userRow.id}`)
+        window.open(`/passwords/email/${userRow.id}`, '_blank')
     }
 
     function handleEditUser(userRow: UsersTableRow): void {

@@ -5,7 +5,11 @@ module.exports = {
         siteName: 'City Recipes',
         bookTitle: "City Recipes",
 
-        recipesApi: 'http://localhost:9090/rest/v1/recipes',
+        scheme: 'http',
+        host: 'localhost',
+        port: 3000,
+        recipesApi: '/rest/v1/recipes',
+        // recipesApi: 'http://localhost:9090/rest/v1/recipes',
 
         MONGODB_URI: 'mongodb://localhost:27017',
         mongoDatabase: 'recipeBook',
@@ -35,7 +39,8 @@ module.exports = {
 
         // routes that are not authenticated
         unauthenticated: [
-            "/passwords/token/[id]"
+            "/passwords/token/[id]",
+            "/passwords/email/[id]"
         ],
 
         // layout information

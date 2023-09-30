@@ -19,7 +19,7 @@ export default function SetPassword(props: Props): JSX.Element {
     } = props
 
     return (
-        <Html>
+        <Html id="recipes-reset-password-email-html">
             <Section style={main}>
                 <Container style={title}>
                     <div style={{
@@ -50,7 +50,7 @@ export default function SetPassword(props: Props): JSX.Element {
                         and enjoy the ride. But first, please click&nbsp;
                         <Link style={link} target="_blank" href={resetPasswordLink.toString()}>here</Link>
                         &nbsp;to set your password and get started. Alternatively,
-                        you can paste <span style={linkText}>{resetPasswordLink.toString()}</span> into
+                        you can paste&nbsp;<span style={linkText}>{resetPasswordLink.toString()}</span>&nbsp;into
                         your browser to set your password.
                     </Text>
                     <Text style={copyrightText}>
