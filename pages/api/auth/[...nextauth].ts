@@ -3,13 +3,14 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import {authenticate} from "../../../lib/authentication";
 import {RecipesUser} from "../../../components/users/RecipesUser";
 import {JWT} from "next-auth/jwt";
+import {Provider} from "next-auth/providers";
 
 export type Credentials = {
     email: string
     password: string
 }
 
-const credentialsProvider = CredentialsProvider({
+export const credentialsProvider = CredentialsProvider({
     id: 'recipes-provider-mongo-credentials',
     // The name to display on the sign-in form (e.g. 'Sign in with...')
     name: 'email and password',
@@ -70,5 +71,11 @@ export default NextAuth({
             session.user = token.user
             return session
         }
-    }
+    },
+    secret: process.env.JWT_SECRET,
+    pages: {
+        signIn: '/login'
+    },
+    // Enable debug messages in the console if you are having problems
+    debug: process.env.NODE_ENV === 'development',
 })

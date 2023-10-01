@@ -40,7 +40,9 @@ module.exports = {
         // routes that are not authenticated
         unauthenticated: [
             "/passwords/token/[id]",
-            "/passwords/email/[id]"
+            "/passwords/email/[id]",
+            "/login",
+            // "/auth/callback/recipes-provider-mongo-credentials",
         ],
 
         // layout information
