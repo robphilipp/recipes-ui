@@ -1,9 +1,8 @@
-import NextAuth, {Session} from "next-auth";
+import NextAuth, {AuthOptions, Session} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials"
 import {authenticate} from "../../../lib/authentication";
-import {RecipesUser} from "../../../components/users/RecipesUser";
+import {nonEmptyUser, RecipesUser} from "../../../components/users/RecipesUser";
 import {JWT} from "next-auth/jwt";
-import {Provider} from "next-auth/providers";
 
 export type Credentials = {
     email: string
@@ -25,19 +24,16 @@ export const credentialsProvider = CredentialsProvider({
         email: { label: "Email", type: "text", placeholder: "email" },
         password: { label: "Password", type: "password" }
     },
-    async authorize(credentials, req): Promise<RecipesUser | null> {
+    async authorize(credentials): Promise<RecipesUser | null> {
         const user = await authenticate(credentials as Credentials)
 
-        // If no error and we have user data, return it
-        if (user) {
-            return user
-        }
-        // Return null if user data could not be retrieved
-        return null
+        // if authentication failed, then we have an empty user, in which case we
+        // return null. on successful authentication, we return the user information
+        return nonEmptyUser(user) ? user : null
     }
 })
 
-export default NextAuth({
+export const authOptions: AuthOptions = {
     // no providers because we are providing our own database
     providers: [credentialsProvider],
     // use JSON web tokens for managing sessions
@@ -74,8 +70,12 @@ export default NextAuth({
     },
     secret: process.env.JWT_SECRET,
     pages: {
-        signIn: '/login'
+        signIn: '/login',
+        error: '/login',
+        // error: '/error',
     },
     // Enable debug messages in the console if you are having problems
     debug: process.env.NODE_ENV === 'development',
-})
+}
+
+export default NextAuth(authOptions)

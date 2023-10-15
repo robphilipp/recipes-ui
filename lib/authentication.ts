@@ -1,6 +1,6 @@
 import {compare} from "bcrypt"
 import {Collection, MongoClient} from "mongodb";
-import {RecipesUser} from "../components/users/RecipesUser";
+import {emptyUser, RecipesUser} from "../components/users/RecipesUser";
 import clientPromise from "./mongodb";
 import {Credentials} from "../pages/api/auth/[...nextauth]";
 import {roleFor} from "./roles";
@@ -23,8 +23,9 @@ function usersCollection(client: MongoClient): Collection<RecipesUser> {
  * Attempts to authenticate the user against the database, and if authenticated,
  * enriches the database user with their role.
  * @param credentials The credentials (username, password) to use for authenticating
- * @return A {@link Promise} holding the {@link RecipesUser} if authenticated; a
- * rejection otherwise
+ * @return A {@link Promise} holding the {@link RecipesUser} if authenticated; when
+ * the credentials are incorrect, returns a promise holding an empty user; otherwise
+ * returns a rejection
  */
 export async function authenticate(credentials: Credentials): Promise<RecipesUser> {
     try {
@@ -45,9 +46,8 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
                 const role = await roleFor(user._id.toString())
                 console.log(credentials, {...user, role})
                 return {...user, role}
-            } else {
-                return Promise.reject('Invalid credentials')
             }
+            return emptyUser()
         } catch (e) {
             console.error(`Unable to validate credentials for ${credentials.email}`, e)
             return Promise.reject(`Unable to validate credentials for ${credentials.email}; error: ${e.message}`)

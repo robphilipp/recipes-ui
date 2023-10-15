@@ -1,4 +1,4 @@
-import {Box, CircularProgress, CssBaseline, Toolbar, Typography} from "@mui/material";
+import {Box, CssBaseline, Toolbar, Typography} from "@mui/material";
 import {Header} from "./Header";
 import React, {JSX} from "react";
 import {AppProps} from "next/app";
@@ -10,12 +10,11 @@ import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvi
 import {RoleType} from "./users/Role";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
-import Centered from "./Centered";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
 const UNSECURED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
-const isUnsecuredContent = (path: string) => UNSECURED_CONTENT.find(openPage => openPage === path)
+export const isUnsecuredContent = (path: string) => UNSECURED_CONTENT.find(openPage => openPage === path)
 
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
     const {Component, pageProps} = props

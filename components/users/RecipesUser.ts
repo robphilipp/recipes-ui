@@ -38,3 +38,9 @@ export function emptyUser(): RecipesUser {
         role: {name: RoleType.USER, description: ""}
     }
 }
+
+export function isEmptyUser(user: RecipesUser): boolean {
+    return user.id === "" && user.password === ""
+}
+
+export const nonEmptyUser = (user: RecipesUser): boolean => user !== undefined && user !== null && !isEmptyUser(user)

@@ -44,8 +44,6 @@ export default function RecipeSessionProvider(props: Props): JSX.Element {
     const {minRole, children} = props
     const router = useRouter()
 
-    const hasSufficientRole = roleAtLeast(minRole)
-
     // require that the user be logged in, or send the user to a login screen
     const {data: session, status, update} = useSession({
         required: true,
@@ -54,6 +52,7 @@ export default function RecipeSessionProvider(props: Props): JSX.Element {
         }
     })
 
+    const hasSufficientRole = roleAtLeast(minRole)
     if (session && status === "authenticated" && hasSufficientRole(session.user.role.name)) {
         return (
             <RecipeSessionContext.Provider value={{
