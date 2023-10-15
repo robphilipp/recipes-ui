@@ -17,14 +17,16 @@ import {
     TableSortLabel,
     Toolbar,
     Tooltip,
-    Typography
+    Typography,
+    useTheme
 } from "@mui/material"
 import {DateTime} from "luxon"
 import {visuallyHidden} from "@mui/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import FilterListIcon from '@mui/icons-material/FilterList'
-import {Mail, PersonAdd, PersonOff, TaskAlt} from "@mui/icons-material";
+import {Mail, PersonAdd, PersonOff} from "@mui/icons-material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
+import VerifiedIcon from '@mui/icons-material/Verified';
 
 export type UsersTableRow = {
     id: string
@@ -51,6 +53,7 @@ const headCells: readonly HeaderCell[] = [
     {id: 'role', numeric: false, disablePadding: true, label: 'Role'},
     {id: 'createdOn', numeric: false, disablePadding: true, label: 'Created'},
     {id: 'emailVerified', numeric: false, disablePadding: true, label: 'Email verified'},
+    {id: 'modifiedOn', numeric: false, disablePadding: true, label: 'Password Reset'},
     {id: 'modifiedOn', numeric: false, disablePadding: true, label: 'Last Modified'},
     {id: 'deletedOn', numeric: false, disablePadding: true, label: 'Deleted'},
 ]
@@ -66,11 +69,11 @@ type EnhancedTableProps = {
 
 function EnhancedTableHead(props: EnhancedTableProps) {
     const {
-        onSelectAllClick,
+        // onSelectAllClick,
         order,
         orderBy,
-        numSelected,
-        rowCount,
+        // numSelected,
+        // rowCount,
         onRequestSort
     } = props
 
@@ -194,6 +197,8 @@ export default function UsersTable(props: TableProps) {
     const [selected, setSelected] = useState<readonly UsersTableRow[]>([])
     const [page, setPage] = useState(0)
     const [rowsPerPage, setRowsPerPage] = useState(5)
+
+    const theme = useTheme()
 
     function handleRequestSort(event: React.MouseEvent<unknown>, property: keyof UsersTableRow): void {
         const isAsc = orderBy === property && order === 'asc'
@@ -333,22 +338,27 @@ export default function UsersTable(props: TableProps) {
                                             <Tooltip title={`Email verified on ${formatDatetime(row.emailVerifiedOn)}`}>
                                                 <span>
                                                     {row.emailVerified ?
-                                                        <TaskAlt sx={{color: "#308330"}}/> :
-                                                        <Button
-                                                            key={row.email}
-                                                            variant="outlined"
-                                                            startIcon={<Mail/>}
-                                                            size='small'
-                                                            sx={{textTransform: 'none'}}
-                                                            onClick={event => {
-                                                                event.preventDefault()
-                                                                onResendEmail(row)
-                                                            }}
-                                                        >
-                                                            Resend
-                                                        </Button>
+                                                        <VerifiedIcon sx={{color: theme.palette.primary.main}}/> :
+                                                        <></>
                                                     }
                                                 </span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Tooltip title="Send password set/reset email">
+                                                <Button
+                                                    key={row.email}
+                                                    variant="outlined"
+                                                    startIcon={<Mail/>}
+                                                    size='small'
+                                                    sx={{textTransform: 'none'}}
+                                                    onClick={event => {
+                                                        event.preventDefault()
+                                                        onResendEmail(row)
+                                                    }}
+                                                >
+                                                    Send
+                                                </Button>
                                             </Tooltip>
                                         </TableCell>
                                         <TableCell
