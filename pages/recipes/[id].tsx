@@ -54,8 +54,8 @@ export default function RecipeViewer(props: Props): JSX.Element {
      */
     function handleRatingChange(rating: number): void {
         updateRatingQuery.mutate(rating, {
-            onSuccess: () => {
-                queryClient.invalidateQueries(['recipe'])
+            onSuccess: async () => {
+                await queryClient.invalidateQueries(['recipe'])
             }
         })
     }

@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import Date from '../components/Date'
-import React, {useState, JSX} from "react";
+import React, {JSX, useState} from "react";
 import {
     Avatar,
     Box,
@@ -11,7 +11,6 @@ import {
     CardHeader,
     Chip,
     IconButton,
-    Rating,
     Typography,
     useTheme
 } from "@mui/material";
@@ -99,14 +98,14 @@ export default function Home(props: Props): JSX.Element {
 
     /**
      * Callback for when the confirm to delete button is clicked
-     * @param recipeId The ID of the recripe to delete
+     * @param recipeId The ID of the recipe to delete
      */
     function handleDeleteRecipe(recipeId: string): void {
         deleteQuery.mutate(recipeId, {
-            onSuccess: () => {
+            onSuccess: async () => {
                 setConfirmDelete([])
-                queryClient.invalidateQueries(['recipes', accumulated])
-                queryClient.invalidateQueries(['recipeCount'])
+                await queryClient.invalidateQueries(['recipes', accumulated])
+                await queryClient.invalidateQueries(['recipeCount'])
             }
         })
     }

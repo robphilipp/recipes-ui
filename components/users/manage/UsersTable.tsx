@@ -351,7 +351,7 @@ export default function UsersTable(props: TableProps) {
                                             <Tooltip title="Send password set/reset email">
                                                 <Button
                                                     key={row.email}
-                                                    variant="outlined"
+                                                    // variant="outlined"
                                                     startIcon={<Mail/>}
                                                     size='small'
                                                     sx={{textTransform: 'none'}}
