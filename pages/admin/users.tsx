@@ -14,7 +14,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Paper, {PaperProps} from "@mui/material/Paper";
 import Draggable from "react-draggable";
-import {Role} from "../../components/users/Role";
+import {Role, roleFrom} from "../../components/users/Role";
+import EditUserForm, {EditUserFormUser} from "../../components/users/manage/EditUserForm";
 
 function PaperComponent(props: PaperProps) {
     return (
@@ -43,6 +44,11 @@ export default function ManageUsers(): JSX.Element {
     const addNewUserQuery = useMutation(
         ['add-new-user'],
         (user: RecipesUser) => axios.put("/api/users", user)
+    )
+
+    const updateUserQuery = useMutation(
+        ['update-user'],
+        (user: RecipesUser) => axios.post("/api/users", user)
     )
 
     // const addPasswordResetTokenQuery = useMutation(
@@ -74,6 +80,8 @@ export default function ManageUsers(): JSX.Element {
     )
 
     const [isAddUserFormVisible, setAddUserFormVisibility] = useState(false)
+    const [isEditUserFormVisible, setEditUserFormVisibility] = useState(false)
+    const [editUser, setEditUser] = useState<RecipesUser>(emptyUser())
 
     async function handleSaveNewUser(user: AddUserFormUser): Promise<void> {
         const role = {name: user.role, description: user.roleDescription || ""}
@@ -84,8 +92,18 @@ export default function ManageUsers(): JSX.Element {
             console.error(message)
             return Promise.reject(message)
         }
-        console.log(`Added user`, response.data)
         setAddUserFormVisibility(false)
+        return await queryClient.invalidateQueries(['users-all'])
+    }
+
+    async function handleSaveEditedUser(user: RecipesUser): Promise<void> {
+        const response = await updateUserQuery.mutateAsync(user)
+        if (response.status !== 200) {
+            const message = `Failed to update user; http_status_code: ${response.status}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+        setEditUserFormVisibility(false)
         return await queryClient.invalidateQueries(['users-all'])
     }
 
@@ -101,6 +119,7 @@ export default function ManageUsers(): JSX.Element {
                 email: user.email || "",
                 username: user.name || "",
                 role: user.role.description || "",
+                roleType: user.role.name || "",
                 emailVerified: user.emailVerified !== null && user.emailVerified as number > 0,
                 emailVerifiedOn: convertTimestamp(user.emailVerified),
                 createdOn: convertTimestamp(user.createdOn) || DateTime.utc(),
@@ -131,21 +150,64 @@ export default function ManageUsers(): JSX.Element {
      * should send an actual email.
      * @param userRow The user as represented in the user table
      */
-    async function handleResendEmail(userRow: UsersTableRow): Promise<void> {
-        const response = await generatePasswordResetTokenQuery.mutateAsync(userRow.id)
+    async function handleResendEmail(userId: string, userEmail: string): Promise<void> {
+        const response = await generatePasswordResetTokenQuery.mutateAsync(userId)
         if (response.status != 200) {
             const message = `Failed to generate password reset token; http_status_code: ${response.status}; ` +
-                `user_id: ${userRow.id}; email" ${userRow.email}`
+                `user_id: ${userId}; email" ${userEmail}`
             console.error(message)
             return Promise.reject(message)
         }
         await queryClient.invalidateQueries(['users-all'])
         // await router.push(`/admin/email/${userRow.id}`)
-        window.open(`/passwords/email/${userRow.id}`, '_blank')
+        window.open(`/passwords/email/${userId}`, '_blank')
     }
+    // async function handleResendEmail(userRow: UsersTableRow): Promise<void> {
+    //     const response = await generatePasswordResetTokenQuery.mutateAsync(userRow.id)
+    //     if (response.status != 200) {
+    //         const message = `Failed to generate password reset token; http_status_code: ${response.status}; ` +
+    //             `user_id: ${userRow.id}; email" ${userRow.email}`
+    //         console.error(message)
+    //         return Promise.reject(message)
+    //     }
+    //     await queryClient.invalidateQueries(['users-all'])
+    //     // await router.push(`/admin/email/${userRow.id}`)
+    //     window.open(`/passwords/email/${userRow.id}`, '_blank')
+    // }
 
     function handleEditUser(userRow: UsersTableRow): void {
+        const recipeUser: RecipesUser = {
+            id: userRow.id,
+            name: userRow.username,
+            email: userRow.email,
+            role: roleFrom({name: userRow.roleType, description: userRow.role}).getOrThrow(),
+            createdOn: userRow.createdOn.toMillis(),
+            emailVerified: userRow.emailVerifiedOn?.toMillis() || -1,
+            modifiedOn: userRow.modifiedOn?.toMillis() || -1,
+            deletedOn: userRow.deletedOn?.toMillis() || -1,
+            password: "",
+            // todo once images are added, then need to update this
+            image: ""
+        }
+
+        setEditUser(recipeUser)
+        setEditUserFormVisibility(!isEditUserFormVisible && !isAddUserFormVisible)
     }
+
+    function handleEditFormClose(reason: "backdropClick" | "escapeKeyDown") {
+        // prevent the dialog from closing when the back-drop is clicked (user must
+        // use the escape key, or click the cancel or save button
+        if (reason === "backdropClick") return;
+        setEditUserFormVisibility(false)
+    }
+
+    function handleAddFormClose(reason: "backdropClick" | "escapeKeyDown") {
+        // prevent the dialog from closing when the back-drop is clicked (user must
+        // use the escape key, or click the cancel or save button
+        if (reason === "backdropClick") return;
+        setAddUserFormVisibility(false)
+    }
+
 
     async function handleDeleteUsers(users: Array<UsersTableRow>): Promise<void> {
         const response = await deleteUsersQuery.mutateAsync(users)
@@ -163,14 +225,14 @@ export default function ManageUsers(): JSX.Element {
         <UsersTable
             rows={rows}
             onResendEmail={handleResendEmail}
-            onAddUser={() => setAddUserFormVisibility(!isAddUserFormVisible)}
+            onAddUser={() => setAddUserFormVisibility(!isAddUserFormVisible && !isEditUserFormVisible)}
             onEdit={handleEditUser}
             onDeleteUsers={handleDeleteUsers}
             isAddingUser={isAddUserFormVisible}
         />
         <Dialog
             open={isAddUserFormVisible}
-            onClose={() => setAddUserFormVisibility(false)}
+            onClose={(_, reason) => handleAddFormClose(reason)}
             PaperComponent={PaperComponent}
             aria-labelledby="draggable-dialog-title"
             fullWidth={true}
@@ -181,6 +243,24 @@ export default function ManageUsers(): JSX.Element {
                 <AddUserForm
                     onSave={handleSaveNewUser}
                     onCancel={() => setAddUserFormVisibility(false)}
+                />
+            </DialogContent>
+        </Dialog>
+        <Dialog
+            open={isEditUserFormVisible}
+            onClose={(_, reason) => handleEditFormClose(reason)}
+            PaperComponent={PaperComponent}
+            aria-labelledby="draggable-dialog-title"
+            fullWidth={true}
+            maxWidth='sm'
+        >
+            <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">Edit User</DialogTitle>
+            <DialogContent>
+                <EditUserForm
+                    onSave={handleSaveEditedUser}
+                    onCancel={() => setEditUserFormVisibility(false)}
+                    user={editUser}
+                    onResendEmail={handleResendEmail}
                 />
             </DialogContent>
         </Dialog>

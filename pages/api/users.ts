@@ -5,7 +5,7 @@ import {
     AddedUserInfo,
     addUser,
     deleteUsersByEmail,
-    emailExists,
+    emailExists, updateUser,
     userById,
     usernameExists,
     users
@@ -67,6 +67,10 @@ export default async function handler(
         // adds new user
         case RequestMethod.PUT:
             return addUser(request.body as RecipesUser)
+                .then(user => response.status(200).json(user))
+
+        case RequestMethod.POST:
+            return updateUser(request.body as RecipesUser)
                 .then(user => response.status(200).json(user))
 
         // this patches the user-list resource by performing the action on the list

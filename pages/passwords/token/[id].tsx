@@ -78,8 +78,8 @@ export default function PasswordByToken(): JSX.Element {
 
     function handleSetPassword(passwordInfo: NewPassword): void {
         setPasswordQuery.mutate(passwordInfo, {
-            onSuccess: () => {
-                router.push('/')
+            onSuccess: async () => {
+                await router.push('/')
                 // authenticate({email: data?.data.email, password: passwordInfo.password})
                 //     .then(() => queryClient
                 //         .invalidateQueries(['user-by-token-id'])

@@ -27,6 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import {Mail, PersonAdd, PersonOff} from "@mui/icons-material";
 import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import VerifiedIcon from '@mui/icons-material/Verified';
+import {RoleType} from "../Role";
 
 export type UsersTableRow = {
     id: string
@@ -38,6 +39,7 @@ export type UsersTableRow = {
     modifiedOn: DateTime | null
     deletedOn: DateTime | null
     role: string
+    roleType: RoleType
 }
 
 type HeaderCell = {
@@ -182,7 +184,8 @@ function formatDatetime(dateTime: DateTime | null, format: string = 'yyyy-MM-dd 
 
 type TableProps = {
     rows: Array<UsersTableRow>
-    onResendEmail: (user: UsersTableRow) => void
+    onResendEmail: (userId: string, userEmail: string) => void
+    // onResendEmail: (user: UsersTableRow) => void
     onEdit: (user: UsersTableRow) => void
     onAddUser: () => void
     onDeleteUsers: (users: readonly UsersTableRow[]) => void
@@ -354,7 +357,7 @@ export default function UsersTable(props: TableProps) {
                                                     sx={{textTransform: 'none'}}
                                                     onClick={event => {
                                                         event.preventDefault()
-                                                        onResendEmail(row)
+                                                        onResendEmail(row.id, row.email)
                                                     }}
                                                 >
                                                     Send

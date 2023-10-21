@@ -1,5 +1,5 @@
 import clientPromise from "./mongodb"
-import {ClientSession, Collection, Filter, FindOptions, Long, MongoClient, ObjectId} from "mongodb"
+import {ClientSession, Collection, Filter, Long, MongoClient, ObjectId} from "mongodb"
 import {RecipesUser} from "../components/users/RecipesUser";
 import {addUsersRolesMappingFor, deleteUsersRoleMappingsFor} from "./roles";
 import {NewPassword} from "../pages/api/passwords/[id]";
@@ -33,6 +33,9 @@ function usersCollection(client: MongoClient): Collection<RecipesUser> {
 function passwordResetTokenCollection(client: MongoClient): Collection<PasswordResetToken> {
     return client.db(MONGO_DATABASE).collection(PASSWORD_RESET_TOKEN_COLLECTION)
 }
+
+const now = () => Long.fromNumber(DateTime.utc().toMillis())
+const never = () => Long.fromNumber(-1)
 
 export async function usersCount(filter?: Document): Promise<number> {
     try {
@@ -121,7 +124,7 @@ export async function usersCount(filter?: Document): Promise<number> {
 //     }
 // }
 
-export async function users(filter: Filter<RecipesUser> = {}, options?: FindOptions): Promise<Array<RecipesUser>> {
+export async function users(filter: Filter<RecipesUser> = {}): Promise<Array<RecipesUser>> {
     try {
         const client: MongoClient = await clientPromise
         return await usersCollection(client)
@@ -174,20 +177,20 @@ export async function emailExists(email: string): Promise<boolean> {
     }
 }
 
-export async function userFor(email: string): Promise<RecipesUser> {
-    try {
-        const client: MongoClient = await clientPromise
-        const user = await usersCollection(client).findOne({email: email})
-        if (user === null) {
-            console.log(`Unable to retrieve user: email: ${email}`)
-            return Promise.reject(`Unable to retrieve user: email: ${email}`)
-        }
-        return user
-    } catch(e) {
-        console.error(`Unable to retrieve user: email: ${email}`, e)
-        return Promise.reject(`Unable to retrieve user: email: ${email}`)
-    }
-}
+// export async function userFor(email: string): Promise<RecipesUser> {
+//     try {
+//         const client: MongoClient = await clientPromise
+//         const user = await usersCollection(client).findOne({email: email})
+//         if (user === null) {
+//             console.log(`Unable to retrieve user: email: ${email}`)
+//             return Promise.reject(`Unable to retrieve user: email: ${email}`)
+//         }
+//         return user
+//     } catch(e) {
+//         console.error(`Unable to retrieve user: email: ${email}`, e)
+//         return Promise.reject(`Unable to retrieve user: email: ${email}`)
+//     }
+// }
 
 /*
  * Helper types and function for retrieving users based on their email address and
@@ -286,10 +289,10 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
                 newUser = {
                     ...user,
                     password,
-                    createdOn: Long.fromNumber(DateTime.utc().toMillis()),
-                    modifiedOn: Long.fromNumber(-1),
-                    deletedOn: Long.fromNumber(-1),
-                    emailVerified: Long.fromNumber(-1),
+                    createdOn: now(),
+                    modifiedOn: never(),
+                    deletedOn: never(),
+                    emailVerified: never(),
                 }
                 const result = await usersCollection(client).insertOne(newUser, {session})
 
@@ -305,7 +308,9 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
                 // failed to add the user, so complain
                 return Promise.reject(`Unable to add user; rolling back transaction; email: ${user.email}`)
             })
-            // successfully added the user, user-to-role mapping, and the password reset token
+
+            // successfully added the user, so commit the transaction and return the new user
+            // await session.commitTransaction()
             return {user: newUser, resetToken}
         } catch (e) {
             console.error(`Unable to add user (transaction): email: ${user.email}`, e)
@@ -316,6 +321,53 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
     } catch (e) {
         console.error(`Unable to add user (db): email: ${user.email}`, e)
         return Promise.reject(`Unable to add user; email: ${user.email}`)
+    }
+}
+
+/**
+ * Attempts to update the user. Only the currently allowed user properties will be
+ * updated: name, email, role. The modifiedOn value will be updated with the current
+ * date time. If successful, returns the updated user.
+ * @param user The updated user
+ * @return When the update is successful, a resolved promise to the updated user; otherwise
+ * a rejected promise
+ */
+export async function updateUser(user: RecipesUser): Promise<RecipesUser> {
+    try {
+        const client: MongoClient = await clientPromise
+        const session: ClientSession = client.startSession()
+
+        try {
+            const modifiedOn = now()
+            let updateUser = {
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                modifiedOn
+            }
+            await session.withTransaction(async () => {
+                const result = await usersCollection(client)
+                    .updateOne({_id: new ObjectId(user.id)}, {$set: {...updateUser}})
+                if (result.acknowledged && result.matchedCount === 1 && result.modifiedCount === 1) {
+                    return
+                }
+
+                return Promise.reject(`Unable to update the user; rolling back the transaction; user_id: ${user.id}`)
+            })
+
+            // successfully updated user
+            return {...user, modifiedOn}
+        } catch (e) {
+            const message = `Unable to update user (transaction): user_id: ${user.id}`
+            console.error(message, e)
+            return Promise.reject(message)
+        } finally {
+            await session.endSession()
+        }
+    } catch (e) {
+        const message = `Unable to update user (db): user_id: ${user.id}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
@@ -363,6 +415,7 @@ export async function deleteUsersByEmail(emails: Array<string>): Promise<number>
 
             return Promise.reject(`Failed to delete users (rollback); emails: [${emails?.join(", ")}]`)
         })
+        // await session.commitTransaction()
         return numDeleted
     } catch (e) {
         console.error(`Unable to delete specified users; emails: [${emails?.join(", ")}]`, e)
