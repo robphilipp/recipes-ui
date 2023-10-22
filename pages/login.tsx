@@ -32,6 +32,8 @@ export default function Login({csrfToken, error}: InferGetServerSidePropsType<ty
                             label="Email"
                             name="email"
                             maxRows={80}
+                            // set focus on the input text field
+                            inputRef={input => input && input.focus()}
                         />
                     </UserFormControl>
 
