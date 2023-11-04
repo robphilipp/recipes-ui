@@ -1,4 +1,4 @@
-import {Long, ObjectId, WithId} from "mongodb";
+import {Long, WithId} from "mongodb";
 import {DateTime} from 'luxon';
 import {UUID} from "bson";
 import {formatQuantityFor} from "../../lib/utils";
@@ -57,7 +57,7 @@ export function subtractTime(t1: Time, t2: Time, units: TimeUnits = TimeUnits.MI
 /**
  * The required time for making the recipe includes the active time
  * (i.e. the time work is required), and the passive time (cooling,
- * baking, rising, etc). The total time equals the active time plus
+ * baking, rising, etc.). The total time equals the active time plus
  * the passive time.
  */
 export type RequiredTime = {
@@ -112,6 +112,7 @@ export type RecipeSummary = {
     id?: string | null
     name: string
     tags: Array<string>
+    ownerId: string
     author: string | null
     addedBy: string | null
     createdOn: number | Long
@@ -145,6 +146,7 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
         story: doc.story,
         name: doc.name,
         tags: doc.tags,
+        ownerId: doc.ownerId,
         author: doc.author,
         addedBy: doc.addedBy,
         yield: doc.yield,
@@ -169,6 +171,7 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
         id: doc._id.toHexString(),
         name: doc.name,
         tags: doc.tags,
+        ownerId: doc.ownerId,
         author: doc.author,
         addedBy: doc.addedBy,
         createdOn: doc.createdOn,
@@ -187,6 +190,7 @@ export function emptyRecipe(): Recipe {
         story: '',
         name: '',
         tags: [],
+        ownerId: '', // todo convert this to owner: {id, name, email} and have this resolved in the database layer
         author: null,
         addedBy: null,
         createdOn: DateTime.now().toMillis(),

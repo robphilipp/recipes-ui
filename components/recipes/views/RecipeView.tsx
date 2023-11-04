@@ -69,6 +69,7 @@ export default function RecipeView(props: Props): JSX.Element {
                     <span/>
                 }
                 <Typography sx={{fontSize: '0.8em', color: theme.palette.text.primary}}>
+                    <span style={{marginRight: 25}}>Owner: {recipe.ownerId}</span>
                     {recipe.author ? <span style={{marginRight: 25}}>Author: {recipe.author}</span> : <span/>}
                     {recipe.addedBy ? <span>Added By: {recipe.addedBy}</span> : <span/>}
                 </Typography>

@@ -170,21 +170,13 @@ export async function allRecipePaths(): Promise<Array<string>> {
  * @return A new {@link Recipe} whose ID has been removed
  */
 function removeRecipeId(recipe: Recipe): Recipe {
-    return {
-        author: recipe.author,
-        addedBy: recipe.addedBy,
-        story: recipe.story,
-        name: recipe.name,
-        yield: recipe.yield,
-        requiredTime: recipe.requiredTime,
+    const cleanedRecipe: Recipe = {
+        ...recipe,
         createdOn: Long.fromNumber(recipe.createdOn as number),
         modifiedOn: recipe.modifiedOn !== null ? Long.fromNumber(recipe.modifiedOn as number) : null,
-        tags: recipe.tags,
-        ratings: recipe.ratings,
-        ingredients: recipe.ingredients,
-        steps: recipe.steps,
-        notes: recipe.notes
     }
+    delete cleanedRecipe.id
+    return cleanedRecipe
 }
 
 /**

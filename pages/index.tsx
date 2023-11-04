@@ -218,6 +218,7 @@ export default function Home(props: Props): JSX.Element {
                                         }/>
                                     </Typography>
                                     <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>
+                                        <span style={{marginRight: 25}}>Owner: {recipe.ownerId}</span>
                                         {recipe.author ?
                                             <span style={{marginRight: 25}}>Author: {recipe.author}</span> :
                                             <span/>
