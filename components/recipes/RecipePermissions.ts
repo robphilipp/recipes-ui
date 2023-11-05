@@ -186,9 +186,10 @@ export type RecipePermission = {
 }
 
 /**
- *
+ * Creates permissions for the specified user, with the specified access rights
  * @param id The user ID
- * @param accessRights
+ * @param accessRights The access rights for the user
+ * @return A permissions object
  */
 export const userPermissionFor = (id: string, accessRights: AccessRights): RecipePermission => ({
     principalId: id,
@@ -197,9 +198,10 @@ export const userPermissionFor = (id: string, accessRights: AccessRights): Recip
 })
 
 /**
- *
+ * Creates permissions for the specified group of users, with the specified access rights
  * @param id Group ID
- * @param accessRights
+ * @param accessRights The access rights for the user
+ * @return A permissions object
  */
 export const groupPermissionFor = (id: string, accessRights: AccessRights): RecipePermission => ({
     principalId: id,
@@ -207,22 +209,61 @@ export const groupPermissionFor = (id: string, accessRights: AccessRights): Reci
     accessRights: accessRights
 })
 
-export const setPermissions = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
+/**
+ * Sets the access rights on the permissions. This function returns a new {@link RecipePermission}
+ * object for which the access rights are set to the ones specified.
+ * @param permissions The recipe permissions object on which to set the access rights
+ * @param accessRight The access rights
+ * @return A new {@link RecipePermission} object with the specified access rights
+ * @see clearAccessRightsFor
+ * @see addAccessRightsTo
+ * @see removeAccessRightsFrom
+ */
+export const setAccessRightsFor = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
     ...permissions,
     accessRights: setAccessRights(noAccessRights(), ...accessRight)
 })
 
-export const clearPermissions = (permissions: RecipePermission): RecipePermission => ({
+/**
+ * Removes all access rights on the permissions. This function returns a new {@link RecipePermission}
+ * object for which the access rights have been removed (i.e. no access rights).
+ * @param permissions The recipe permissions object on which to set the access rights
+ * @return A new {@link RecipePermission} object with all access rights removed
+ * @see setAccessRightsFor
+ * @see addAccessRightsTo
+ * @see removeAccessRightsFrom
+ */
+export const clearAccessRightsFor = (permissions: RecipePermission): RecipePermission => ({
     ...permissions,
     accessRights: setAccessRights(noAccessRights())
 })
 
-export const addPermissions = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
+/**
+ * Adds the specified access rights to the permissions. This function returns a new {@link RecipePermission}
+ * object for which the specified access rights have been added.
+ * @param permissions The recipe permissions object on which to set the access rights
+ * @param accessRight The access rights to add
+ * @return A new {@link RecipePermission} object with the specified access rights
+ * @see setAccessRightsFor
+ * @see clearAccessRightsFor
+ * @see removeAccessRightsFrom
+ */
+export const addAccessRightsTo = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
     ...permissions,
     accessRights: setAccessRights(permissions.accessRights, ...accessRight)
 })
 
-export const removePermissions = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
+/**
+ * Removes the specified access rights from the permissions. This function returns a new {@link RecipePermission}
+ * object from which the specified access rights have been removed.
+ * @param permissions The recipe permissions object on which to set the access rights
+ * @param accessRight The access rights to remove
+ * @return A new {@link RecipePermission} object with the specified access rights
+ * @see setAccessRightsFor
+ * @see clearAccessRightsFor
+ * @see addAccessRightsTo
+ */
+export const removeAccessRightsFrom = (permissions: RecipePermission, ...accessRight: Array<AccessRight>): RecipePermission => ({
     ...permissions,
     accessRights: clearAccessRights(permissions.accessRights, ...accessRight)
 })

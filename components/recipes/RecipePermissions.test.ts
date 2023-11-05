@@ -109,3 +109,7 @@ describe('when creating user and group permissions', () => {
         expect(permissions.accessRights.value).toEqual(fullAccessRights().value)
     })
 })
+
+// describe('when modifying access rights on permissions', () => {
+//     it('')
+// })
