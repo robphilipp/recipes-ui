@@ -1,13 +1,18 @@
 import {describe, expect, it} from "@jest/globals";
 import {
-    clearAccessRights,
-    fullAccessRights,
-    noAccessRights,
-    AccessRights,
     AccessRight,
-    setAccessRights, userPermissionFor, PrincipalType, groupPermissionFor
+    AccessRights,
+    addAccessRightsTo,
+    clearAccessRights,
+    clearAccessRightsFor,
+    fullAccessRights,
+    groupPermissionFor,
+    noAccessRights,
+    PrincipalType, removeAccessRightsFrom,
+    setAccessRights,
+    setAccessRightsFor,
+    userPermissionFor
 } from "./RecipePermissions";
-import exp from "constants";
 
 function expectNoPermissions(permissions: AccessRights) {
     expect(permissions.value).toBe(0)
@@ -110,6 +115,37 @@ describe('when creating user and group permissions', () => {
     })
 })
 
-// describe('when modifying access rights on permissions', () => {
-//     it('')
-// })
+describe('when modifying access rights on permissions', () => {
+    it('should be able to set access rights', () => {
+        const origPerms = userPermissionFor("user1", fullAccessRights())
+        expect(origPerms.accessRights.value).toBe(15)
+        const updatedPerms = setAccessRightsFor(origPerms, AccessRight.READ)
+        expect(updatedPerms.accessRights.value).toBe(4)
+        expect(updatedPerms.principal).toEqual(PrincipalType.USER)
+        expect(updatedPerms.principalId).toEqual("user1")
+    })
+    it('should be able to clear access rights', () => {
+        const origPerms = userPermissionFor("user1", fullAccessRights())
+        expect(origPerms.accessRights.value).toBe(15)
+        const updatedPerms = clearAccessRightsFor(origPerms)
+        expect(updatedPerms.accessRights.value).toBe(0)
+        expect(updatedPerms.principal).toEqual(PrincipalType.USER)
+        expect(updatedPerms.principalId).toEqual("user1")
+    })
+    it('should be able to add access rights', () => {
+        const origPerms = userPermissionFor("user1", noAccessRights())
+        expect(origPerms.accessRights.value).toBe(0)
+        const updatedPerms = addAccessRightsTo(origPerms, AccessRight.READ, AccessRight.UPDATE)
+        expect(updatedPerms.accessRights.value).toBe(6)
+        expect(updatedPerms.principal).toEqual(PrincipalType.USER)
+        expect(updatedPerms.principalId).toEqual("user1")
+    })
+    it('should be able to remove access rights', () => {
+        const origPerms = userPermissionFor("user1", fullAccessRights())
+        expect(origPerms.accessRights.value).toBe(15)
+        const updatedPerms = removeAccessRightsFrom(origPerms, AccessRight.READ, AccessRight.UPDATE)
+        expect(updatedPerms.accessRights.value).toBe(9)
+        expect(updatedPerms.principal).toEqual(PrincipalType.USER)
+        expect(updatedPerms.principalId).toEqual("user1")
+    })
+})
