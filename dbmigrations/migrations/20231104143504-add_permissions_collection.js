@@ -1,7 +1,7 @@
 const basePermissionsSchema = {
     $jsonSchema: {
         bsonType: "object",
-        required: ["recipeId", "principalId", "principleType", "permission"],
+        required: ["recipeId", "principalId", "principleType", "create", "read", "update", "delete"],
         properties: {
             _id: {},
             recipeId: {
@@ -26,26 +26,36 @@ const basePermissionsSchema = {
                     }
                 }
             },
-            // full permissions: c r u d -> 1 1 1 1 = 15; no permissions: c r u d -> 0 0 0 0 = 0
-            permission: {
-                bsonType: "int",
-                minimum: 0,
-                maximum: 15,
-                description: "must be an integer in the interval [0, 15]"
-            }
+            create: {
+                bsonType: "boolean",
+                description: "must have an access right of 'true' or 'false'"
+            },
+            read: {
+                bsonType: "boolean",
+                description: "must have an access right of 'true' or 'false'"
+            },
+            update: {
+                bsonType: "boolean",
+                description: "must have an access right of 'true' or 'false'"
+            },
+            delete: {
+                bsonType: "boolean",
+                description: "must have an access right of 'true' or 'false'"
+            },
         }
     }
 }
 
 module.exports = {
-    baseUsersSchema,
+    basePermissionsSchema,
 
     async up(db) {
-        await db.createCollection("users", {validator: baseUsersSchema})
-        const usersCollection = await db.collection("users")
+        await db.createCollection("permissions", {validator: basePermissionsSchema})
+        const permissionsCollection = await db.collection("permissions")
 
-        await usersCollection.createIndex({name: 1}, {unique: true})
-        await usersCollection.createIndex({email: 1}, {unique: true})
+        // only allow one entry for a (recipe, principal), and because the principal
+        // can be either a user or a group, we pull in the principal type
+        await permissionsCollection.createIndex({recipeId: 1, principalId: 1, principalType: ''}, {unique: true})
     },
 
     async down(db) {
