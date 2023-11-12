@@ -1,7 +1,8 @@
 const basePermissionsSchema = {
     $jsonSchema: {
         bsonType: "object",
-        required: ["recipeId", "principalId", "principleType", "create", "read", "update", "delete"],
+        // the principal is either a user or group, defined by the principal ID and the principal type
+        required: ["recipeId", "principalId", "principalType", "create", "read", "update", "delete"],
         properties: {
             _id: {},
             recipeId: {
@@ -12,7 +13,7 @@ const basePermissionsSchema = {
                 bsonType: "string",
                 description: "must be a user ID or group ID"
             },
-            principleType: {
+            principalType: {
                 bsonType: "object",
                 required: ["name", "description"],
                 properties: {
@@ -21,25 +22,25 @@ const basePermissionsSchema = {
                         description: "'name' must be principal type ('user', 'group')"
                     },
                     description: {
-                        enum: ["User", "Group", "Regular user"],
+                        enum: ["User", "Group"],
                         description: "'description' must be a string describing the principal type"
                     }
                 }
             },
             create: {
-                bsonType: "boolean",
+                bsonType: "bool",
                 description: "must have an access right of 'true' or 'false'"
             },
             read: {
-                bsonType: "boolean",
+                bsonType: "bool",
                 description: "must have an access right of 'true' or 'false'"
             },
             update: {
-                bsonType: "boolean",
+                bsonType: "bool",
                 description: "must have an access right of 'true' or 'false'"
             },
             delete: {
-                bsonType: "boolean",
+                bsonType: "bool",
                 description: "must have an access right of 'true' or 'false'"
             },
         }
@@ -55,10 +56,11 @@ module.exports = {
 
         // only allow one entry for a (recipe, principal), and because the principal
         // can be either a user or a group, we pull in the principal type
-        await permissionsCollection.createIndex({recipeId: 1, principalId: 1, principalType: ''}, {unique: true})
+        await permissionsCollection.createIndex(['recipeId', 'principalId', 'principalType'], {unique: true})
+        // await permissionsCollection.createIndex({recipeId: 1, principalId: 1, principalType: 'user'}, {unique: true})
     },
 
     async down(db) {
-        await db.collection('users').drop()
+        await db.collection('permissions').drop()
     }
 };

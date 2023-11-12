@@ -3,15 +3,19 @@ import {roleAtLeast, RoleType} from "./Role";
 import {failureResult, Result, successResult} from "result-fn";
 import {duplicateCountsByKey, duplicatesByKey} from "../utils/ArrayUtils";
 
+/**
+ * Immutable user group to allow recipe permissions to be set for groups of users
+ */
 export type UserGroup = {
     readonly name: string
     readonly description: string
+    // the minimum role allowed in this group
     readonly minRoleAllowed: RoleType
     readonly users: Array<RecipesUser>
 }
 
-export function hasUser(group: UserGroup, user: RecipesUser): boolean {
-    return group.users.findIndex(groupUser => groupUser.id === user.id) >= 0
+export function hasMatchingUsers(group: UserGroup, predicate: (user: RecipesUser) => boolean): boolean {
+    return group.users.findIndex(predicate) >= 0
 }
 
 export function hasValidRoleFor(group: UserGroup, user: RecipesUser): boolean {
@@ -19,13 +23,20 @@ export function hasValidRoleFor(group: UserGroup, user: RecipesUser): boolean {
     return isRoleAllowed(user.role.name)
 }
 
-export function duplicateUserCountsById(users: Array<RecipesUser>): Map<string, number> {
-    return duplicateCountsByKey<RecipesUser, string>(users, user => user.id)
+export function findDuplicateUserCountsFor<K>(users: Array<RecipesUser>, keyFn: (user: RecipesUser) => K): Map<K, number> {
+    return duplicateCountsByKey<RecipesUser, K>(users, keyFn);
 }
 
+export function findDuplicateUserCountsById(users: Array<RecipesUser>): Map<string, number> {
+    return findDuplicateUserCountsFor<string>(users, user => user.id)
+}
 
-export function duplicateUsersById(users: Array<RecipesUser>): Map<string, Array<RecipesUser>> {
-    return duplicatesByKey<RecipesUser, string>(users, (user: RecipesUser) => user.id)
+export function findDuplicateUsersFor<K>(users: Array<RecipesUser>, keyFn: (user: RecipesUser) => K): Map<K, Array<RecipesUser>> {
+    return duplicatesByKey<RecipesUser, K>(users, keyFn)
+}
+
+export function findDuplicateUsersById(users: Array<RecipesUser>): Map<string, Array<RecipesUser>> {
+    return findDuplicateUsersFor<string>(users, (user: RecipesUser) => user.id)
 }
 
 function validateUserRolesAllowed(users: Array<RecipesUser>, minRole: RoleType): Result<Array<RecipesUser>, Array<RecipesUser>> {
@@ -38,7 +49,7 @@ function validateUserRolesAllowed(users: Array<RecipesUser>, minRole: RoleType):
     return successResult(validUsers)
 }
 
-export function usersGroupFor(
+export function createUserGroupFrom(
     name: string,
     description: string,
     minRole: RoleType = RoleType.USER,
@@ -61,4 +72,8 @@ export function addUserToGroup(group: UserGroup, user: RecipesUser): Result<User
     return validateUserRolesAllowed([...group.users, user], group.minRoleAllowed)
         .map(added => ({...group, users: added}))
         .mapFailure(notAdded => `Unable to add user; user_email: ${user.email}`)
+}
+
+export function removeMatchingUsersFromGroup(group: UserGroup, predicate: (user: RecipesUser) => boolean): UserGroup {
+    return {...group, users: group.users.filter(user => !predicate(user))}
 }

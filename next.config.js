@@ -30,12 +30,17 @@ module.exports = {
         // and associated users
         passwordResetTokenCollection: 'password_reset_tokens',
 
+        // mongo collection holding recipe permissions (access rights
+        // users and groups have on a recipe)
+        permissionsCollection: 'permissions',
+
         // mongo view that holds the users and their role information
         // together for easier access
         usersView: 'users_full',
         // mongo view that holds the roles and their associated
         // users (by ID) for reverse lookups
         rolesView: 'roles_full',
+
 
         // routes that are not authenticated
         unauthenticated: [

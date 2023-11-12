@@ -175,14 +175,26 @@ export const setAccessRights = (accessRights: AccessRights, ...attributes: Array
 export const clearAccessRights = (accessRights: AccessRights, ...attributes: Array<AccessRight>): AccessRights =>
     createAccessRightsFrom(accessRights, Action.REMOVE, ...attributes)
 
-
 /**
  * Immutable representation of a principal's permissions on a recipe
  */
 export type RecipePermission = {
+    readonly id?: string
     readonly principalId: string
     readonly principal: PrincipalType
     readonly accessRights: AccessRights
+}
+
+export type PrincipalTypeLiteral = {
+    readonly name: string
+    readonly description: string
+}
+
+export function principalTypeFrom(name: "user" | "group"): PrincipalTypeLiteral {
+    switch (name) {
+        case "user": return {name, description: "User"}
+        case "group": return {name, description: "Group"}
+    }
 }
 
 /**
