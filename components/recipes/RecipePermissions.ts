@@ -9,7 +9,20 @@
     recipe, then the bits would be 0110 which would be represented as 0 + 4 + 2 + 0 = 6.
  */
 
-export enum PrincipalType {USER, GROUP}
+import {failureResult, Result, successResult} from "result-fn";
+
+export enum PrincipalType {USER = 'user', GROUP = 'group'}
+
+export function principalTypeFrom(name: string): Result<PrincipalType, string> {
+    switch (name.toLowerCase()) {
+        case 'user':
+            return successResult(PrincipalType.USER)
+        case 'group':
+            return successResult(PrincipalType.GROUP)
+        default:
+            return failureResult(`No principal type with name exists; name: ${name}`)
+    }
+}
 
 /**
  * Enumeration of valid permissions
@@ -26,10 +39,10 @@ export enum Action {ADD, REMOVE}
  */
 export type AccessRights = {
     readonly value: number
-    readonly hasCreate: () => boolean
-    readonly hasRead: () => boolean
-    readonly hasUpdate: () => boolean
-    readonly hasDelete: () => boolean
+    readonly create: boolean
+    readonly read: boolean
+    readonly update: boolean
+    readonly delete: boolean
 }
 
 const NO_PERMISSIONS = 0
@@ -60,9 +73,12 @@ const has = (accessRights: number, attribute: AccessRight): boolean =>
  * @return a function on the permission that returns `true` when the
  * permission contains "create"; otherwise returns `false`
  */
-function hasCreate(accessRights: number): () => boolean {
-    return () => has(accessRights, AccessRight.CREATE)
+function hasCreate(accessRights: number): boolean {
+    return has(accessRights, AccessRight.CREATE)
 }
+// function hasCreate(accessRights: number): () => boolean {
+//     return () => has(accessRights, AccessRight.CREATE)
+// }
 
 /**
  * Higher-order function that determines whether the "read"
@@ -71,8 +87,11 @@ function hasCreate(accessRights: number): () => boolean {
  * @return a function on the permission that returns `true` when the
  * permission contains "read"; otherwise returns `false`
  */
-function hasRead(accessRights: number): () => boolean {
-    return () => has(accessRights, AccessRight.READ)
+// function hasRead(accessRights: number): () => boolean {
+//     return () => has(accessRights, AccessRight.READ)
+// }
+function hasRead(accessRights: number): boolean {
+    return has(accessRights, AccessRight.READ)
 }
 
 /**
@@ -82,9 +101,12 @@ function hasRead(accessRights: number): () => boolean {
  * @return a function on the permission that returns `true` when the
  * permission contains "update"; otherwise returns `false`
  */
-function hasUpdate(accessRights: number): () => boolean {
-    return () => has(accessRights, AccessRight.UPDATE)
+function hasUpdate(accessRights: number): boolean {
+    return has(accessRights, AccessRight.UPDATE)
 }
+// function hasUpdate(accessRights: number): () => boolean {
+//     return () => has(accessRights, AccessRight.UPDATE)
+// }
 
 /**
  * Higher-order function that determines whether the "delete"
@@ -93,9 +115,12 @@ function hasUpdate(accessRights: number): () => boolean {
  * @return a function on the permission that returns `true` when the
  * permission contains "delete"; otherwise returns `false`
  */
-function hasDelete(accessRights: number): () => boolean {
-    return () => has(accessRights, AccessRight.DELETE)
+function hasDelete(accessRights: number): boolean {
+    return has(accessRights, AccessRight.DELETE)
 }
+// function hasDelete(accessRights: number): () => boolean {
+//     return () => has(accessRights, AccessRight.DELETE)
+// }
 
 /**
  * Generates the convenience accessor functions for the permission
@@ -104,10 +129,11 @@ function hasDelete(accessRights: number): () => boolean {
  * the permission
  */
 const accessRightsFns = (accessRights: number) => ({
-    hasCreate: hasCreate(accessRights),
-    hasRead: hasRead(accessRights),
-    hasUpdate: hasUpdate(accessRights),
-    hasDelete: hasDelete(accessRights)
+    create: hasCreate(accessRights),
+    // hasCreate: hasCreate(accessRights),
+    read: hasRead(accessRights),
+    update: hasUpdate(accessRights),
+    delete: hasDelete(accessRights)
 })
 
 /**
@@ -119,6 +145,17 @@ export const noAccessRights = (): AccessRights => ({value: NO_PERMISSIONS, ...ac
  * @return a {@link Permission} object with full CRUD permissions
  */
 export const fullAccessRights = (): AccessRights => ({value: ALL_PERMISSIONS, ...accessRightsFns(ALL_PERMISSIONS)})
+
+export function accessRightsWith(create: boolean, read: boolean, update: boolean, canDelete: boolean): AccessRights {
+    const value = (create ? Math.pow(2, AccessRight.CREATE) : 0) +
+        (read ? Math.pow(2, AccessRight.READ) : 0) +
+        (update ? Math.pow(2, AccessRight.UPDATE) : 0) +
+        (canDelete ? Math.pow(2, AccessRight.DELETE) : 0)
+    return {
+        value,
+        ...accessRightsFns(value)
+    }
+}
 
 /**
  * Creates a new {@link AccessRights} based on the specified {@link accessRights}, the specifed
@@ -180,45 +217,38 @@ export const clearAccessRights = (accessRights: AccessRights, ...attributes: Arr
  */
 export type RecipePermission = {
     readonly id?: string
+    readonly recipeId: string
     readonly principalId: string
     readonly principal: PrincipalType
     readonly accessRights: AccessRights
 }
 
-export type PrincipalTypeLiteral = {
-    readonly name: string
-    readonly description: string
-}
-
-export function principalTypeFrom(name: "user" | "group"): PrincipalTypeLiteral {
-    switch (name) {
-        case "user": return {name, description: "User"}
-        case "group": return {name, description: "Group"}
-    }
-}
-
 /**
  * Creates permissions for the specified user, with the specified access rights
  * @param id The user ID
+ * @param recipeId The ID of the recipe to which the permissions are granted
  * @param accessRights The access rights for the user
  * @return A permissions object
  */
-export const userPermissionFor = (id: string, accessRights: AccessRights): RecipePermission => ({
+export const userPermissionFor = (id: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
     principalId: id,
     principal: PrincipalType.USER,
-    accessRights: accessRights
+    recipeId,
+    accessRights
 })
 
 /**
  * Creates permissions for the specified group of users, with the specified access rights
  * @param id Group ID
+ * @param recipeId The ID of the recipe to which the permissions are granted
  * @param accessRights The access rights for the user
  * @return A permissions object
  */
-export const groupPermissionFor = (id: string, accessRights: AccessRights): RecipePermission => ({
+export const groupPermissionFor = (id: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
     principalId: id,
     principal: PrincipalType.GROUP,
-    accessRights: accessRights
+    recipeId,
+    accessRights
 })
 
 /**

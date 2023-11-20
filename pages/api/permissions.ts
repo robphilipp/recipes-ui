@@ -1,20 +1,20 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getToken} from "next-auth/jwt";
 import {RequestMethod} from "../../lib/RequestMethod";
-import {permissions} from "../../lib/permissions";
+import {MongoRecipePermission, permissions, principalTypeLiteralFrom} from "../../lib/permissions";
 import {Filter} from "mongodb";
-import {principalTypeFrom, RecipePermission} from "../../components/recipes/RecipePermissions";
+import {RecipePermission} from "../../components/recipes/RecipePermissions";
 
 export const PERMISSIONS_BY_USER_ID: string = "user_id"
 export const PERMISSIONS_BY_GROUP_ID: string = "group_id"
 
-function filterForPermissions(request: NextApiRequest): Filter<RecipePermission> {
+function filterForPermissions(request: NextApiRequest): Filter<MongoRecipePermission> {
     const {query} = request
     if (query.hasOwnProperty(PERMISSIONS_BY_USER_ID)) {
-        return {principalId: query[PERMISSIONS_BY_USER_ID], principalType: principalTypeFrom("user")}
+        return {principalId: query[PERMISSIONS_BY_USER_ID], principalType: principalTypeLiteralFrom("user")}
     }
     if (query.hasOwnProperty(PERMISSIONS_BY_GROUP_ID)) {
-        return {principalId: query[PERMISSIONS_BY_GROUP_ID], principalType: principalTypeFrom("group")}
+        return {principalId: query[PERMISSIONS_BY_GROUP_ID], principalType: principalTypeLiteralFrom("group")}
     }
     return {}
 }

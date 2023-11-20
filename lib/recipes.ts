@@ -87,7 +87,6 @@ export async function recipesByName(words: Array<string>): Promise<Array<Recipe>
 export async function recipeById(id: string): Promise<Recipe> {
     try {
         const client = await clientPromise
-        console.log("recipe id", id)
         const doc = await recipeCollection(client).findOne({_id: new ObjectId(id)})
         if (doc === undefined || doc === null) {
             return Promise.reject(`Unable to find recipe for specified ID; id: ${id}`)
