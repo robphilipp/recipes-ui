@@ -67,70 +67,50 @@ const has = (accessRights: number, attribute: AccessRight): boolean =>
     (Math.max(0, Math.min(15, accessRights)) & Math.pow(2, attribute)) > 0
 
 /**
- * Higher-order function that determines whether the "create"
- * permission is set
+ * Whether the "create" permission is set
  * @param accessRights The permission value (e.i. decimal of CRUD bits)
- * @return a function on the permission that returns `true` when the
- * permission contains "create"; otherwise returns `false`
+ * @return `true` when the permission contains "create"; otherwise returns `false`
  */
 function hasCreate(accessRights: number): boolean {
     return has(accessRights, AccessRight.CREATE)
 }
-// function hasCreate(accessRights: number): () => boolean {
-//     return () => has(accessRights, AccessRight.CREATE)
-// }
 
 /**
- * Higher-order function that determines whether the "read"
- * permission is set
+ * Whether the "read" permission is set
  * @param accessRights The permission value (e.i. decimal of CRUD bits)
- * @return a function on the permission that returns `true` when the
- * permission contains "read"; otherwise returns `false`
+ * @return `true` when the permission contains "read"; otherwise returns `false`
  */
-// function hasRead(accessRights: number): () => boolean {
-//     return () => has(accessRights, AccessRight.READ)
-// }
 function hasRead(accessRights: number): boolean {
     return has(accessRights, AccessRight.READ)
 }
 
 /**
- * Higher-order function that determines whether the "update"
- * permission is set
+ * Whether the "update" permission is set
  * @param accessRights The permission value (e.i. decimal of CRUD bits)
- * @return a function on the permission that returns `true` when the
- * permission contains "update"; otherwise returns `false`
+ * @return `true` when the permission contains "update"; otherwise returns `false`
  */
 function hasUpdate(accessRights: number): boolean {
     return has(accessRights, AccessRight.UPDATE)
 }
-// function hasUpdate(accessRights: number): () => boolean {
-//     return () => has(accessRights, AccessRight.UPDATE)
-// }
 
 /**
  * Higher-order function that determines whether the "delete"
  * permission is set
  * @param accessRights The permission value (i.e. decimal of CRUD bits)
- * @return a function on the permission that returns `true` when the
- * permission contains "delete"; otherwise returns `false`
+ * @return `true` when the permission contains "delete"; otherwise returns `false`
  */
 function hasDelete(accessRights: number): boolean {
     return has(accessRights, AccessRight.DELETE)
 }
-// function hasDelete(accessRights: number): () => boolean {
-//     return () => has(accessRights, AccessRight.DELETE)
-// }
 
 /**
- * Generates the convenience accessor functions for the permission
+ * Generates the convenience accessor values for the permission
  * @param accessRights The permission value (i.e. decimal of CRUD bits)
- * @return An object holding the convenience accessor functions for
- * the permission
+ * @return An object holding the convenience access rights in a
+ * convenient form
  */
-const accessRightsFns = (accessRights: number) => ({
+const accessRightsEnrichment = (accessRights: number) => ({
     create: hasCreate(accessRights),
-    // hasCreate: hasCreate(accessRights),
     read: hasRead(accessRights),
     update: hasUpdate(accessRights),
     delete: hasDelete(accessRights)
@@ -139,22 +119,40 @@ const accessRightsFns = (accessRights: number) => ({
 /**
  * @return a {@link Permission} object with no CRUD permissions
  */
-export const noAccessRights = (): AccessRights => ({value: NO_PERMISSIONS, ...accessRightsFns(NO_PERMISSIONS)})
+export const noAccessRights = (): AccessRights => ({value: NO_PERMISSIONS, ...accessRightsEnrichment(NO_PERMISSIONS)})
 
 /**
  * @return a {@link Permission} object with full CRUD permissions
  */
-export const fullAccessRights = (): AccessRights => ({value: ALL_PERMISSIONS, ...accessRightsFns(ALL_PERMISSIONS)})
+export const fullAccessRights = (): AccessRights => ({value: ALL_PERMISSIONS, ...accessRightsEnrichment(ALL_PERMISSIONS)})
 
+/**
+ * Converts the boolean permissions into an array of {@link AccessRight} enumerations
+ * @param create `true` if principal has permission to create recipes; `false` otherwise
+ * @param read `true` if principal has permission to read recipes; `false` otherwise
+ * @param update `true` if principal has permission to update recipes; `false` otherwise
+ * @param canDelete `true` if principal has permission to delete recipes; `false` otherwise
+ * @return An array of {@link AccessRight} in the order create, read, update, delete
+ */
+export function accessRightArrayFrom(create: boolean, read: boolean, update: boolean, canDelete: boolean): Array<AccessRight> {
+    let rights: Array<AccessRight> = []
+    if (create) rights.push(AccessRight.CREATE)
+    if (read) rights.push(AccessRight.READ)
+    if (update) rights.push(AccessRight.UPDATE)
+    if (canDelete) rights.push(AccessRight.DELETE)
+    return rights
+}
+
+/**
+ * Creates an {@link AccessRights} object from the specified boolean values
+ * @param create `true` if principal has permission to create recipes; `false` otherwise
+ * @param read `true` if principal has permission to read recipes; `false` otherwise
+ * @param update `true` if principal has permission to update recipes; `false` otherwise
+ * @param canDelete `true` if principal has permission to delete recipes; `false` otherwise
+ * @return An {@link AccessRights} object based on the specified boolean values
+ */
 export function accessRightsWith(create: boolean, read: boolean, update: boolean, canDelete: boolean): AccessRights {
-    const value = (create ? Math.pow(2, AccessRight.CREATE) : 0) +
-        (read ? Math.pow(2, AccessRight.READ) : 0) +
-        (update ? Math.pow(2, AccessRight.UPDATE) : 0) +
-        (canDelete ? Math.pow(2, AccessRight.DELETE) : 0)
-    return {
-        value,
-        ...accessRightsFns(value)
-    }
+    return createAccessRightsFrom(noAccessRights(), Action.ADD, ...accessRightArrayFrom(create, read, update, canDelete))
 }
 
 /**
@@ -189,7 +187,7 @@ function createAccessRightsFrom(
             accessRights.value
         )
 
-    return {value, ...accessRightsFns(value)}
+    return {value, ...accessRightsEnrichment(value)}
 }
 
 /**
@@ -225,13 +223,13 @@ export type RecipePermission = {
 
 /**
  * Creates permissions for the specified user, with the specified access rights
- * @param id The user ID
+ * @param userId The user ID
  * @param recipeId The ID of the recipe to which the permissions are granted
  * @param accessRights The access rights for the user
  * @return A permissions object
  */
-export const userPermissionFor = (id: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
-    principalId: id,
+export const userPermissionFor = (userId: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
+    principalId: userId,
     principal: PrincipalType.USER,
     recipeId,
     accessRights
@@ -239,13 +237,13 @@ export const userPermissionFor = (id: string, recipeId: string, accessRights: Ac
 
 /**
  * Creates permissions for the specified group of users, with the specified access rights
- * @param id Group ID
+ * @param groupId Group ID
  * @param recipeId The ID of the recipe to which the permissions are granted
  * @param accessRights The access rights for the user
  * @return A permissions object
  */
-export const groupPermissionFor = (id: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
-    principalId: id,
+export const groupPermissionFor = (groupId: string, recipeId: string, accessRights: AccessRights): RecipePermission => ({
+    principalId: groupId,
     principal: PrincipalType.GROUP,
     recipeId,
     accessRights

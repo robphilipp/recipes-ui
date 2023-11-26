@@ -1,7 +1,8 @@
 import clientPromise from "./mongodb"
 import {Collection, Filter, MongoClient, ObjectId, OptionalId} from "mongodb"
 import {
-    AccessRights, accessRightsWith,
+    AccessRights,
+    accessRightsWith,
     noAccessRights,
     PrincipalType,
     principalTypeFrom,
@@ -155,16 +156,12 @@ export async function permissionById(permissionId: string): Promise<RecipePermis
     }
 }
 
-export async function addPermissionTo(
-    recipeId: string,
-    principalId: string,
-    principalType: PrincipalTypeLiteral,
-    accessRights: AccessRights
-): Promise<RecipePermission> {
+export async function addPermissionTo(recipePermissions: RecipePermission): Promise<RecipePermission> {
+    const {recipeId, principalId, principal: principalType, accessRights} = recipePermissions
     const client: MongoClient = await clientPromise
     const recipePermission: OptionalId<MongoRecipePermission> = {
         principalId,
-        principalType,
+        principalType: principalTypeLiteralFrom(principalType === PrincipalType.USER ? 'user' : 'group'),
         recipeId,
         create: accessRights.create,
         read: accessRights.read,

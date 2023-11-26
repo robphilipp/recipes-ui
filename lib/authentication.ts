@@ -45,7 +45,7 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
             if (authenticated) {
                 const role = await roleFor(user._id.toString())
                 console.log(credentials, {...user, role})
-                return {...user, role}
+                return {...user, id: user._id.toString(), role}
             }
             return emptyUser()
         } catch (e) {

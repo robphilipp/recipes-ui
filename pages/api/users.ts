@@ -69,6 +69,7 @@ export default async function handler(
             return addUser(request.body as RecipesUser)
                 .then(user => response.status(200).json(user))
 
+        // updates user
         case RequestMethod.POST:
             return updateUser(request.body as RecipesUser)
                 .then(user => response.status(200).json(user))

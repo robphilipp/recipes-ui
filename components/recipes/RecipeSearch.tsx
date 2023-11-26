@@ -36,7 +36,7 @@ export default function RecipeSearch(): JSX.Element {
         }
     }
 
-    async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    async function handleChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> {
         const searchValue = event.currentTarget.value
         updateCurrent(searchValue)
     }
