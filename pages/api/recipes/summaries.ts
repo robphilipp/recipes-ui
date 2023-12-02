@@ -2,11 +2,8 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {recipeSummariesSearch} from "../../../lib/recipes";
 import {RecipeSummary} from "../../../components/recipes/Recipe";
 import {RequestMethod} from "../../../lib/RequestMethod";
-import {getServerSession, Session} from "next-auth";
+import {getServerSession} from "next-auth";
 import {authOptions} from "../auth/[...nextauth]";
-import {hasAccessTo} from "../../../lib/authorization/authorization";
-import {RoleType} from "../../../components/users/Role";
-import {hasAccess} from "../../../lib/authorization/recipes";
 
 /**
  * Retrieves the recipes that match the search terms represented in the query-parameter
@@ -24,16 +21,12 @@ export default async function handler(
         return response.status(200).json([])
     }
 
-    // higher-order function used to determine whether user is authorized to view the recipe summary
-    const isAuthorized: (resource: RecipeSummary) => boolean = hasAccessTo<RecipeSummary>(session, [hasAccess])
-
     // grabs the query parameters whose keys are 'name'
     const queries = typeof request.query.name === 'string' ? [request.query.name] : request.query.name
     switch (request.method) {
         case RequestMethod.GET:
-            return recipeSummariesSearch(queries)
-                .then(summaries => response.status(200).json(summaries.filter(isAuthorized)))
-                // .then(summaries => response.status(200).json(summaries.filter(summary => summary.ownerId === session.user.id)))
+            return recipeSummariesSearch(session.user, queries)
+                .then(summaries => response.status(200).json(summaries))
                 .catch(reason => {
                     const message = `Failed to find recipes summaries; reason: ${reason}`
                     console.log(message)

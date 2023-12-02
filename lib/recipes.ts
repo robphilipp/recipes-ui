@@ -1,8 +1,9 @@
 import clientPromise from "./mongodb";
-import {Collection, Long, MongoClient, ObjectId} from "mongodb";
+import {Collection, Filter, Long, MongoClient, ObjectId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
-import {getSession, useSession} from "next-auth/react";
-import {getServerSession} from "next-auth";
+import {RecipesUser} from "../components/users/RecipesUser";
+import {RoleType} from "../components/users/Role";
+import {permissionById, permissions, principalTypeLiteralFrom, userPermissionsFor} from "./permissions";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -119,21 +120,62 @@ export async function recipeSummariesByName(words: Array<string>): Promise<Array
 }
 
 /**
+ * Calculates the recipe-summary filter for the user so that users only see recipes
+ * to which they have read access (through permissions, ownership, or as a recipe
+ * book admin)
+ * @param user The user requesting access to the summary
+ * @return The mongo query filter for returning only recipes to which the user has
+ * read access.
+ */
+async function recipeSummaryFilterFor(user: RecipesUser): Promise<Filter<Recipe>> {
+    const isAdmin = user.role.name === RoleType.ADMIN
+    if (isAdmin) {
+        return Promise.resolve({})
+    }
+
+    const userPermissions = await permissions(
+        {principalId: user.id, principalType: principalTypeLiteralFrom("user")}
+    )
+    const readPermissions = userPermissions
+        .filter(perm => perm.accessRights.read)
+        .map(perm => new ObjectId(perm.recipeId))
+
+    return {$or: [
+            {ownerId: {$eq: user.id}},
+            {_id: {$in: readPermissions}}
+        ]
+    }
+}
+
+// todo need to create a view that holds the recipe summaries and permissions (also for recipes and permissions)
+//      so that we can return the access rights for display "edit" and "delete" icons in the summary
+
+/**
  * Retrieves all the recipe summaries whose names or tags contain any of the specified words.
+ * @param user The user making the request. This is needed for authorization
  * @param words The words a recipe name or tags must contain to be considered a match
  * @return A {@link Promise} to the matching recipe summaries
  */
-export async function recipeSummariesSearch(words?: Array<string>): Promise<Array<RecipeSummary>> {
+export async function recipeSummariesSearch(user: RecipesUser, words?: Array<string>): Promise<Array<RecipeSummary>> {
     if (words === undefined) {
         return Promise.resolve([])
     }
+
+    const userRecipeFilter = await recipeSummaryFilterFor(user)
+
     try {
         const client = await clientPromise
         return await recipeCollection(client)
             .find({
-                $or: [
-                    {name: {$regex: new RegExp(`(${words.join(')|(')})`, 'i')}},
-                    {tags: {$in: words}}
+                $and: [
+                    {...userRecipeFilter},
+                    {
+                        $or: [
+                            {name: {$regex: new RegExp(`(${words.join(')|(')})`, 'i')}},
+                            {tags: {$in: words}}
+                        ]
+                    }
+
                 ]
             })
             .collation({locale: 'en', strength: 2})

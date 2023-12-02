@@ -18,10 +18,7 @@ export default async function handler(
     // higher-order function used to determine whether user is authorized to view the recipe summary
     const isAuthorized: (resource: RecipeSummary) => boolean = hasAccessTo<RecipeSummary>(session, [hasAccess])
 
-    return recipeSummariesSearch([''])
-        .then(summaries => response.status(200).json(summaries.filter(isAuthorized).length))
+    return recipeSummariesSearch(session.user, [''])
+        .then(summaries => response.status(200).json(summaries.length))
         .catch(reason => console.log("Failed to get recipe count; reason: ", reason))
-    // return recipeCount()
-    //     .then(count => response.status(200).json(count))
-    //     .catch(reason => console.log("Failed to get recipe count; reason: ", reason))
 }
