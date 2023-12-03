@@ -156,6 +156,59 @@ export function accessRightsWith(create: boolean, read: boolean, update: boolean
 }
 
 /**
+ * Convenience function that returns an object `{create: true}` used for filtering
+ * @return an object `{read: true}` used for filtering
+ * @see filteredAccessRights
+ */
+export const withCreateAccess = (): Partial<AccessRights> =>
+    filteredAccessRights(accessRightsWith(true, false, false, false))
+
+/**
+ * Convenience function that returns an object `{read: true}` used for filtering
+ * @return an object `{read: true}` used for filtering
+ * @see filteredAccessRights
+ */
+export const withReadAccess = (): Partial<AccessRights> =>
+    filteredAccessRights(accessRightsWith(false, true, false, false))
+
+/**
+ * Convenience function that returns an object `{update: true}` used for filtering
+ * @return an object `{read: true}` used for filtering
+ * @see filteredAccessRights
+ */
+export const withUpdateAccess = (): Partial<AccessRights> =>
+    filteredAccessRights(accessRightsWith(false, false, true, false))
+
+/**
+ * Convenience function that returns an object `{delete: true}` used for filtering
+ * @return an object `{read: true}` used for filtering
+ * @see filteredAccessRights
+ */
+export const withDeleteAccess = (): Partial<AccessRights> =>
+    filteredAccessRights(accessRightsWith(false, false, false, true))
+
+/**
+ * Returns an object the holds only the access rights that are `true`. This provides a
+ * useful filter on a specific access right we care about. For example, suppose that
+ * we only care about whether the user has "read" permission, and not whether the user
+ * can delete or update a recipe. This provides that.
+ * @param accessRights The access rights to filter
+ * @return an object the holds only the access rights that are `true`
+ * @see withCreateAccess
+ * @see withReadAccess
+ * @see withUpdateAccess
+ * @see withDeleteAccess
+ */
+export function filteredAccessRights(accessRights: AccessRights): Partial<AccessRights> {
+    let access: Partial<AccessRights> = {}
+    if (accessRights.create) access = {...access, create: true}
+    if (accessRights.read) access = {...access, read: true}
+    if (accessRights.update) access = {...access, update: true}
+    if (accessRights.delete) access = {...access, delete: true}
+    return access
+}
+
+/**
  * Creates a new {@link AccessRights} based on the specified {@link accessRights}, the specifed
  * {@link action}, and the specified {@link attributes}. For example, if the specified
  * {@link permission} is 3, and the specified {@link action} is {@link Action.REMOVE},
