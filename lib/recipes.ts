@@ -1,10 +1,10 @@
 import clientPromise from "./mongodb";
-import {Collection, Filter, Long, MongoClient, ObjectId} from "mongodb";
+import {Collection, Filter, Long, MongoClient, ObjectId, WithId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
 import {RecipesUser} from "../components/users/RecipesUser";
 import {RoleType} from "../components/users/Role";
-import {permissionById, permissions, principalTypeLiteralFrom, userPermissionsFor} from "./permissions";
-import {AccessRights, filteredAccessRights, withReadAccess} from "../components/recipes/RecipePermissions";
+import {permissions, principalTypeLiteralFrom} from "./permissions";
+import {AccessRights, fullAccessRights, WithPermissions, withReadAccess} from "../components/recipes/RecipePermissions";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -15,6 +15,13 @@ if (process.env.recipeCollection === undefined) {
 
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const RECIPE_COLLECTION: string = process.env.recipeCollection
+
+/**
+ * Type that adds (splats) access rights into the object of type T.
+ * This is really only meant to be used for the database layer.
+ * @see WithPermissions for the type that is used in the domain.
+ */
+export type WithAccessRights<T> = T & AccessRights
 
 function recipeCollection(client: MongoClient): Collection<Recipe> {
     return client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
@@ -89,10 +96,11 @@ function recipeCollection(client: MongoClient): Collection<Recipe> {
 
 /**
  * Attempts to retrieve the recipe based on its object ID
+ * @param user The user requesting the recipe
  * @param id The object ID associated with the document
  * @return The recipe associated with the object ID
  */
-export async function recipeById(id: string): Promise<Recipe> {
+export async function recipeById(user: RecipesUser, id: string): Promise<Recipe> {
     try {
         const client = await clientPromise
         const doc = await recipeCollection(client).findOne({_id: new ObjectId(id)})
@@ -150,15 +158,46 @@ async function recipeSummaryFilterFor(user: RecipesUser, accessRights: Partial<A
         ...accessRights
     })
 
-    return {$or: [
+    return {
+        $or: [
             {ownerId: {$eq: user.id}},
             {_id: {$in: userPermissions.map(perm => new ObjectId(perm.recipeId))}}
         ]
     }
 }
 
-// todo need to create a view that holds the recipe summaries and permissions (also for recipes and permissions)
-//      so that we can return the access rights for display "edit" and "delete" icons in the summary
+function permission(user: RecipesUser) {
+    if (user.role.name === RoleType.ADMIN) {
+        return {}
+    }
+    return {
+        $or: [
+            {
+                $and: [
+                    {"recipePermissions.principalId": {$eq: user.id}},
+                    {"recipePermissions.read": {$eq: true}},
+                ]
+            },
+            {
+                ownerId: {$eq: user.id}
+            }
+        ]
+    }
+}
+
+/**
+ * Updates the user's access rights based on their role so that, for example, an admin or the owner of the
+ * recipe will have full access rights to the recipe
+ * @param recipe The recipe with permissions
+ * @param user The user requesting access
+ * @return A recipes with permission updated to account for role and ownership
+ */
+function roleEnhanced<T extends RecipeSummary>(recipe: WithPermissions<T>, user: RecipesUser): WithPermissions<T> {
+    if (user.role.name === RoleType.ADMIN || user.id === recipe.ownerId) {
+        return {...recipe, accessRights: fullAccessRights()}
+    }
+    return recipe
+}
 
 /**
  * Retrieves all the recipe summaries whose names or tags contain any of the specified words.
@@ -166,30 +205,53 @@ async function recipeSummaryFilterFor(user: RecipesUser, accessRights: Partial<A
  * @param words The words a recipe name or tags must contain to be considered a match
  * @return A {@link Promise} to the matching recipe summaries
  */
-export async function recipeSummariesSearch(user: RecipesUser, words?: Array<string>): Promise<Array<RecipeSummary>> {
+export async function recipeSummariesSearch(user: RecipesUser, words?: Array<string>): Promise<Array<WithPermissions<RecipeSummary>>> {
     if (words === undefined) {
         return Promise.resolve([])
     }
 
-    const userRecipeFilter = await recipeSummaryFilterFor(user, withReadAccess())
+    // const userRecipeFilter = await recipeSummaryFilterFor(user, withReadAccess())
+    // when the word is a space, then we want it to match anything, so we replace it
+    // with ".*"
+    const regexWordPattern = words
+        .map(word => word === " " ? ".*" : word)
+        .join(')|(')
 
     try {
         const client = await clientPromise
         return await recipeCollection(client)
-            .find({
-                $and: [
-                    {...userRecipeFilter},
-                    {
-                        $or: [
-                            {name: {$regex: new RegExp(`(${words.join(')|(')})`, 'i')}},
-                            {tags: {$in: words}}
+            // join the recipes and permissions collection
+            .aggregate([
+                {"$addFields": {"recipe_id": {"$toString": "$_id"}}},
+                {
+                    $lookup: {
+                        from: "permissions",
+                        localField: "recipe_id",
+                        foreignField: "recipeId",
+                        as: "recipePermissions"
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$recipePermissions",
+                        preserveNullAndEmptyArrays: true
+                    },
+                },
+                {
+                    $match: {
+                        $and: [
+                            {...permission(user)},
+                            {
+                                $or: [
+                                    {name: {$regex: new RegExp(`(${regexWordPattern})`, 'i')}},
+                                    {tags: {$in: words}}
+                                ]
+                            }
                         ]
                     }
-
-                ]
-            })
-            .collation({locale: 'en', strength: 2})
-            .map(doc => asRecipeSummary(doc))
+                }
+            ])
+            .map(doc => roleEnhanced(asRecipeSummary(doc as WithId<WithAccessRights<Recipe>>), user))
             .toArray()
     } catch (e) {
         console.error("Unable to update recipe", e)
@@ -251,7 +313,6 @@ export async function recipeSummariesCount(user: RecipesUser, words?: Array<stri
 //     }
 // }
 
-// todo update for user role and permissions if needed
 /**
  * Removes the recipe ID from the recipe and returns a new {@link Recipe} without the
  * ID. Generally this is used to add a new recipe so that the datastore can determine
@@ -272,31 +333,34 @@ function removeRecipeId(recipe: Recipe): Recipe {
 // todo update for user role and permissions if needed
 /**
  * Adds a new {@link Recipe} to the datastore
+ * @param user The user making the request
  * @param recipe The recipe to add
  * @return A {@link Promise} to the added recipe, which will then contain the recipe ID
  * assigned by the datastore.
  */
-export async function addRecipe(recipe: Recipe): Promise<Recipe> {
+export async function addRecipe(user: RecipesUser, recipe: Recipe): Promise<Recipe> {
     try {
         const client = await clientPromise
         const result = await recipeCollection(client).insertOne(removeRecipeId(recipe))
         if (result.insertedId !== undefined && result.insertedId !== null) {
-            return await recipeById(result.insertedId.toString())
+            return await recipeById(user, result.insertedId.toString())
         }
-        return Promise.reject(`Unable to add recipe`)
+        return Promise.reject(`Unable to add recipe; recipe_id: ${recipe.id}; recipe_name: ${recipe.name}`)
     } catch (e) {
-        console.error("Unable to add recipe", e)
-        return Promise.reject("Unable to add recipe")
+        const message = `Unable to add recipe; recipe_id: ${recipe.id}; recipe_name: ${recipe.name}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
 
 // todo update for user role and permissions if needed
 /**
  * Updates the specified recipe in the datastore
+ * @param user The user making the request
  * @param recipe The recipe to update
  * @return A {@link Promise} to the updated recipe
  */
-export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
+export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<Recipe> {
     if (recipe.id === undefined || recipe.id === null) {
         return Promise.reject(`Cannot update recipe when the ID is null or undefined`)
     }
@@ -312,7 +376,7 @@ export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
             if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
                 return Promise.reject(`Failed to update recipe; _id: ${recipe.id}; name: ${recipe.name}`)
             }
-            return await recipeById(recipe.id)
+            return await recipeById(user, recipe.id)
         }
     } catch (e) {
         console.error("Unable to update recipe", e)
@@ -333,13 +397,14 @@ export async function updateRecipe(recipe: Recipe): Promise<Recipe> {
 // todo update for user role and permissions if needed
 /**
  * Deletes the recipe, for the specified ID, from the datastore.
+ * @param user The user making the request
  * @param recipeId The ID of the recipe to delete
  * @return A {@link Promise} to the deleted recipe
  */
-export async function deleteRecipe(recipeId: string): Promise<Recipe> {
+export async function deleteRecipe(user: RecipesUser, recipeId: string): Promise<Recipe> {
     try {
         const client = await clientPromise
-        const recipe = await recipeById(recipeId)
+        const recipe = await recipeById(user, recipeId)
         if (recipe === undefined) {
             return Promise.reject(`Unable to find recipe with ID; _id: ${recipeId}`)
         }
@@ -364,12 +429,13 @@ export async function deleteRecipe(recipeId: string): Promise<Recipe> {
 // todo update for user role and permissions if needed
 /**
  * Updates the ratings for the recipe with the specified ID
+ * @param user The user making the request
  * @param recipeId The ID of the recipe for which to update the ratings
  * @param newRating The new rating
  * @param ratings The array of counts that each rating value has received
  * @return A {@link Promise} to the recipe with the updated ratings
  */
-export async function updateRatings(recipeId: string, newRating: number, ratings: Array<number>): Promise<Recipe> {
+export async function updateRatings(user: RecipesUser, recipeId: string, newRating: number, ratings: Array<number>): Promise<Recipe> {
     try {
         if (newRating < 1 || newRating > ratings.length) {
             return Promise.reject(
@@ -392,7 +458,7 @@ export async function updateRatings(recipeId: string, newRating: number, ratings
             if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
                 return Promise.reject(`Failed to update recipe ratings; _id: ${recipeId}`)
             }
-            return await recipeById(recipeId)
+            return await recipeById(user, recipeId)
         }
     } catch (e) {
         console.error("Unable to update recipe ratings", e)

@@ -26,6 +26,7 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
+import {AccessRights, WithPermissions} from "../components/recipes/RecipePermissions";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -94,8 +95,8 @@ export default function Home(props: Props): JSX.Element {
         </span>
     }
 
-    const recipes: Array<RecipeSummary> = recipesQuery?.data?.data || []
-
+    const recipes: Array<WithPermissions<RecipeSummary>> = recipesQuery?.data?.data || []
+    //
     /**
      * Callback for when the confirm to delete button is clicked
      * @param recipeId The ID of the recipe to delete
@@ -115,48 +116,49 @@ export default function Home(props: Props): JSX.Element {
      * ID is being deleted, replaces the edit and delete buttons with confirm and cancel
      * buttons.
      * @param recipeId The ID of the recipe
+     * @param access The rights the user has for this recipe (i.e. CRUD)
      * @return The edit and delete, or the confirm and cancel buttons.
      */
-    function renderEditDelete(recipeId: string): JSX.Element {
+    function renderEditDelete(recipeId: string, access: AccessRights): JSX.Element {
         if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
                 <>
-                    <Button
+                    {access.update && <Button
                         key={`${recipeId}-confirm`}
                         startIcon={<DeleteIcon sx={{width: 18, height: 18}}/>}
                         sx={{textTransform: 'none'}}
                         onClick={() => handleDeleteRecipe(recipeId)}
                     >
                         Confirm
-                    </Button>
-                    <Button
+                    </Button>}
+                    {access.delete && <Button
                         key={`${recipeId}-cancel`}
                         startIcon={<CancelIcon sx={{width: 18, height: 18}}/>}
                         sx={{textTransform: 'none'}}
                         onClick={() => setConfirmDelete(current => current.filter(id => id !== recipeId))}
                     >
                         Cancel
-                    </Button>
+                    </Button>}
                 </>
             )
         }
         return (
             <>
-                <IconButton
+                {access.update && <IconButton
                     onClick={() => router.push(`/recipes/edit?id=${recipeId}`)}
                     color='primary'
                     size='small'
                 >
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
-                </IconButton>
-                <IconButton
+                </IconButton>}
+                {access.delete && <IconButton
                     key={`${recipeId}-delete`}
                     onClick={() => setConfirmDelete(current => [...current, recipeId])}
                     color='primary'
                     size='small'
                 >
                     <DeleteIcon sx={{width: 18, height: 18}}/>
-                </IconButton>
+                </IconButton>}
             </>
         )
     }
@@ -229,7 +231,7 @@ export default function Home(props: Props): JSX.Element {
                                         }
                                     </Typography>
                                 </div>}
-                                action={recipe.id ? renderEditDelete(recipe.id) : <></>}
+                                action={recipe.id ? renderEditDelete(recipe.id, recipe.accessRights) : <></>}
                             />
                             <CardContent>
                                 <Box

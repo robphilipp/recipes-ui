@@ -11,6 +11,14 @@
 
 import {failureResult, Result, successResult} from "result-fn";
 
+
+/**
+ * Type that adds access rights into the object of type T.
+ * This is really only meant to be used in the domain layer.
+ * @see WithAccessRights for the type that is used in the database layer.
+ */
+export type WithPermissions<T> = T & {accessRights: AccessRights}
+
 export enum PrincipalType {USER = 'user', GROUP = 'group'}
 
 export function principalTypeFrom(name: string): Result<PrincipalType, string> {
@@ -106,10 +114,10 @@ function hasDelete(accessRights: number): boolean {
 /**
  * Generates the convenience accessor values for the permission
  * @param accessRights The permission value (i.e. decimal of CRUD bits)
- * @return An object holding the convenience access rights in a
- * convenient form
+ * @return An access rights object from the access rights number
  */
-const accessRightsEnrichment = (accessRights: number) => ({
+export const accessRightsFor = (accessRights: number): AccessRights => ({
+    value: accessRights,
     create: hasCreate(accessRights),
     read: hasRead(accessRights),
     update: hasUpdate(accessRights),
@@ -119,12 +127,12 @@ const accessRightsEnrichment = (accessRights: number) => ({
 /**
  * @return a {@link Permission} object with no CRUD permissions
  */
-export const noAccessRights = (): AccessRights => ({value: NO_PERMISSIONS, ...accessRightsEnrichment(NO_PERMISSIONS)})
+export const noAccessRights = (): AccessRights => accessRightsFor(NO_PERMISSIONS)
 
 /**
  * @return a {@link Permission} object with full CRUD permissions
  */
-export const fullAccessRights = (): AccessRights => ({value: ALL_PERMISSIONS, ...accessRightsEnrichment(ALL_PERMISSIONS)})
+export const fullAccessRights = (): AccessRights => accessRightsFor(ALL_PERMISSIONS)
 
 /**
  * Converts the boolean permissions into an array of {@link AccessRight} enumerations
@@ -240,7 +248,7 @@ function createAccessRightsFrom(
             accessRights.value
         )
 
-    return {value, ...accessRightsEnrichment(value)}
+    return accessRightsFor(value)
 }
 
 /**

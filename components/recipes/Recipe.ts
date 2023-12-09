@@ -4,6 +4,8 @@ import {UUID} from "bson";
 import {formatQuantityFor} from "../../lib/utils";
 import {Amount, convertAmount, UnitType} from "../../lib/Measurements";
 import {failureResult, Result, successResult} from "result-fn";
+import {accessRightsFor, WithPermissions} from "./RecipePermissions";
+import {WithAccessRights} from "../../lib/recipes";
 
 /*
     This file contains:
@@ -166,7 +168,7 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
  * @param doc The JSON document describing the recipe
  * @return A {@link RecipeSummary} object
  */
-export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
+export function asRecipeSummary(doc: WithId<WithAccessRights<Recipe>>): WithPermissions<RecipeSummary> {
     return {
         id: doc._id.toHexString(),
         name: doc.name,
@@ -177,6 +179,7 @@ export function asRecipeSummary(doc: WithId<Recipe>): RecipeSummary {
         createdOn: doc.createdOn,
         modifiedOn: doc.modifiedOn,
         ratings: doc.ratings,
+        accessRights: accessRightsFor(doc.value)
     }
 }
 
