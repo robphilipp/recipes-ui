@@ -3,8 +3,14 @@ import {Collection, Filter, Long, MongoClient, ObjectId, WithId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
 import {RecipesUser} from "../components/users/RecipesUser";
 import {RoleType} from "../components/users/Role";
-import {permissions, principalTypeLiteralFrom} from "./permissions";
-import {AccessRights, fullAccessRights, WithPermissions, withReadAccess} from "../components/recipes/RecipePermissions";
+import {permissionFor, permissions, principalTypeLiteralFrom} from "./permissions";
+import {
+    AccessRights,
+    fullAccessRights,
+    noAccessRights,
+    WithPermissions,
+    withReadAccess
+} from "../components/recipes/RecipePermissions";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -25,6 +31,20 @@ export type WithAccessRights<T> = T & AccessRights
 
 function recipeCollection(client: MongoClient): Collection<Recipe> {
     return client.db(MONGO_DATABASE).collection(RECIPE_COLLECTION)
+}
+
+/**
+ * Updates the user's access rights based on their role so that, for example, an admin or the owner of the
+ * recipe will have full access rights to the recipe
+ * @param recipe The recipe with permissions
+ * @param user The user requesting access
+ * @return A recipes with permission updated to account for role and ownership
+ */
+function roleEnhanced<T extends RecipeSummary>(recipe: WithPermissions<T>, user: RecipesUser): WithPermissions<T> {
+    if (user.role.name === RoleType.ADMIN || user.id === recipe.ownerId) {
+        return {...recipe, accessRights: fullAccessRights()}
+    }
+    return recipe
 }
 
 // todo keep this for now (but it will need to be updated for user role and permissions if needed
@@ -103,16 +123,58 @@ function recipeCollection(client: MongoClient): Collection<Recipe> {
 export async function recipeById(user: RecipesUser, id: string): Promise<Recipe> {
     try {
         const client = await clientPromise
-        const doc = await recipeCollection(client).findOne({_id: new ObjectId(id)})
-        if (doc === undefined || doc === null) {
+        const doc = await recipeCollection(client)
+            // join the recipes and permissions collection
+            .aggregate([
+                {"$addFields": {"recipe_id": {"$toString": "$_id"}}},
+                {
+                    $lookup: {
+                        from: "permissions",
+                        localField: "recipe_id",
+                        foreignField: "recipeId",
+                        as: "recipePermissions"
+                    },
+                },
+                {
+                    $unwind: {
+                        path: "$recipePermissions",
+                        preserveNullAndEmptyArrays: true
+                    },
+                },
+                {
+                    $match: {
+                        $and: [
+                            {...permission(user)},
+                            {_id: new ObjectId(id)}
+                        ]
+                    }
+                }
+            ])
+            .map(doc => roleEnhanced(asRecipe(doc as WithId<WithAccessRights<Recipe>>), user))
+            .toArray()
+        if (doc === undefined || doc === null || doc.length < 1) {
             return Promise.reject(`Unable to find recipe for specified ID; id: ${id}`)
         }
-        return asRecipe(doc)
+        return doc[0]
     } catch (e) {
-        console.error(`Unable to find recipe with ID: recipe_id: ${id}`, e)
-        return Promise.reject(`Unable to find recipe with ID: recipe_id: ${id}`)
+        const message = `Unable to find recipe with ID: recipe_id: ${id}; user_id: ${user.id}`
+        console.error(message, e)
+        return Promise.reject(message)
     }
 }
+// export async function recipeById(user: RecipesUser, id: string): Promise<Recipe> {
+//     try {
+//         const client = await clientPromise
+//         const doc = await recipeCollection(client).findOne({_id: new ObjectId(id)})
+//         if (doc === undefined || doc === null) {
+//             return Promise.reject(`Unable to find recipe for specified ID; id: ${id}`)
+//         }
+//         return asRecipe(doc)
+//     } catch (e) {
+//         console.error(`Unable to find recipe with ID: recipe_id: ${id}`, e)
+//         return Promise.reject(`Unable to find recipe with ID: recipe_id: ${id}`)
+//     }
+// }
 
 // todo keep this for now (but it will need to be updated for user role and permissions if needed
 // /**
@@ -133,38 +195,6 @@ export async function recipeById(user: RecipesUser, id: string): Promise<Recipe>
 //     }
 // }
 
-/**
- * Calculates the recipe-summary filter for the user so that users only see recipes
- * to which they have read access (through permissions, ownership, or as a recipe
- * book admin)
- * @param accessRights The access rights required by the user to access the recipe. Note
- * that this is a {@link Partial} access rights, so that only the required access rights
- * need to be specified. For example, for the user to view a recipe, only the "read"
- * access right needs to be set. This way we don't need to worry about whether the user
- * has "update" access when that shouldn't be part of the query filter.
- * @param user The user requesting access to the summary
- * @return The mongo query filter for returning only recipes to which the user has
- * read access.
- */
-async function recipeSummaryFilterFor(user: RecipesUser, accessRights: Partial<AccessRights>): Promise<Filter<Recipe>> {
-    const isAdmin = user.role.name === RoleType.ADMIN
-    if (isAdmin) {
-        return Promise.resolve({})
-    }
-
-    const userPermissions = await permissions({
-        principalId: user.id,
-        principalType: principalTypeLiteralFrom("user"),
-        ...accessRights
-    })
-
-    return {
-        $or: [
-            {ownerId: {$eq: user.id}},
-            {_id: {$in: userPermissions.map(perm => new ObjectId(perm.recipeId))}}
-        ]
-    }
-}
 
 function permission(user: RecipesUser) {
     if (user.role.name === RoleType.ADMIN) {
@@ -183,20 +213,6 @@ function permission(user: RecipesUser) {
             }
         ]
     }
-}
-
-/**
- * Updates the user's access rights based on their role so that, for example, an admin or the owner of the
- * recipe will have full access rights to the recipe
- * @param recipe The recipe with permissions
- * @param user The user requesting access
- * @return A recipes with permission updated to account for role and ownership
- */
-function roleEnhanced<T extends RecipeSummary>(recipe: WithPermissions<T>, user: RecipesUser): WithPermissions<T> {
-    if (user.role.name === RoleType.ADMIN || user.id === recipe.ownerId) {
-        return {...recipe, accessRights: fullAccessRights()}
-    }
-    return recipe
 }
 
 /**
@@ -256,6 +272,39 @@ export async function recipeSummariesSearch(user: RecipesUser, words?: Array<str
     } catch (e) {
         console.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
+    }
+}
+
+/**
+ * Calculates the recipe-summary filter for the user so that users only see recipes
+ * to which they have read access (through permissions, ownership, or as a recipe
+ * book admin)
+ * @param accessRights The access rights required by the user to access the recipe. Note
+ * that this is a {@link Partial} access rights, so that only the required access rights
+ * need to be specified. For example, for the user to view a recipe, only the "read"
+ * access right needs to be set. This way we don't need to worry about whether the user
+ * has "update" access when that shouldn't be part of the query filter.
+ * @param user The user requesting access to the summary
+ * @return The mongo query filter for returning only recipes to which the user has
+ * read access.
+ */
+async function recipeSummaryFilterFor(user: RecipesUser, accessRights: Partial<AccessRights>): Promise<Filter<Recipe>> {
+    const isAdmin = user.role.name === RoleType.ADMIN
+    if (isAdmin) {
+        return Promise.resolve({})
+    }
+
+    const userPermissions = await permissions({
+        principalId: user.id,
+        principalType: principalTypeLiteralFrom("user"),
+        ...accessRights
+    })
+
+    return {
+        $or: [
+            {ownerId: {$eq: user.id}},
+            {_id: {$in: userPermissions.map(perm => new ObjectId(perm.recipeId))}}
+        ]
     }
 }
 
@@ -353,7 +402,14 @@ export async function addRecipe(user: RecipesUser, recipe: Recipe): Promise<Reci
     }
 }
 
-// todo update for user role and permissions if needed
+async function userPermissionsFor(user: RecipesUser, recipeId: string, ownerId: string): Promise<AccessRights> {
+    if (user.role.name === RoleType.ADMIN || user.id === ownerId) {
+        return fullAccessRights()
+    }
+    const permissions = await permissionFor(user.id, principalTypeLiteralFrom("user"), recipeId)
+    return {...permissions.accessRights}
+}
+
 /**
  * Updates the specified recipe in the datastore
  * @param user The user making the request
@@ -364,6 +420,15 @@ export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<R
     if (recipe.id === undefined || recipe.id === null) {
         return Promise.reject(`Cannot update recipe when the ID is null or undefined`)
     }
+
+    // ensure that the user has permissions to update the recipe
+    const permissions = await userPermissionsFor(user, recipe.id, recipe.ownerId)
+    if (!permissions.update) {
+        const message = `Unable to update recipe; user_id: ${user.id}; recipe_name: ${recipe.name}`
+        console.log(message)
+        return {...recipe}
+    }
+
     try {
         const client = await clientPromise
         const result = await recipeCollection(client)

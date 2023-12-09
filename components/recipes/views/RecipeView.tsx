@@ -13,9 +13,10 @@ import {ratingsFrom, Recipe, subtractTime} from "../Recipe";
 import {useRouter} from "next/router";
 import {Star, StarBorder} from "@mui/icons-material";
 import RecipeRating from "../RecipeRating";
+import {WithPermissions} from "../RecipePermissions";
 
 type Props = {
-    recipe: Recipe
+    recipe: WithPermissions<Recipe>
     handleRatingChange: (rating: number) => void
 }
 
@@ -47,13 +48,13 @@ export default function RecipeView(props: Props): JSX.Element {
             <article>
                 <Typography sx={{fontSize: '1.5em', fontWeight: 520}}>
                     {recipe.name}
-                    <IconButton
+                    {recipe.accessRights.update && <IconButton
                         onClick={() => router.push(`/recipes/edit?id=${recipe.id}`)}
                         color='primary'
                         size='small'
                     >
                         <ModeEditIcon sx={{width: 18, height: 18}}/>
-                    </IconButton>
+                    </IconButton>}
                     <PdfConverter recipe={recipe}/>
                 </Typography>
                 <Typography sx={{fontSize: '0.7em', color: theme.palette.text.secondary}}>

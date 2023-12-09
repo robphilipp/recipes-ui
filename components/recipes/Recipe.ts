@@ -142,7 +142,7 @@ export type Recipe = RecipeSummary & {
  * @param doc The JSON document describing the recipe
  * @return A {@link Recipe} object
  */
-export function asRecipe(doc: WithId<Recipe>): Recipe {
+export function asRecipe(doc: WithId<WithAccessRights<Recipe>>): WithPermissions<Recipe> {
     return {
         id: doc._id.toHexString(),
         story: doc.story,
@@ -159,6 +159,7 @@ export function asRecipe(doc: WithId<Recipe>): Recipe {
         ingredients: doc.ingredients,
         steps: doc.steps,
         notes: doc.notes,
+        accessRights: accessRightsFor(doc.value)
     }
 }
 
