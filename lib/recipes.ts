@@ -2,15 +2,22 @@ import clientPromise from "./mongodb";
 import {Collection, Filter, Long, MongoClient, ObjectId, WithId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
 import {RecipesUser} from "../components/users/RecipesUser";
-import {RoleType} from "../components/users/Role";
-import {permissionFor, permissions, principalTypeLiteralFrom} from "./permissions";
+import {RoleLiteral, RoleType} from "../components/users/Role";
+import {
+    permissionFor,
+    permissions,
+    permissionsCollection,
+    principalTypeLiteralFrom,
+    userPrincipalType
+} from "./permissions";
 import {
     AccessRights,
     fullAccessRights,
-    noAccessRights,
+    RecipePermission,
     WithPermissions,
     withReadAccess
 } from "../components/recipes/RecipePermissions";
+import {userRoleById} from "./users";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -162,6 +169,7 @@ export async function recipeById(user: RecipesUser, id: string): Promise<Recipe>
         return Promise.reject(message)
     }
 }
+
 // export async function recipeById(user: RecipesUser, id: string): Promise<Recipe> {
 //     try {
 //         const client = await clientPromise
@@ -402,13 +410,17 @@ export async function addRecipe(user: RecipesUser, recipe: Recipe): Promise<Reci
     }
 }
 
-async function userPermissionsFor(user: RecipesUser, recipeId: string, ownerId: string): Promise<AccessRights> {
+async function permissionsForUser(user: RecipesUser, recipeId: string, ownerId: string): Promise<AccessRights> {
     if (user.role.name === RoleType.ADMIN || user.id === ownerId) {
         return fullAccessRights()
     }
-    const permissions = await permissionFor(user.id, principalTypeLiteralFrom("user"), recipeId)
+    const permissions = await permissionFor(user.id, userPrincipalType(), recipeId)
     return {...permissions.accessRights}
 }
+
+// async function permissionsForGroup(group: RecipeGroup, recipeId: string): Promise<AccessRights> {
+//
+// }
 
 /**
  * Updates the specified recipe in the datastore
@@ -422,7 +434,7 @@ export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<R
     }
 
     // ensure that the user has permissions to update the recipe
-    const permissions = await userPermissionsFor(user, recipe.id, recipe.ownerId)
+    const permissions = await permissionsForUser(user, recipe.id, recipe.ownerId)
     if (!permissions.update) {
         const message = `Unable to update recipe; user_id: ${user.id}; recipe_name: ${recipe.name}`
         console.log(message)
@@ -529,4 +541,87 @@ export async function updateRatings(user: RecipesUser, recipeId: string, newRati
         console.error("Unable to update recipe ratings", e)
     }
     return Promise.reject(`Request to update recipe ratings was not acknowledged; _id: ${recipeId}`)
+}
+
+export async function isRecipeOwner(recipeId: string, userId: string): Promise<boolean> {
+    try {
+        const client = await clientPromise
+        const doc = await recipeCollection(client)
+            .findOne({_id: {$eq: new ObjectId(recipeId)}, ownerId: {$eq: userId}})
+        return doc !== null && doc !== undefined
+    } catch(e) {
+        const message = `Unable to find recipe with user; recipe_id: ${recipeId}; user_id: ${userId}`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
+
+export type UserRecipePermissions = RecipePermission & { email: string, username: string, role: RoleLiteral }
+
+export async function usersPermissionsForRecipe(user: RecipesUser, recipeId: string): Promise<Array<UserRecipePermissions>> {
+    if (!await isRecipeOwner(recipeId, user.id)) {
+        return []
+    }
+    if ((await userRoleById(user.id)).name !== RoleType.ADMIN) {
+        return []
+    }
+
+    try {
+        const client = await clientPromise
+        const doc = await permissionsCollection(client)
+            // join the users that have permissions for this recipe
+            .aggregate([
+                {"$addFields": {"principal_id": {"$toObjectId": "$principalId"}}},
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "principal_id",
+                        foreignField: "_id",
+                        as: "usersPermissions"
+                    },
+                },
+                {
+                    $replaceRoot: {
+                        newRoot: {
+                            $mergeObjects: [
+                                {$arrayElemAt: ["$usersPermissions", 0]},
+                                "$$ROOT"
+                            ]
+                        }
+                    }
+                },
+                {
+                    $match: {
+                        $and: [
+                            {deletedOn: {$eq: -1}},
+                            {"principalType.name": {$eq: "user"}},
+                            {recipeId: {$eq: recipeId}}
+                        ]
+                    }
+                },
+                {
+                    $project: {
+                        usersPermissions: 0,
+                        id: 0,
+                        principal_id: 0,
+                        password: 0,
+                        createdOn: 0,
+                        modifiedOn: 0,
+                        deletedOn: 0,
+                        emailVerified: 0,
+                        image: 0,
+                    }
+                }
+            ])
+            // .map(doc => roleEnhanced(asRecipe(doc as WithId<WithAccessRights<Recipe>>), user))
+            .toArray()
+        if (doc === undefined || doc === null || doc.length < 1) {
+            return Promise.reject(`Unable to find users with permissions for specified recipe; id: ${recipeId}`)
+        }
+        return doc as Array<UserRecipePermissions>
+    } catch (e) {
+        const message = `Unable to find users with permissions for specified recipe; id: ${recipeId}`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
 }

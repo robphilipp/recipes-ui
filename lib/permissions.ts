@@ -19,7 +19,7 @@ if (process.env.permissionsCollection === undefined) {
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const PERMISSIONS_COLLECTION: string = process.env.permissionsCollection
 
-function permissionsCollection(client: MongoClient): Collection<OptionalId<MongoRecipePermission>> {
+export function permissionsCollection(client: MongoClient): Collection<OptionalId<MongoRecipePermission>> {
     return client.db(MONGO_DATABASE).collection(PERMISSIONS_COLLECTION)
 }
 
@@ -36,6 +36,9 @@ export function principalTypeLiteralFrom(name: "user" | "group"): PrincipalTypeL
             return {name, description: "Group"}
     }
 }
+
+export const userPrincipalType = (): PrincipalTypeLiteral => principalTypeLiteralFrom("user")
+export const groupPrincipalType = (): PrincipalTypeLiteral => principalTypeLiteralFrom("group")
 
 export type MongoRecipePermission = {
     _id: ObjectId

@@ -7,6 +7,7 @@ import {emptyToken, PasswordResetToken} from "../components/passwords/PasswordRe
 import {DateTime} from "luxon";
 import {addPasswordResetTokenFor, hashPassword, randomPassword} from "./passwords";
 import {Document} from "bson"
+import {Role, RoleLiteral} from "../components/users/Role";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -153,6 +154,11 @@ export async function userById(id: string): Promise<RecipesUser> {
         console.error(message, e)
         return Promise.reject(message)
     }
+}
+
+export async function userRoleById(id: string): Promise<Role> {
+    const user = await userById(id)
+    return user.role
 }
 
 export async function usernameExists(name: string): Promise<boolean> {
