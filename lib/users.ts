@@ -7,7 +7,7 @@ import {emptyToken, PasswordResetToken} from "../components/passwords/PasswordRe
 import {DateTime} from "luxon";
 import {addPasswordResetTokenFor, hashPassword, randomPassword} from "./passwords";
 import {Document} from "bson"
-import {Role, RoleLiteral} from "../components/users/Role";
+import {Role, RoleLiteral, RoleType} from "../components/users/Role";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -136,6 +136,22 @@ export async function users(filter: Filter<RecipesUser> = {}): Promise<Array<Rec
         console.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
     }
+}
+
+export async function isAdmin(requester: RecipesUser, userId: string): Promise<boolean> {
+    if ((await userRoleById(requester.id)).name !== RoleType.ADMIN) {
+        return (await userRoleById(userId)).name !== RoleType.ADMIN
+    }
+    console.log(`Non-admin user attempted to determine if a user was an admin; requesting_user: ${requester.id}; user_id: ${userId}`)
+    return Promise.reject(`Unable to determine whether user is an admin; user_id: ${userId}`)
+}
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+    return (await userRoleById(userId)).name === RoleType.ADMIN
+}
+
+export async function adminUsers(): Promise<Array<RecipesUser>> {
+    return await users({"role.name": "admin"})
 }
 
 export async function userById(id: string): Promise<RecipesUser> {

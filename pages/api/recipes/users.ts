@@ -1,15 +1,15 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {usersPermissionsForRecipes} from "../../../../lib/recipes";
-import {RequestMethod} from "../../../../lib/RequestMethod";
+import {RecipeWithUserPermissions, usersPermissionsForRecipes} from "../../../lib/recipes";
+import {RequestMethod} from "../../../lib/RequestMethod";
 import {getToken} from "next-auth/jwt";
 import {getServerSession} from "next-auth";
-import {authOptions} from "../../auth/[...nextauth]";
-import {RecipesWithUsers} from "../users";
+import {authOptions} from "../auth/[...nextauth]";
+
+export type RecipesWithUsers = {recipeId: string, permissions: Array<RecipeWithUserPermissions>}
 
 export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<Array<RecipesWithUsers>>
-    // response: NextApiResponse<Array<UserRecipePermissions>>
 ): Promise<void> {
     const token = await getToken({req: request})
     if (token === undefined || token === null) {
@@ -24,9 +24,12 @@ export default async function handler(
 
     switch (request.method) {
         case RequestMethod.GET:
+            const recipeIds: Array<string> = Array.isArray(request.query.id) ?
+                request.query.id as Array<string> :
+                [request.query.id as string]
             const permissions = await usersPermissionsForRecipes(
                 session.user,
-                [request.query.id as string],
+                recipeIds,
                 request.query.admin === "true"
             )
             const recipePerms: Array<RecipesWithUsers> = Array.from(permissions.entries())
@@ -35,9 +38,6 @@ export default async function handler(
                     permissions: perms
                 }))
             return response.status(200).json(recipePerms)
-
-        // return usersPermissionsForRecipe(session.user, request.query.id as string, includeAdmins)
-            //     .then(permissions => response.status(200).json(permissions))
 
         // case RequestMethod.PUT:
         //     return addRecipe(session.user, request.body as Recipe)
@@ -56,3 +56,4 @@ export default async function handler(
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}`)
     }
 }
+

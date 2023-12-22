@@ -11,13 +11,14 @@ import {
     userPrincipalType
 } from "./permissions";
 import {
-    AccessRights,
+    AccessRights, accessRightsWith,
     fullAccessRights,
+    PrincipalType,
     RecipePermission,
     WithPermissions,
     withReadAccess
 } from "../components/recipes/RecipePermissions";
-import {userRoleById} from "./users";
+import {adminUsers, isAdmin, isUserAdmin} from "./users";
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -549,29 +550,154 @@ export async function isRecipeOwner(recipeId: string, userId: string): Promise<b
         const doc = await recipeCollection(client)
             .findOne({_id: {$eq: new ObjectId(recipeId)}, ownerId: {$eq: userId}})
         return doc !== null && doc !== undefined
-    } catch(e) {
+    } catch (e) {
         const message = `Unable to find recipe with user; recipe_id: ${recipeId}; user_id: ${userId}`
         console.error(message, e)
         return Promise.reject(message)
     }
 }
 
-export type UserRecipePermissions = RecipePermission & { email: string, username: string, role: RoleLiteral }
+/**
+ * Calculates a map holding the recipe IDs and whether the user owns that recipe
+ * @param recipeIds The recipe IDs for which to check ownership
+ * @param userId The ID of the user
+ * @return a map holding the recipe IDs and whether the user owns that recipe
+ */
+export async function recipeOwnerStatus(recipeIds: Array<string>, userId: string): Promise<Map<string, boolean>> {
+    try {
+        const client = await clientPromise
+        const recipeOwnership = await recipeCollection(client)
+            .find({_id: {$in: recipeIds.map(recipeId => new ObjectId(recipeId))}})
+            .map(recipe => [recipe._id.toString(), recipe.ownerId === userId] as [string, boolean])
+            .toArray()
+        return new Map(recipeOwnership)
+    } catch (e) {
+        const message = `Unable to find users ownership of recipes; user_id: ${userId}; recipe_ids: [${recipeIds.join(", ")}]`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
 
-export async function usersPermissionsForRecipe(user: RecipesUser, recipeId: string): Promise<Array<UserRecipePermissions>> {
-    if (!await isRecipeOwner(recipeId, user.id)) {
-        return []
+export async function filterRecipesOwnedBy(userId: string, recipeIds: Array<string>): Promise<Array<string>> {
+    const recipeOwnership = await recipeOwnerStatus(recipeIds, userId)
+    return Array.from(recipeOwnership.entries())
+        .filter(([_, ownership]) => ownership)
+        .map(([id, _]) => id)
+}
+
+// export type UserRecipePermissions = RecipePermission & { email: string, username: string, role: RoleLiteral }
+
+// todo include admin users with full access rights in the returned array
+// /**
+//  * Returns a list of user-permission objects for each user that has explicit permissions
+//  * for the recipe. Admin users have access to all recipes, and unless explicitly set for
+//  * the specified recipe, will not be included in this list.
+//  * @param requester
+//  * @param recipeId
+//  */
+// export async function usersPermissionsForRecipe(requester: RecipesUser, recipeId: string, includeAdmins: boolean = false): Promise<Array<UserRecipePermissions>> {
+//     if (!await isRecipeOwner(recipeId, requester.id)) {
+//         return []
+//     }
+//     const admins = await adminUsers()
+//     if (admins.findIndex(admin => requester.id === admin.id) < 0) {
+//         return []
+//     }
+//
+//     try {
+//         const client = await clientPromise
+//         const userPerms = await permissionsCollection(client)
+//             // join the users that have permissions for this recipe
+//             .aggregate([
+//                 {"$addFields": {"principal_id": {"$toObjectId": "$principalId"}}},
+//                 {
+//                     $lookup: {
+//                         from: "users",
+//                         localField: "principal_id",
+//                         foreignField: "_id",
+//                         as: "usersPermissions"
+//                     },
+//                 },
+//                 {
+//                     $replaceRoot: {
+//                         newRoot: {
+//                             $mergeObjects: [
+//                                 {$arrayElemAt: ["$usersPermissions", 0]},
+//                                 "$$ROOT"
+//                             ]
+//                         }
+//                     }
+//                 },
+//                 {
+//                     $match: {
+//                         $and: [
+//                             {deletedOn: {$eq: -1}},
+//                             {"principalType.name": {$eq: "user"}},
+//                             {recipeId: {$eq: recipeId}}
+//                         ]
+//                     }
+//                 },
+//                 {
+//                     $project: {
+//                         usersPermissions: 0,
+//                         id: 0,
+//                         principal_id: 0,
+//                         password: 0,
+//                         createdOn: 0,
+//                         modifiedOn: 0,
+//                         deletedOn: 0,
+//                         emailVerified: 0,
+//                         image: 0,
+//                     }
+//                 }
+//             ])
+//             .map(doc => doc as UserRecipePermissions)
+//             .toArray()
+//         if (userPerms === undefined || userPerms === null || userPerms.length < 1) {
+//             return Promise.reject(`Unable to find users with permissions for specified recipe; id: ${recipeId}`)
+//         }
+//
+//         if (includeAdmins) {
+//             // add all the admin users to the list
+//             admins.forEach(admin => userPerms.push({
+//                 id: "admin",
+//                 recipeId,
+//                 email: admin.email ?? "",
+//                 principalId: admin.id,
+//                 principal: PrincipalType.USER,
+//                 username: admin.name ?? "",
+//                 role: admin.role,
+//                 accessRights: fullAccessRights()
+//             }))
+//         }
+//
+//         return userPerms
+//     } catch (e) {
+//         const message = `Unable to find users with permissions for specified recipe; id: ${recipeId}`
+//         console.error(message, e)
+//         return Promise.reject(message)
+//     }
+// }
+
+export async function usersPermissionsForRecipes(requester: RecipesUser, recipeIds: Array<string>, includeAdmins: boolean = false): Promise<Map<string, Array<RecipeWithUserPermissions>>> {
+    const ownedRecipes = await filterRecipesOwnedBy(requester.id, recipeIds)
+    if (ownedRecipes.length === 0) {
+        return new Map()
     }
-    if ((await userRoleById(user.id)).name !== RoleType.ADMIN) {
-        return []
+    const admins = await adminUsers()
+    if (admins.findIndex(admin => requester.id === admin.id) < 0) {
+        return new Map()
     }
+    // if (!(await isUserAdmin(requester.id))) {
+    //     return new Map()
+    // }
 
     try {
         const client = await clientPromise
-        const doc = await permissionsCollection(client)
+        const userPerms: Array<[string, Array<RecipeWithUserPermissions>]> = await permissionsCollection(client)
             // join the users that have permissions for this recipe
             .aggregate([
-                {"$addFields": {"principal_id": {"$toObjectId": "$principalId"}}},
+                { "$addFields": { "principal_id": {"$toObjectId": "$principalId"}}},
                 {
                     $lookup: {
                         from: "users",
@@ -581,47 +707,87 @@ export async function usersPermissionsForRecipe(user: RecipesUser, recipeId: str
                     },
                 },
                 {
-                    $replaceRoot: {
-                        newRoot: {
-                            $mergeObjects: [
-                                {$arrayElemAt: ["$usersPermissions", 0]},
-                                "$$ROOT"
-                            ]
-                        }
-                    }
+                    $unwind: {
+                        path: "$usersPermissions",
+                        preserveNullAndEmptyArrays: true
+                    },
                 },
-                {
-                    $match: {
+                { $match: {
                         $and: [
-                            {deletedOn: {$eq: -1}},
+                            {"usersPermissions.deletedOn": {$eq: -1}},
                             {"principalType.name": {$eq: "user"}},
-                            {recipeId: {$eq: recipeId}}
-                        ]
-                    }
+                            {recipeId: {$in: recipeIds}}
+                        ]}
                 },
-                {
-                    $project: {
-                        usersPermissions: 0,
-                        id: 0,
-                        principal_id: 0,
-                        password: 0,
-                        createdOn: 0,
-                        modifiedOn: 0,
-                        deletedOn: 0,
-                        emailVerified: 0,
-                        image: 0,
-                    }
+                { $group: {
+                        _id: "$recipeId",
+                        users: {
+                            $addToSet: {
+                                principalId: "$principalId",
+                                name: "$usersPermissions.name",
+                                email: "$usersPermissions.email",
+                                accessRights: {
+                                    create: "$create",
+                                    read: "$read",
+                                    update: "$update",
+                                    delete: "$delete",
+                                },
+                                role: "$usersPermissions.role",
+                            }
+                        }}
                 }
             ])
-            // .map(doc => roleEnhanced(asRecipe(doc as WithId<WithAccessRights<Recipe>>), user))
+            .map(doc => [
+                doc._id.toString(),
+                doc.users.map((user: RecipeUserPermissions) => asRecipeWithUserPermissions(user))
+            ] as [string, Array<RecipeWithUserPermissions>])
             .toArray()
-        if (doc === undefined || doc === null || doc.length < 1) {
-            return Promise.reject(`Unable to find users with permissions for specified recipe; id: ${recipeId}`)
+        if (userPerms === undefined || userPerms === null || userPerms.length < 1) {
+            return Promise.reject(`Unable to find users with permissions for specified recipes; recipe_ids: [${recipeIds.join(", ")}]`)
         }
-        return doc as Array<UserRecipePermissions>
+
+        if (includeAdmins) {
+            userPerms.forEach(([_, users]) => {
+                admins.forEach(admin => users.push({
+                    principalId: "admin",
+                    name: admin.name ?? "",
+                    email: admin.email ?? "",
+                    accessRights: fullAccessRights(),
+                    role: admin.role
+                }))
+            })
+        }
+
+        return new Map(userPerms)
     } catch (e) {
-        const message = `Unable to find users with permissions for specified recipe; id: ${recipeId}`
+        const message = `Unable to find users with permissions for specified recipe; recipe_ids: [${recipeIds.join(", ")}]`
         console.error(message, e)
         return Promise.reject(message)
     }
+}
+
+type RecipeUserPermissions = {
+    principalId: string
+    name: string
+    email: string
+    accessRights: {
+        create: boolean
+        read: boolean
+        update: boolean
+        delete: boolean
+    },
+    role: RoleLiteral
+}
+
+const asRecipeWithUserPermissions = (recipe: RecipeUserPermissions): RecipeWithUserPermissions => ({
+    ...recipe,
+    accessRights: accessRightsWith(recipe.accessRights.create, recipe.accessRights.read, recipe.accessRights.update, recipe.accessRights.delete)
+})
+
+export type RecipeWithUserPermissions = {
+    principalId: string
+    name: string
+    email: string
+    accessRights: AccessRights
+    role: RoleLiteral
 }
