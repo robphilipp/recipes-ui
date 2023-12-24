@@ -1,11 +1,23 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {RecipeWithUserPermissions, usersPermissionsForRecipes} from "../../../lib/recipes";
-import {RequestMethod} from "../../../lib/RequestMethod";
+import {RecipeWithUserPermissions, usersPermissionsForRecipes} from "../../../../lib/recipes";
+import {RequestMethod} from "../../../../lib/RequestMethod";
 import {getToken} from "next-auth/jwt";
 import {getServerSession} from "next-auth";
-import {authOptions} from "../auth/[...nextauth]";
+import {authOptions} from "../../auth/[...nextauth]";
+import {RecipesUser} from "../../../../components/users/RecipesUser";
 
 export type RecipesWithUsers = {recipeId: string, permissions: Array<RecipeWithUserPermissions>}
+
+export type UsersRequest = {
+    recipeIds: Array<string>
+    includeAdmins: boolean
+}
+
+async function fetchUsersPermissionsForRecipes(user: RecipesUser, recipeIds: Array<string>, includeAdmins: boolean): Promise<Array<RecipesWithUsers>> {
+    const permissions = await usersPermissionsForRecipes(user, recipeIds, includeAdmins)
+    return Array.from(permissions.entries())
+        .map(([recipeId, permissions]) => ({recipeId, permissions}))
+}
 
 export default async function handler(
     request: NextApiRequest,
@@ -23,26 +35,20 @@ export default async function handler(
     }
 
     switch (request.method) {
-        case RequestMethod.GET:
+        case RequestMethod.GET: {
             const recipeIds: Array<string> = Array.isArray(request.query.id) ?
                 request.query.id as Array<string> :
                 [request.query.id as string]
-            const permissions = await usersPermissionsForRecipes(
-                session.user,
-                recipeIds,
-                request.query.admin === "true"
-            )
-            const recipePerms: Array<RecipesWithUsers> = Array.from(permissions.entries())
-                .map(([recipeId, perms]) => ({
-                    recipeId: recipeId,
-                    permissions: perms
-                }))
-            return response.status(200).json(recipePerms)
+            return fetchUsersPermissionsForRecipes(session.user, recipeIds, request.query.admin === "true")
+                .then(recipePerms => response.status(200).json(recipePerms))
+        }
 
-        // case RequestMethod.PUT:
-        //     return addRecipe(session.user, request.body as Recipe)
-        //         .then(recipe => response.status(200).json(recipe))
-        //
+        case RequestMethod.POST: {
+            const {recipeIds, includeAdmins} = request.body as UsersRequest
+            return fetchUsersPermissionsForRecipes(session.user, recipeIds, includeAdmins)
+                .then(recipePerms => response.status(200).json(recipePerms))
+        }
+
         // case RequestMethod.POST:
         //     return updateRecipe(session.user, request.body as Recipe)
         //         .then(recipe => response.status(200).json(recipe))

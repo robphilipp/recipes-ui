@@ -680,17 +680,20 @@ export async function filterRecipesOwnedBy(userId: string, recipeIds: Array<stri
 // }
 
 export async function usersPermissionsForRecipes(requester: RecipesUser, recipeIds: Array<string>, includeAdmins: boolean = false): Promise<Map<string, Array<RecipeWithUserPermissions>>> {
-    const ownedRecipes = await filterRecipesOwnedBy(requester.id, recipeIds)
-    if (ownedRecipes.length === 0) {
+    // for non-admin requesters, filter out any recipes they don't own. admins can see all recipes
+    const accessibleRecipes = (await isUserAdmin(requester.id)) ?
+        recipeIds :
+        await filterRecipesOwnedBy(requester.id, recipeIds)
+
+    // we're done when there are no recipes to which the access has access to view users
+    if (accessibleRecipes.length === 0) {
         return new Map()
     }
+
     const admins = await adminUsers()
     if (admins.findIndex(admin => requester.id === admin.id) < 0) {
         return new Map()
     }
-    // if (!(await isUserAdmin(requester.id))) {
-    //     return new Map()
-    // }
 
     try {
         const client = await clientPromise
@@ -716,7 +719,7 @@ export async function usersPermissionsForRecipes(requester: RecipesUser, recipeI
                         $and: [
                             {"usersPermissions.deletedOn": {$eq: -1}},
                             {"principalType.name": {$eq: "user"}},
-                            {recipeId: {$in: recipeIds}}
+                            {recipeId: {$in: accessibleRecipes}}
                         ]}
                 },
                 { $group: {
