@@ -1,12 +1,12 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {RecipeWithUserPermissions, usersPermissionsForRecipes} from "../../../../lib/recipes";
+import {UserWithPermissions, usersPermissionsForRecipes} from "../../../../lib/recipes";
 import {RequestMethod} from "../../../../lib/RequestMethod";
 import {getToken} from "next-auth/jwt";
 import {getServerSession} from "next-auth";
 import {authOptions} from "../../auth/[...nextauth]";
 import {RecipesUser} from "../../../../components/users/RecipesUser";
 
-export type RecipesWithUsers = {recipeId: string, permissions: Array<RecipeWithUserPermissions>}
+export type RecipesWithUsers = {recipeId: string, permissions: Array<UserWithPermissions>}
 
 export type UsersRequest = {
     recipeIds: Array<string>

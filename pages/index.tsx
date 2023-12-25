@@ -11,13 +11,14 @@ import {
     CardHeader,
     Chip,
     IconButton,
+    Tooltip,
     Typography,
     useTheme
 } from "@mui/material";
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
-import {MenuBook} from "@mui/icons-material";
+import {MenuBook, People} from "@mui/icons-material";
 import {ratingsFrom, RecipeSummary} from "../components/recipes/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -27,6 +28,8 @@ import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
 import {AccessRights, WithPermissions} from "../components/recipes/RecipePermissions";
+import {RecipesWithUsers} from "./api/recipes/search/users";
+import {UserWithPermissions} from "../lib/recipes";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -71,11 +74,27 @@ export default function Home(props: Props): JSX.Element {
     const recipesQuery = useQuery(
         ['recipes', accumulated],
         () => axios.get(
-            `/api/recipes/summaries`,
+            '/api/recipes/summaries',
             {
                 params: accumulated,
                 paramsSerializer: params => params.map(acc => `name=${acc}`).join("&")
             })
+    )
+
+    const recipes: Array<WithPermissions<RecipeSummary>> = recipesQuery?.data?.data || []
+
+    const recipeUsersQuery = useQuery(
+        ['recipeUsers', recipes.map(recipe => recipe.id).join(":")],
+        () => axios.post(
+            '/api/recipes/search/users',
+            {
+                recipeIds: recipes
+                    .filter(recipe => recipe.id != null)
+                    .map(recipe => recipe.id as string),
+                includeAdmins: false
+            },
+            {}
+        )
     )
 
     // deletes a recipe upon confirmation
@@ -84,18 +103,23 @@ export default function Home(props: Props): JSX.Element {
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
     )
 
-    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading) {
+    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading || recipeUsersQuery.isLoading) {
         return <span>Loading...</span>
     }
-    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError) {
+    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError || recipeUsersQuery.isError) {
         return <span>
             {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
             {deleteQuery.isError ? <span>Delete Recipe Error: {(deleteQuery.error as Error).message}</span> : <span/>}
+            {recipeUsersQuery.isError ? <span>Recipe Users-Permissions Error: {(recipeUsersQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
-    const recipes: Array<WithPermissions<RecipeSummary>> = recipesQuery?.data?.data || []
+    const recipeUsersRaw = (recipeUsersQuery?.data?.data ?? []) as Array<RecipesWithUsers>
+    const recipesWithUsers = new Map<string, Array<UserWithPermissions>>(
+        recipeUsersRaw.map(({recipeId, permissions}) => [recipeId, permissions])
+    )
+
     //
     /**
      * Callback for when the confirm to delete button is clicked
@@ -119,7 +143,7 @@ export default function Home(props: Props): JSX.Element {
      * @param access The rights the user has for this recipe (i.e. CRUD)
      * @return The edit and delete, or the confirm and cancel buttons.
      */
-    function renderEditDelete(recipeId: string, access: AccessRights): JSX.Element {
+    function renderActionButtons(recipeId: string, access: AccessRights, users?: Array<UserWithPermissions>): JSX.Element {
         if (confirmDelete.findIndex(id => id === recipeId) >= 0) {
             return (
                 <>
@@ -144,6 +168,12 @@ export default function Home(props: Props): JSX.Element {
         }
         return (
             <>
+                {users && <Tooltip title="User with access to this recipe."><IconButton
+                    color='primary'
+                    size='small'
+                >
+                    <People sx={{width: 18, height: 18}}/>
+                </IconButton></Tooltip>}
                 {access.update && <IconButton
                     onClick={() => router.push(`/recipes/edit?id=${recipeId}`)}
                     color='primary'
@@ -231,7 +261,7 @@ export default function Home(props: Props): JSX.Element {
                                         }
                                     </Typography>
                                 </div>}
-                                action={recipe.id ? renderEditDelete(recipe.id, recipe.accessRights) : <></>}
+                                action={recipe.id ? renderActionButtons(recipe.id, recipe.accessRights, recipesWithUsers.get(recipe.id)) : <></>}
                             />
                             <CardContent>
                                 <Box
