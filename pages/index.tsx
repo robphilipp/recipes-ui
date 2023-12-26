@@ -18,7 +18,7 @@ import {
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
-import {MenuBook, People} from "@mui/icons-material";
+import {MenuBook, People, PeopleOutline} from "@mui/icons-material";
 import {ratingsFrom, RecipeSummary} from "../components/recipes/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -30,6 +30,8 @@ import RecipeRating from "../components/recipes/RecipeRating";
 import {AccessRights, WithPermissions} from "../components/recipes/RecipePermissions";
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
+import {useSession} from "next-auth/react";
+import {RoleType} from "../components/users/Role";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -56,6 +58,7 @@ export default function Home(props: Props): JSX.Element {
 
     const router = useRouter()
     const theme = useTheme()
+    const session = useSession()
 
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
@@ -111,7 +114,8 @@ export default function Home(props: Props): JSX.Element {
             {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
             {deleteQuery.isError ? <span>Delete Recipe Error: {(deleteQuery.error as Error).message}</span> : <span/>}
-            {recipeUsersQuery.isError ? <span>Recipe Users-Permissions Error: {(recipeUsersQuery.error as Error).message}</span> : <span/>}
+            {recipeUsersQuery.isError ?
+                <span>Recipe Users-Permissions Error: {(recipeUsersQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
@@ -136,11 +140,47 @@ export default function Home(props: Props): JSX.Element {
     }
 
     /**
+     * Renders the user icon for recipes that this user owns, or if this user is an admin, then
+     * all recipes. For recipes with no users, displays an outlined users icon, otherwise displays a
+     * solid users icon.
+     * @param access The access rights this user has to the recipe
+     * @param users An (optional) array of users with permissions to this recipe
+     * @return An icon button with a tooltip, or nothing
+     */
+    function renderUserWithAccess(access: AccessRights, users?: Array<UserWithPermissions>): JSX.Element {
+        const userPerms = users ?? []
+        if (session.data?.user.role.name === RoleType.ADMIN || (access.read && userPerms.length > 0)) {
+
+            const tooltip = userPerms.length === 0 ?
+                "No users have access to this recipe" :
+                userPerms.length === 1 ?
+                    "One user has access to this recipe" :
+                    `There are ${userPerms.length} users with access to this recipe.`
+
+            return (
+                <Tooltip title={tooltip}>
+                    <IconButton
+                        color='primary'
+                        size='small'
+                    >
+                        {userPerms.length > 0 ?
+                            <People sx={{width: 18, height: 18}}/> :
+                            <PeopleOutline sx={{width: 18, height: 18}}/>}
+                    </IconButton>
+                </Tooltip>
+            )
+
+        }
+        return <></>
+    }
+
+    /**
      * Renders the edit and delete buttons in the recipe card with the specified ID. If the
      * ID is being deleted, replaces the edit and delete buttons with confirm and cancel
      * buttons.
      * @param recipeId The ID of the recipe
      * @param access The rights the user has for this recipe (i.e. CRUD)
+     * @param users An optional list of users that have access to the recipe
      * @return The edit and delete, or the confirm and cancel buttons.
      */
     function renderActionButtons(recipeId: string, access: AccessRights, users?: Array<UserWithPermissions>): JSX.Element {
@@ -168,12 +208,13 @@ export default function Home(props: Props): JSX.Element {
         }
         return (
             <>
-                {users && <Tooltip title="User with access to this recipe."><IconButton
-                    color='primary'
-                    size='small'
-                >
-                    <People sx={{width: 18, height: 18}}/>
-                </IconButton></Tooltip>}
+                {/*{users && <Tooltip title={`There are ${users.length} users with access to this recipe.`}><IconButton*/}
+                {/*    color='primary'*/}
+                {/*    size='small'*/}
+                {/*>*/}
+                {/*    <People sx={{width: 18, height: 18}}/>*/}
+                {/*</IconButton></Tooltip>}*/}
+                {renderUserWithAccess(access, users)}
                 {access.update && <IconButton
                     onClick={() => router.push(`/recipes/edit?id=${recipeId}`)}
                     color='primary'
@@ -237,7 +278,8 @@ export default function Home(props: Props): JSX.Element {
                                     <Avatar sx={{bgcolor: theme.palette.primary.main}}><MenuBook/></Avatar> :
                                     <span/>
                                 }
-                                title={<Link href={`/recipes/${recipe.id}`} style={{textDecoration: 'none', color: theme.palette.primary.main}}>
+                                title={<Link href={`/recipes/${recipe.id}`}
+                                             style={{textDecoration: 'none', color: theme.palette.primary.main}}>
                                     {recipe.name.toUpperCase()}
                                 </Link>}
                                 subheader={<div>
@@ -261,7 +303,9 @@ export default function Home(props: Props): JSX.Element {
                                         }
                                     </Typography>
                                 </div>}
-                                action={recipe.id ? renderActionButtons(recipe.id, recipe.accessRights, recipesWithUsers.get(recipe.id)) : <></>}
+                                action={recipe.id ?
+                                    renderActionButtons(recipe.id, recipe.accessRights, recipesWithUsers.get(recipe.id)) :
+                                    <></>}
                             />
                             <CardContent>
                                 <Box

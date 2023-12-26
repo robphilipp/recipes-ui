@@ -113,6 +113,7 @@ export async function removeUsersRoleMappingFor(userId: string, session?: Client
     }
 }
 
+// todo replace this with a lookup query and get rid of the user_roles collection
 /**
  * Retrieves the role for the user, based on their user ID.
  * @param userId The string version of the users object ID ({@link ObjectId})
