@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Layout from '../components/Layout'
 import Date from '../components/Date'
-import React, {JSX, useState} from "react";
+import React, {JSX, useReducer, useState} from "react";
 import {
     Avatar,
     Box,
@@ -11,6 +11,10 @@ import {
     CardHeader,
     Chip,
     IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
     Tooltip,
     Typography,
     useTheme
@@ -18,7 +22,7 @@ import {
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
-import {MenuBook, People, PeopleOutline} from "@mui/icons-material";
+import {GroupAdd, ManageAccounts, MenuBook, People, PeopleOutline, Visibility} from "@mui/icons-material";
 import {ratingsFrom, RecipeSummary} from "../components/recipes/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -32,6 +36,9 @@ import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
 import {RoleType} from "../components/users/Role";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -45,6 +52,49 @@ import {RoleType} from "../components/users/Role";
 // )
 //
 // console.log("recipe", ingredients)
+
+type RecipeUserState = {
+    menuAnchor: HTMLElement | null
+    currentRecipeId: string | null
+    tooltipRecipeId: string | null
+}
+
+type RecipeUserAction = {
+    recipeId: string | null // the recipe ID on which the action took place
+    eventSource: HTMLElement | null // if the event was a toggle button, then that
+    event: "toggle" | "mouse-enter" | "mouse-leave" | "menu-close" | "menu-click"
+}
+
+function recipeUserReducer(state: RecipeUserState, action: RecipeUserAction): RecipeUserState {
+    switch (action.event) {
+        case "toggle":
+            // no menu is currently open (new click)
+            if (state.currentRecipeId == null) {
+                return {menuAnchor: action.eventSource, currentRecipeId: action.recipeId, tooltipRecipeId: null}
+            }
+            // menu is open for another recipe than the one for which the toggle was clicked
+            if (state.currentRecipeId !== action.recipeId) {
+                return {menuAnchor: action.eventSource, currentRecipeId: action.recipeId, tooltipRecipeId: null}
+            }
+            // must be a toggle of the same menu
+            return {menuAnchor: null, currentRecipeId: null, tooltipRecipeId: action.recipeId}
+
+        case "mouse-enter":
+            return {...state, tooltipRecipeId: action.recipeId}
+
+        case "mouse-leave":
+            return {...state, tooltipRecipeId: null}
+
+        case "menu-close":
+            return {menuAnchor: null, currentRecipeId: null, tooltipRecipeId: null}
+
+        case "menu-click":
+            return {menuAnchor: null, currentRecipeId: state.currentRecipeId, tooltipRecipeId: null}
+
+        default:
+            return state
+    }
+}
 
 type Props = {}
 
@@ -64,6 +114,12 @@ export default function Home(props: Props): JSX.Element {
     const {inProgress} = useStatus()
 
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
+
+    const [recipeUsers, updateRecipeUsers] = useReducer(
+        recipeUserReducer,
+        {menuAnchor: null, currentRecipeId: null, tooltipRecipeId: null}
+    )
+    const [showUsers, setShowUsers] = useState<boolean>(false)
 
     const queryClient = useQueryClient()
 
@@ -124,7 +180,8 @@ export default function Home(props: Props): JSX.Element {
         recipeUsersRaw.map(({recipeId, permissions}) => [recipeId, permissions])
     )
 
-    //
+    const hasUsers = (recipeId: string | null): boolean => (recipesWithUsers.get(recipeId ?? "") ?? []).length > 0
+
     /**
      * Callback for when the confirm to delete button is clicked
      * @param recipeId The ID of the recipe to delete
@@ -143,31 +200,48 @@ export default function Home(props: Props): JSX.Element {
      * Renders the user icon for recipes that this user owns, or if this user is an admin, then
      * all recipes. For recipes with no users, displays an outlined users icon, otherwise displays a
      * solid users icon.
+     * @param recipeId The recipe ID of the current card
      * @param access The access rights this user has to the recipe
      * @param users An (optional) array of users with permissions to this recipe
      * @return An icon button with a tooltip, or nothing
      */
-    function renderUserWithAccess(access: AccessRights, users?: Array<UserWithPermissions>): JSX.Element {
-        const userPerms = users ?? []
-        if (session.data?.user.role.name === RoleType.ADMIN || (access.read && userPerms.length > 0)) {
+    function maybeRenderUserWithAccess(recipeId: string, access: AccessRights, users: Array<UserWithPermissions> = []): JSX.Element {
+        if (session.data?.user.role.name === RoleType.ADMIN || (access.read && users.length > 0)) {
 
-            const tooltip = userPerms.length === 0 ?
-                "No users have access to this recipe" :
-                userPerms.length === 1 ?
-                    "One user has access to this recipe" :
-                    `There are ${userPerms.length} users with access to this recipe.`
+            const tooltip = users.length === 0 ?
+                "No users have access to this recipe." :
+                users.length === 1 ?
+                    "One user has access to this recipe." :
+                    `There are ${users.length} users with access to this recipe.`
 
             return (
-                <Tooltip title={tooltip}>
-                    <IconButton
-                        color='primary'
-                        size='small'
+                <>
+                    <Tooltip
+                        title={`${tooltip} Click for more options.`}
+                        disableHoverListener={true}
+                        open={recipeUsers.tooltipRecipeId === recipeId}
+                        onMouseEnter={() => updateRecipeUsers({recipeId, eventSource: null, event: "mouse-enter"})}
+                        onMouseLeave={() => updateRecipeUsers({
+                            recipeId: null,
+                            eventSource: null,
+                            event: "mouse-leave"
+                        })}
                     >
-                        {userPerms.length > 0 ?
-                            <People sx={{width: 18, height: 18}}/> :
-                            <PeopleOutline sx={{width: 18, height: 18}}/>}
-                    </IconButton>
-                </Tooltip>
+                        <IconButton
+                            onClick={event => updateRecipeUsers({
+                                recipeId,
+                                eventSource: event.currentTarget,
+                                event: "toggle"
+                            })}
+                            color='primary'
+                            size='small'
+                        >
+                            {users.length > 0 ?
+                                <People sx={{width: 18, height: 18}}/> :
+                                <PeopleOutline sx={{width: 18, height: 18}}/>}
+                        </IconButton>
+                    </Tooltip>
+                </>
             )
 
         }
@@ -208,28 +282,22 @@ export default function Home(props: Props): JSX.Element {
         }
         return (
             <>
-                {/*{users && <Tooltip title={`There are ${users.length} users with access to this recipe.`}><IconButton*/}
-                {/*    color='primary'*/}
-                {/*    size='small'*/}
-                {/*>*/}
-                {/*    <People sx={{width: 18, height: 18}}/>*/}
-                {/*</IconButton></Tooltip>}*/}
-                {renderUserWithAccess(access, users)}
-                {access.update && <IconButton
+                {maybeRenderUserWithAccess(recipeId, access, users)}
+                {access.update && <Tooltip title="Click here to edit this recipe."><IconButton
                     onClick={() => router.push(`/recipes/edit?id=${recipeId}`)}
                     color='primary'
                     size='small'
                 >
                     <ModeEditIcon sx={{width: 18, height: 18}}/>
-                </IconButton>}
-                {access.delete && <IconButton
+                </IconButton></Tooltip>}
+                {access.delete && <Tooltip title="Click here to delete recipe."><IconButton
                     key={`${recipeId}-delete`}
                     onClick={() => setConfirmDelete(current => [...current, recipeId])}
                     color='primary'
                     size='small'
                 >
                     <DeleteIcon sx={{width: 18, height: 18}}/>
-                </IconButton>}
+                </IconButton></Tooltip>}
             </>
         )
     }
@@ -334,6 +402,83 @@ export default function Home(props: Props): JSX.Element {
                     )
                 })}
             </section>
+            <Menu
+                id="user-menu"
+                open={Boolean(recipeUsers.menuAnchor)}
+                anchorEl={recipeUsers.menuAnchor}
+                onClose={() => updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})}
+                slotProps={{
+                    paper: {
+                        elevation: 0,
+                        sx: {
+                            overflow: 'visible',
+                            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                            mt: 1.5,
+                            '& .MuiAvatar-root': {
+                                width: 32,
+                                height: 32,
+                                ml: -0.5,
+                                mr: 1,
+                            },
+                            '&::before': {
+                                content: '""',
+                                display: 'block',
+                                position: 'absolute',
+                                top: 0,
+                                right: 90,
+                                width: 10,
+                                height: 10,
+                                bgcolor: 'background.paper',
+                                transform: 'translateY(-50%) rotate(45deg)',
+                                zIndex: 0,
+                            },
+                            width: 200, maxWidth: '100%'
+                        },
+                    }
+                }}
+                transformOrigin={{horizontal: 'center', vertical: 'top'}}
+                anchorOrigin={{horizontal: 'center', vertical: 'bottom'}}
+            >
+                {hasUsers(recipeUsers.currentRecipeId) ?
+                    <MenuItem>
+                        <ListItemIcon>
+                            <Visibility fontSize="small"/>
+                        </ListItemIcon>
+                        <ListItemText onClick={() => {
+                            setShowUsers(true)
+                            updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-click"})
+                        }}>View users</ListItemText>
+                        <Typography variant="body2" color="text.secondary">
+                            ({recipesWithUsers.get(recipeUsers.currentRecipeId ?? "")?.length})
+                        </Typography>
+                    </MenuItem> :
+                    <></>}
+                <MenuItem>
+                    <ListItemIcon><GroupAdd fontSize="small"/></ListItemIcon>
+                    <ListItemText>Add users</ListItemText>
+                </MenuItem>
+                {hasUsers(recipeUsers.currentRecipeId) ?
+                    <MenuItem>
+                        <ListItemIcon>
+                            <ManageAccounts fontSize="small"/>
+                        </ListItemIcon>
+                        <ListItemText>Update users</ListItemText>
+                        <Typography variant="body2" color="text.secondary">
+                            ({recipesWithUsers.get(recipeUsers.currentRecipeId ?? "")?.length})
+                        </Typography>
+                    </MenuItem> :
+                    <></>}
+            </Menu>
+            <Dialog
+                open={showUsers}
+                onClose={() => {
+                    setShowUsers(false)
+                    updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
+                }}
+            >
+                <DialogTitle>Users with access</DialogTitle>
+                <RecipeUsersView users={recipesWithUsers.get(recipeUsers.currentRecipeId ?? "") ?? []}/>
+            </Dialog>
         </Layout>
     )
 }
