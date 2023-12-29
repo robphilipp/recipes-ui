@@ -151,6 +151,10 @@ export function accessRightArrayFrom(create: boolean, read: boolean, update: boo
     return rights
 }
 
+export function accessRightArrayFor(accessRights: AccessRights): Array<AccessRight> {
+    return accessRightArrayFrom(accessRights.create, accessRights.read, accessRights.update, accessRights.delete)
+}
+
 /**
  * Creates an {@link AccessRights} object from the specified boolean values
  * @param create `true` if principal has permission to create recipes; `false` otherwise
@@ -368,3 +372,16 @@ export const removeAccessRightsFrom = (permissions: RecipePermission, ...accessR
     ...permissions,
     accessRights: clearAccessRights(permissions.accessRights, ...accessRight)
 })
+
+/**
+ * Renders the access rights as a human-readable string
+ * @param rights The access rights to render
+ * @return a human-readable string representing the access rights
+ */
+export function renderAccessRights(rights: AccessRights): string {
+    const access: Array<string> = []
+    if (rights.read) access.push("Read")
+    if (rights.update) access.push("Update")
+    if (rights.delete) access.push("Delete")
+    return access.join(", ")
+}

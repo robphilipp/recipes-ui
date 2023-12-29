@@ -9,12 +9,12 @@ import {
     Card,
     CardContent,
     CardHeader,
-    Chip,
-    IconButton,
+    Chip, Divider,
+    IconButton, ListItem, ListItemButton,
     ListItemIcon,
     ListItemText,
     Menu,
-    MenuItem,
+    MenuItem, Stack, styled, ToggleButton, ToggleButtonGroup,
     Tooltip,
     Typography,
     useTheme
@@ -31,7 +31,13 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
-import {AccessRights, WithPermissions} from "../components/recipes/RecipePermissions";
+import {
+    AccessRight,
+    accessRightArrayFor,
+    AccessRights,
+    renderAccessRights,
+    WithPermissions
+} from "../components/recipes/RecipePermissions";
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
@@ -39,6 +45,8 @@ import {RoleType} from "../components/users/Role";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
+import DialogContent from "@mui/material/DialogContent";
+import {RecipesUser} from "../components/users/RecipesUser";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -425,14 +433,14 @@ export default function Home(props: Props): JSX.Element {
                                 display: 'block',
                                 position: 'absolute',
                                 top: 0,
-                                right: 90,
+                                right: 150,
                                 width: 10,
                                 height: 10,
                                 bgcolor: 'background.paper',
                                 transform: 'translateY(-50%) rotate(45deg)',
                                 zIndex: 0,
                             },
-                            width: 200, maxWidth: '100%'
+                            width: 300, maxWidth: '100%'
                         },
                     }
                 }}
@@ -447,7 +455,7 @@ export default function Home(props: Props): JSX.Element {
                         <ListItemText onClick={() => {
                             setShowUsers(true)
                             updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-click"})
-                        }}>View users</ListItemText>
+                        }}>View/Update users</ListItemText>
                         <Typography variant="body2" color="text.secondary">
                             ({recipesWithUsers.get(recipeUsers.currentRecipeId ?? "")?.length})
                         </Typography>
@@ -457,31 +465,152 @@ export default function Home(props: Props): JSX.Element {
                     <ListItemIcon><GroupAdd fontSize="small"/></ListItemIcon>
                     <ListItemText>Add users</ListItemText>
                 </MenuItem>
-                {hasUsers(recipeUsers.currentRecipeId) ?
-                    <MenuItem>
-                        <ListItemIcon>
-                            <ManageAccounts fontSize="small"/>
-                        </ListItemIcon>
-                        <ListItemText>Update users</ListItemText>
-                        <Typography variant="body2" color="text.secondary">
-                            ({recipesWithUsers.get(recipeUsers.currentRecipeId ?? "")?.length})
-                        </Typography>
-                    </MenuItem> :
-                    <></>}
             </Menu>
-            <Dialog
+            <RecipeUsersView
+                users={recipesWithUsers.get(recipeUsers.currentRecipeId ?? "") ?? []}
+                itemRenderer={itemViewRendererWithRole(session.data!.user)}
                 open={showUsers}
                 onClose={() => {
                     setShowUsers(false)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
-            >
-                <DialogTitle>Users with access</DialogTitle>
-                <RecipeUsersView users={recipesWithUsers.get(recipeUsers.currentRecipeId ?? "") ?? []}/>
-            </Dialog>
+            />
         </Layout>
     )
 }
+
+const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
+    '& .MuiToggleButtonGroup-grouped': {
+        margin: theme.spacing(0.5),
+        border: 0,
+        '&.Mui-disabled': {
+            border: 0,
+        },
+        '&:not(:first-of-type)': {
+            borderRadius: theme.shape.borderRadius,
+        },
+        '&:first-of-type': {
+            borderRadius: theme.shape.borderRadius,
+        },
+    },
+}));
+
+function itemViewRendererWithRole(requester: RecipesUser): (user: UserWithPermissions) => JSX.Element {
+    // the renderer with a closure on the requesting user
+    return function ItemRenderer(user: UserWithPermissions): JSX.Element {
+        const showRole = requester.role.name === RoleType.ADMIN
+        const [access, setAccess] = useState<Array<AccessRight>>(accessRightArrayFor(user.accessRights))
+        return (
+            <ListItem key={`${user.email}-li`} alignItems="flex-start">
+                <ListItemText
+                    key={`${user.email}-li-text`}
+                    primary={
+                        <Card sx={{minWidth: 300, margin: 0}} variant="outlined" key={`${user.email}-li-card`}>
+                            <CardHeader
+                                title={<Typography
+                                    sx={{fontSize: '1.1em', fontWeight: 900, marginTop: '-0.2em'}}
+                                    color="text.primary"
+                                    component="div"
+                                >
+                                    {user.name}
+                                </Typography>}
+                                subheader={showRole ?
+                                    <Typography
+                                        sx={{fontSize: '0.7em', marginTop: '-0.2em'}}
+                                        color="text.secondary"
+                                        component="div"
+                                    >
+                                        {user.role.description}
+                                    </Typography> :
+                                    <></>}
+                            />
+                            <CardContent>
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        marginTop: '-0.5em'
+                                    }}
+                                >
+                                    <Stack>
+                                <Typography
+                                    sx={{display: 'inline', marginTop: '-1em'}}
+                                    component="div"
+                                    variant="body2"
+                                    color="text.primary"
+                                >
+                                    {user.email}
+                                </Typography>
+                                {/*<Typography*/}
+                                {/*    sx={{display: 'inline', fontSize: '0.7em'}}*/}
+                                {/*    component="div"*/}
+                                {/*    variant="body2"*/}
+                                {/*    color="text.secondary"*/}
+                                {/*>*/}
+                                {/*    {renderAccessRights(user.accessRights)}*/}
+                                {/*</Typography>*/}
+                                        <StyledToggleButtonGroup
+                                            value={access}
+                                            onChange={(_, newAccess) => setAccess(newAccess)}
+                                            color="primary"
+                                            size="small"
+                                            sx={{marginLeft: '-5px'}}
+                                        >
+                                            <ToggleButton value={AccessRight.READ} aria-label="read">
+                                                Read
+                                            </ToggleButton>
+                                            <ToggleButton value={AccessRight.UPDATE} aria-label="update">
+                                                Update
+                                            </ToggleButton>
+                                            <ToggleButton value={AccessRight.DELETE} aria-label="delete">
+                                                Delete
+                                            </ToggleButton>
+                                        </StyledToggleButtonGroup>
+                                    </Stack>
+                                </Box>
+                            </CardContent>
+                        </Card>}
+                />
+            </ListItem>
+        )
+    }
+}
+
+/*
+<>
+                        {user.name}
+                        <Typography
+                            sx={{display: 'inline', fontSize: '0.8em'}}
+                            component="span"
+                            variant="body2"
+                            color="text.secondary"
+                        >
+                            <span style={{paddingLeft: 15}}>{showRole ? ` (${user.role.description})` : ""}</span>
+                        </Typography>
+                        <Divider component="br"/>
+                        <Typography
+                            sx={{display: 'inline', fontSize: '0.8em'}}
+                            component="span"
+                            variant="body2"
+                            color="text.secondary"
+                        >
+                            ({renderAccessRights(user.accessRights)})
+                        </Typography>
+                    </>
+ */
+/*
+                    secondary={<div style={{paddingTop: 7}}>
+                        <Typography
+                            sx={{display: 'inline'}}
+                            component="div"
+                            variant="body2"
+                            color="text.primary"
+                        >
+                            {user.email}
+                        </Typography>
+                    </div>}
+
+ */
 
 // export async function getServerSideProps(context) {
 // export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {
