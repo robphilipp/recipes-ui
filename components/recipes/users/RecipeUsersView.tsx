@@ -91,9 +91,9 @@ export default function RecipeUsersView(props: Props): JSX.Element {
         setAccess(updated)
     }
 
-    function colorFor(user: UserWithPermissions, permission: "create" | "read" | "update" | "delete"): "success" | "error" | "primary" {
+    function colorFor(user: UserWithPermissions, permission: "create" | "read" | "update" | "delete"): "green" | "error" | "primary" {
         const change = changes.current.get(user.principalId)
-        if (change?.[permission] === "added") return "success"
+        if (change?.[permission] === "added") return "green"
         if (change?.[permission] === "removed") return "error"
         return "primary"
     }
@@ -157,7 +157,6 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.READ}
                                                                 aria-label="read"
-                                                                color={colorFor(user, "read")}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "read")}
@@ -169,7 +168,6 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.UPDATE}
                                                                 aria-label="update"
-                                                                color={colorFor(user, "update")}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "update")}
@@ -181,7 +179,6 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.DELETE}
                                                                 aria-label="delete"
-                                                                color={colorFor(user, "delete")}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "delete")}
