@@ -468,7 +468,7 @@ export default function Home(props: Props): JSX.Element {
             </Menu>
             <RecipeUsersView
                 users={recipesWithUsers.get(recipeUsers.currentRecipeId ?? "") ?? []}
-                itemRenderer={itemViewRendererWithRole(session.data!.user)}
+                requester={session.data!.user}
                 open={showUsers}
                 onClose={() => {
                     setShowUsers(false)
@@ -478,139 +478,6 @@ export default function Home(props: Props): JSX.Element {
         </Layout>
     )
 }
-
-const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-    '& .MuiToggleButtonGroup-grouped': {
-        margin: theme.spacing(0.5),
-        border: 0,
-        '&.Mui-disabled': {
-            border: 0,
-        },
-        '&:not(:first-of-type)': {
-            borderRadius: theme.shape.borderRadius,
-        },
-        '&:first-of-type': {
-            borderRadius: theme.shape.borderRadius,
-        },
-    },
-}));
-
-function itemViewRendererWithRole(requester: RecipesUser): (user: UserWithPermissions) => JSX.Element {
-    // the renderer with a closure on the requesting user
-    return function ItemRenderer(user: UserWithPermissions): JSX.Element {
-        const showRole = requester.role.name === RoleType.ADMIN
-        const [access, setAccess] = useState<Array<AccessRight>>(accessRightArrayFor(user.accessRights))
-        return (
-            <ListItem key={`${user.email}-li`} alignItems="flex-start">
-                <ListItemText
-                    key={`${user.email}-li-text`}
-                    primary={
-                        <Card sx={{minWidth: 300, margin: 0}} variant="outlined" key={`${user.email}-li-card`}>
-                            <CardHeader
-                                title={<Typography
-                                    sx={{fontSize: '1.1em', fontWeight: 900, marginTop: '-0.2em'}}
-                                    color="text.primary"
-                                    component="div"
-                                >
-                                    {user.name}
-                                </Typography>}
-                                subheader={showRole ?
-                                    <Typography
-                                        sx={{fontSize: '0.7em', marginTop: '-0.2em'}}
-                                        color="text.secondary"
-                                        component="div"
-                                    >
-                                        {user.role.description}
-                                    </Typography> :
-                                    <></>}
-                            />
-                            <CardContent>
-                                <Box
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        marginTop: '-0.5em'
-                                    }}
-                                >
-                                    <Stack>
-                                <Typography
-                                    sx={{display: 'inline', marginTop: '-1em'}}
-                                    component="div"
-                                    variant="body2"
-                                    color="text.primary"
-                                >
-                                    {user.email}
-                                </Typography>
-                                {/*<Typography*/}
-                                {/*    sx={{display: 'inline', fontSize: '0.7em'}}*/}
-                                {/*    component="div"*/}
-                                {/*    variant="body2"*/}
-                                {/*    color="text.secondary"*/}
-                                {/*>*/}
-                                {/*    {renderAccessRights(user.accessRights)}*/}
-                                {/*</Typography>*/}
-                                        <StyledToggleButtonGroup
-                                            value={access}
-                                            onChange={(_, newAccess) => setAccess(newAccess)}
-                                            color="primary"
-                                            size="small"
-                                            sx={{marginLeft: '-5px'}}
-                                        >
-                                            <ToggleButton value={AccessRight.READ} aria-label="read">
-                                                Read
-                                            </ToggleButton>
-                                            <ToggleButton value={AccessRight.UPDATE} aria-label="update">
-                                                Update
-                                            </ToggleButton>
-                                            <ToggleButton value={AccessRight.DELETE} aria-label="delete">
-                                                Delete
-                                            </ToggleButton>
-                                        </StyledToggleButtonGroup>
-                                    </Stack>
-                                </Box>
-                            </CardContent>
-                        </Card>}
-                />
-            </ListItem>
-        )
-    }
-}
-
-/*
-<>
-                        {user.name}
-                        <Typography
-                            sx={{display: 'inline', fontSize: '0.8em'}}
-                            component="span"
-                            variant="body2"
-                            color="text.secondary"
-                        >
-                            <span style={{paddingLeft: 15}}>{showRole ? ` (${user.role.description})` : ""}</span>
-                        </Typography>
-                        <Divider component="br"/>
-                        <Typography
-                            sx={{display: 'inline', fontSize: '0.8em'}}
-                            component="span"
-                            variant="body2"
-                            color="text.secondary"
-                        >
-                            ({renderAccessRights(user.accessRights)})
-                        </Typography>
-                    </>
- */
-/*
-                    secondary={<div style={{paddingTop: 7}}>
-                        <Typography
-                            sx={{display: 'inline'}}
-                            component="div"
-                            variant="body2"
-                            color="text.primary"
-                        >
-                            {user.email}
-                        </Typography>
-                    </div>}
-
- */
 
 // export async function getServerSideProps(context) {
 // export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext<ParsedUrlQuery, string | false | object>) => {

@@ -279,6 +279,7 @@ export const clearAccessRights = (accessRights: AccessRights, ...attributes: Arr
  * Immutable representation of a principal's permissions on a recipe
  */
 export type RecipePermission = {
+    // permission ID
     readonly id?: string
     readonly recipeId: string
     readonly principalId: string
