@@ -9,12 +9,12 @@ import {
     Card,
     CardContent,
     CardHeader,
-    Chip, Divider,
-    IconButton, ListItem, ListItemButton,
+    Chip,
+    IconButton,
     ListItemIcon,
     ListItemText,
     Menu,
-    MenuItem, Stack, styled, ToggleButton, ToggleButtonGroup,
+    MenuItem,
     Tooltip,
     Typography,
     useTheme
@@ -22,7 +22,7 @@ import {
 import {useSearch} from "../lib/useSearch";
 import axios from 'axios'
 import {useStatus} from "../lib/useStatus";
-import {GroupAdd, ManageAccounts, MenuBook, People, PeopleOutline, Visibility} from "@mui/icons-material";
+import {GroupAdd, MenuBook, People, PeopleOutline, Visibility} from "@mui/icons-material";
 import {ratingsFrom, RecipeSummary} from "../components/recipes/Recipe";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -31,22 +31,13 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
-import {
-    AccessRight,
-    accessRightArrayFor,
-    AccessRights,
-    renderAccessRights,
-    WithPermissions
-} from "../components/recipes/RecipePermissions";
+import {AccessRight, AccessRights, accessRightsFrom, WithPermissions} from "../components/recipes/RecipePermissions";
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
 import {RoleType} from "../components/users/Role";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
-import DialogContent from "@mui/material/DialogContent";
-import {RecipesUser} from "../components/users/RecipesUser";
+import {UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -170,10 +161,20 @@ export default function Home(props: Props): JSX.Element {
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
     )
 
-    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading || recipeUsersQuery.isLoading) {
+    // todo figure out how to invalidate the recipeUsersQuery so that it reloads the values
+    // const updatePermissionsQuery = useMutation() updateUserPermissionsTo()
+    const updatePermissionsQuery = useMutation(
+        ['update-recipe-permissions'],
+        (request: UpdateRecipesPermissionRequest) => axios.post(
+            '/api/permissions/recipe',
+            request
+        )
+    )
+
+    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading || recipeUsersQuery.isLoading || updatePermissionsQuery.isLoading) {
         return <span>Loading...</span>
     }
-    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError || recipeUsersQuery.isError) {
+    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError || recipeUsersQuery.isError || updatePermissionsQuery.isError) {
         return <span>
             {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
@@ -202,6 +203,24 @@ export default function Home(props: Props): JSX.Element {
                 await queryClient.invalidateQueries(['recipeCount'])
             }
         })
+    }
+
+    /**
+     *
+     * @param recipeId The ID to which all the changes refer
+     * @param changes A map that associates the principal ID to a list of access rights.
+     */
+    function handleUpdatePermissions(recipeId: string, changes: Map<string, Array<AccessRight>>): void {
+        const promises = Array.from(changes.entries())
+            .map(([userId, rights]) => ({
+                recipeId,
+                userId,
+                accessRights: accessRightsFrom(rights)
+            }))
+            .map(request => updatePermissionsQuery.mutateAsync(request))
+
+        Promise.all(promises)
+            .then(x => queryClient.invalidateQueries(['recipeUsers']))
     }
 
     /**
@@ -472,6 +491,11 @@ export default function Home(props: Props): JSX.Element {
                 open={showUsers}
                 onClose={() => {
                     setShowUsers(false)
+                    updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
+                }}
+                onSave={(changed: Map<string, Array<AccessRight>>) => {
+                    setShowUsers(false)
+                    handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
             />

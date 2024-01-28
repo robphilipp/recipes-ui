@@ -155,6 +155,22 @@ export function accessRightArrayFor(accessRights: AccessRights): Array<AccessRig
     return accessRightArrayFrom(accessRights.create, accessRights.read, accessRights.update, accessRights.delete)
 }
 
+type AccessRightBooleans = {create: boolean, read: boolean, update: boolean, canDelete: boolean}
+export function accessRightsFrom(accessRights: Array<AccessRight>): AccessRights {
+    const accessRightBooleans = accessRights.reduce(
+        (asBooleans, accessRight) => {
+            switch (accessRight) {
+                case AccessRight.CREATE: return {...asBooleans, create: true}
+                case AccessRight.READ: return {...asBooleans, read: true}
+                case AccessRight.UPDATE: return {...asBooleans, update: true}
+                case AccessRight.DELETE: return {...asBooleans, canDelete: true}
+            }
+        },
+        {create: false, read: false, update: false, canDelete: false}
+    )
+    return accessRightsWith(accessRightBooleans.create, accessRightBooleans.read, accessRightBooleans.update, accessRightBooleans.canDelete)
+}
+
 /**
  * Creates an {@link AccessRights} object from the specified boolean values
  * @param create `true` if principal has permission to create recipes; `false` otherwise
@@ -274,6 +290,9 @@ export const setAccessRights = (accessRights: AccessRights, ...attributes: Array
  */
 export const clearAccessRights = (accessRights: AccessRights, ...attributes: Array<AccessRight>): AccessRights =>
     createAccessRightsFrom(accessRights, Action.REMOVE, ...attributes)
+
+export const accessRightsEqual = (accessRights1: Array<AccessRight>, accessRights2: Array<AccessRight>): boolean =>
+    accessRightsFrom(accessRights1).value === accessRightsFrom(accessRights2).value
 
 /**
  * Immutable representation of a principal's permissions on a recipe

@@ -1,7 +1,9 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {updateRatings} from "../../../../lib/recipes";
-import {Recipe} from "../../../../components/recipes/Recipe";
+import {emptyRecipe, Recipe} from "../../../../components/recipes/Recipe";
 import {RequestMethod} from "../../../../lib/RequestMethod";
+import {getServerSession} from "next-auth";
+import {authOptions} from "../../auth/[...nextauth]";
 
 type UpdateRating = {
     newRating: number
@@ -12,6 +14,12 @@ export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<Recipe>
 ): Promise<void> {
+
+    const session = await getServerSession(request, response, authOptions)
+    if (session === null) {
+        return response.status(200).json(emptyRecipe())
+    }
+
     switch (request.method) {
         // case RequestMethod.GET:
         //     return recipeById(request.query.id as string)
@@ -24,7 +32,7 @@ export default async function handler(
         case RequestMethod.POST:
             const recipeId = request.query.id as string
             const {newRating, ratings} = (request.body as UpdateRating)
-            return updateRatings(recipeId, newRating, ratings)
+            return updateRatings(session.user, recipeId, newRating, ratings)
                 .then(recipe => response.status(200).json(recipe))
                 .catch(reason => console.error(reason))
 

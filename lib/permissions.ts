@@ -123,7 +123,8 @@ export async function permissionFor(principalId: string, principalType: Principa
                 `principal_type: ${principalType}; recipe_id: ${recipeId}`
             return Promise.reject(message)
         }
-        if (morePerms !== undefined) {
+        if ((morePerms as Array<RecipePermission>).length > 0) {
+        // if (morePerms !== undefined || (morePerms as Array<RecipePermission>).length > 0) {
             const message = `Found duplicate recipe permissions. Unable to proceed; principal_id: ${principalId}; ` +
                 `principal_type: ${principalType}; recipe_id: ${recipeId}; ` +
                 `duplicate_permission_ids: ${morePerms.map(perm => perm.id)}`
@@ -187,30 +188,44 @@ export async function addPermissionTo(recipePermissions: RecipePermission): Prom
     }
 }
 
+/**
+ * Updates the access rights a user has to a recipe {@link Promise}
+ * @param permissions The current recipe permissions to update
+ * @param accessRights The new access rights
+ * @return A promise to the updated recipe permissions
+ */
 export async function updateAccessRightsOn(permissions: RecipePermission, accessRights: AccessRights): Promise<RecipePermission> {
     if (permissions.id === undefined) {
         return Promise.reject(`Unable to update permissions directly because the permission's ID was not specified`)
     }
     const client: MongoClient = await clientPromise
 
+    const updated: MongoRecipePermission = mongoRecipePermissionsFrom({...permissions, accessRights})
+
     const message = () => `Unable to update permissions; permission_id: ${permissions.id}; ` +
         `principal_id: ${permissions.principalId}; principal_type: ${permissions.principal}; ` +
-        `recipe_id: ${permissions.recipeId}; new_access_rights: ${accessRights}`
+        `recipe_id: ${permissions.recipeId}; new_access_rights: create=${updated.create}, ` +
+        `read=${updated.read}, update=${updated.update}, delete=${updated.delete}`
 
     try {
-        const updated: RecipePermission = {...permissions, accessRights}
         const result = await permissionsCollection(client)
-            .updateOne({_id: new ObjectId(permissions.id)}, updated)
-        if (result.upsertedId === undefined || result.upsertedId === null) {
+            .updateOne({_id: new ObjectId(permissions.id)}, {$set: {...updated}})
+        if (result.modifiedCount === undefined || result.modifiedCount === null) {
             return Promise.reject(message())
         }
-        return await permissionById(result.upsertedId.id.toString())
+        return await permissionById(updated._id.toString())
     } catch(e) {
         console.error(message(), e)
         return Promise.reject(message())
     }
 }
 
+/**
+ * Updates the access rights associated with the specified permission ID
+ * @param permissionId The ID of the {@link RecipePermission} to update
+ * @param newAccessRights The new {@link AccessRights}
+ @return A promise to the updated recipe permissions
+ */
 export async function updatePermissionsFor(permissionId: string, newAccessRights: AccessRights): Promise<RecipePermission> {
     try {
         const permissions = await permissionById(permissionId)
@@ -222,6 +237,17 @@ export async function updatePermissionsFor(permissionId: string, newAccessRights
     }
 }
 
+/**
+ * Updates the permissions a principal ({@link principalId} and {@link principalType}) has to a
+ * recipe {@link recipeId}.
+ * @param recipeId The ID of the recipe to which the principal has access rights
+ * @param principalId The ID of the principal for which to update the access rights
+ * @param principalType The type of the principal (i.e. user or group)
+ * @param newAccessRights The new access rights
+ * @return A promise to the updated recipe permissions
+ * @see updateUserPermissionsTo
+ * @see updateGroupPermissionsTo
+ */
 export async function updatePermissionsTo(
     recipeId: string,
     principalId: string,
@@ -239,6 +265,15 @@ export async function updatePermissionsTo(
     }
 }
 
+/**
+ * Updates the permissions a user ({@link userId}) has to a recipe {@link recipeId}.
+ * @param recipeId The ID of the recipe to which the principal has access rights
+ * @param userId The ID of the user for which to update the access rights
+ * @param accessRights The new access rights
+ * @return A promise to the updated recipe permissions
+ * @see updatePermissionsTo
+ * @see updateGroupPermissionsTo
+ */
 export const updateUserPermissionsTo = (recipeId: string, userId: string, accessRights: AccessRights): Promise<RecipePermission> =>
     updatePermissionsTo(recipeId, userId, principalTypeLiteralFrom(PrincipalType.USER), accessRights)
 

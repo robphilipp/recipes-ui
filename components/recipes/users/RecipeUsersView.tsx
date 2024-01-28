@@ -15,7 +15,7 @@ import {
     ToggleButtonGroup,
     Typography
 } from "@mui/material";
-import {AccessRight, accessRightArrayFor} from "../RecipePermissions";
+import {AccessRight, accessRightArrayFor, accessRightsEqual} from "../RecipePermissions";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -54,8 +54,9 @@ type Props = {
     requester: RecipesUser
     users: Array<UserWithPermissions>
     open: boolean
-    onClose: () => void
     itemRenderer?: (user: UserWithPermissions) => JSX.Element
+    onClose: () => void
+    onSave: (changed: Map<string, Array<AccessRight>>) => void
 }
 
 export default function RecipeUsersView(props: Props): JSX.Element {
@@ -64,10 +65,12 @@ export default function RecipeUsersView(props: Props): JSX.Element {
         users,
         open,
         onClose,
+        onSave
     } = props
 
     const original = useRef<Map<string, Array<AccessRight>>>(new Map())
     const changes = useRef<Map<string, AccessChanges>>(new Map())
+    // holds the list of users (principalId) and the associated access rights
     const [access, setAccess] = useState<Map<string, Array<AccessRight>>>(() => new Map())
 
     // this same component is used by all the recipes, and so when the user list
@@ -89,6 +92,23 @@ export default function RecipeUsersView(props: Props): JSX.Element {
         const updated = new Map(access)
         updated.set(user.principalId, newAccess)
         setAccess(updated)
+    }
+
+    /**
+     * When the user clicks on the save button, figure out what changes need to be saved and
+     * call the {@link onSave} callback with those changes.
+     */
+    function handleSave(): void {
+        // find the users whose rights have been updated, and those updates resulted in a
+        // different set of access rights
+        const changed = new Map(Array.from(access.entries())
+            .filter(([id, currRights]) => {
+                const origRights = original.current.get(id)
+                return origRights !== undefined && !accessRightsEqual(origRights, currRights)
+            }))
+
+        // callback from the parent
+        onSave(changed)
     }
 
     function colorFor(user: UserWithPermissions, permission: "create" | "read" | "update" | "delete"): "green" | "error" | "primary" {
@@ -157,6 +177,7 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.READ}
                                                                 aria-label="read"
+                                                                sx={{textTransform: 'none'}}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "read")}
@@ -168,6 +189,7 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.UPDATE}
                                                                 aria-label="update"
+                                                                sx={{textTransform: 'none'}}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "update")}
@@ -179,6 +201,7 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                                                             <ToggleButton
                                                                 value={AccessRight.DELETE}
                                                                 aria-label="delete"
+                                                                sx={{textTransform: 'none'}}
                                                             >
                                                                 <Typography
                                                                     color={colorFor(user, "delete")}
@@ -199,8 +222,8 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                 </List>
             </DialogContent>
             <DialogActions>
-                <Button>Save</Button>
-                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={handleSave} sx={{textTransform: 'none'}}>Save</Button>
+                <Button onClick={onClose} sx={{textTransform: 'none'}}>Cancel</Button>
             </DialogActions>
         </Dialog>
     )
