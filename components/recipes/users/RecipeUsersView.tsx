@@ -72,6 +72,7 @@ export default function RecipeUsersView(props: Props): JSX.Element {
     const changes = useRef<Map<string, AccessChanges>>(new Map())
     // holds the list of users (principalId) and the associated access rights
     const [access, setAccess] = useState<Map<string, Array<AccessRight>>>(() => new Map())
+    const [accessChanges, setAccessChanges] = useState(false)
 
     // this same component is used by all the recipes, and so when the user list
     // changes, we need to update the permissions (each recipe will, and must, have
@@ -86,12 +87,23 @@ export default function RecipeUsersView(props: Props): JSX.Element {
         [users]
     )
 
+
+    function calculateAccessChanges(current: Map<string, Array<AccessRight>>): Array<[string, Array<AccessRight>]> {
+        return Array.from(current.entries())
+            .filter(([id, currRights]) => {
+                const origRights = original.current.get(id)
+                return origRights !== undefined && !accessRightsEqual(origRights, currRights)
+            })
+    }
+
     function handlePermissionChange(event: React.MouseEvent<HTMLElement>, newAccess: Array<AccessRight>, user: UserWithPermissions): void {
         changes.current.set(user.principalId, calculateChanges(original.current.get(user.principalId)!, newAccess))
 
         const updated = new Map(access)
         updated.set(user.principalId, newAccess)
         setAccess(updated)
+        // calculate if there are any actual changes
+        setAccessChanges(calculateAccessChanges(updated).length > 0)
     }
 
     /**
@@ -101,11 +113,7 @@ export default function RecipeUsersView(props: Props): JSX.Element {
     function handleSave(): void {
         // find the users whose rights have been updated, and those updates resulted in a
         // different set of access rights
-        const changed = new Map(Array.from(access.entries())
-            .filter(([id, currRights]) => {
-                const origRights = original.current.get(id)
-                return origRights !== undefined && !accessRightsEqual(origRights, currRights)
-            }))
+        const changed = new Map(calculateAccessChanges(access))
 
         // callback from the parent
         onSave(changed)
@@ -222,8 +230,19 @@ export default function RecipeUsersView(props: Props): JSX.Element {
                 </List>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleSave} sx={{textTransform: 'none'}}>Save</Button>
-                <Button onClick={onClose} sx={{textTransform: 'none'}}>Cancel</Button>
+                <Button
+                    onClick={handleSave}
+                    disabled={!accessChanges}
+                    sx={{textTransform: 'none'}}
+                >
+                    Save
+                </Button>
+                <Button
+                    onClick={onClose}
+                    sx={{textTransform: 'none'}}
+                >
+                    Cancel
+                </Button>
             </DialogActions>
         </Dialog>
     )
