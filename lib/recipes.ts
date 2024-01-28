@@ -151,7 +151,7 @@ export async function recipeById(user: RecipesUser, id: string): Promise<Recipe>
                 {
                     $match: {
                         $and: [
-                            {...permission(user)},
+                            {...permissionCondition(user)},
                             {_id: new ObjectId(id)}
                         ]
                     }
@@ -204,7 +204,11 @@ export async function recipeById(user: RecipesUser, id: string): Promise<Recipe>
 // }
 
 
-function permission(user: RecipesUser) {
+/**
+ * Condition that the user has access to the recipe or is the owner
+ * @param user
+ */
+function permissionCondition(user: RecipesUser) {
     if (user.role.name === RoleType.ADMIN) {
         return {}
     }
@@ -219,6 +223,22 @@ function permission(user: RecipesUser) {
             {
                 ownerId: {$eq: user.id}
             }
+        ]
+    }
+}
+
+/**
+ * Condition that the user has access to the recipe
+ * @param user The user
+ */
+function nonOwnerPermissionCondition(user: RecipesUser) {
+    if (user.role.name === RoleType.ADMIN) {
+        return {}
+    }
+    return {
+        $and: [
+            {"recipePermissions.principalId": {$eq: user.id}},
+            {"recipePermissions.read": {$eq: true}},
         ]
     }
 }
@@ -262,9 +282,13 @@ async function searchRecipesForUser(user: RecipesUser, words: Array<string>): Pr
         .map(word => word === " " ? ".*" : word)
         .join(')|(')
 
+    // grab all the recipes that the user owns
+    const ownedRecipes = await searchRecipesOwnedBy(user, words)
+
+    // grab all the recipes that the user does not own, but has access to
     try {
         const client = await clientPromise
-        return await recipeCollection(client)
+        const accessToRecipes =  await recipeCollection(client)
             // join the recipes and permissions collection
             .aggregate([
                 {"$addFields": {"recipe_id": {"$toString": "$_id"}}},
@@ -285,7 +309,7 @@ async function searchRecipesForUser(user: RecipesUser, words: Array<string>): Pr
                 {
                     $match: {
                         $and: [
-                            {...permission(user)},
+                            {...nonOwnerPermissionCondition(user)},
                             {
                                 $or: [
                                     {name: {$regex: new RegExp(`(${regexWordPattern})`, 'i')}},
@@ -298,6 +322,7 @@ async function searchRecipesForUser(user: RecipesUser, words: Array<string>): Pr
             ])
             .map(doc => roleEnhanced(asRecipeSummary(doc as WithId<WithAccessRights<Recipe>>), user))
             .toArray()
+        return ownedRecipes.concat(accessToRecipes)
     } catch (e) {
         console.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
@@ -326,6 +351,46 @@ async function searchRecipesForAdmin(user: RecipesUser, words: Array<string>): P
                 $or: [
                     {name: {$regex: new RegExp(`(${regexWordPattern})`, 'i')}},
                     {tags: {$in: words}}
+                ]
+            })
+            .collation({locale: 'en', strength: 2})
+            .map(doc => roleEnhanced(asRecipeSummary(doc as WithId<WithAccessRights<Recipe>>), user))
+            .toArray()
+    } catch (e) {
+        console.error("Unable to update recipe", e)
+        return Promise.reject("Unable to update recipe")
+    }
+}
+
+/**
+ * Searches all the recipes that the user owns for the specified search terms.
+ * @param user The user
+ * @param words The words to find
+ * @return An array of {@link RecipeSummary} objects owned by the user and matching the
+ * search term. These summaries have been enriched with permissions.
+ */
+async function searchRecipesOwnedBy(user: RecipesUser, words: Array<string>): Promise<Array<WithPermissions<RecipeSummary>>> {
+    // when the word is a space, then we want it to match anything, so we replace it
+    // with ".*"
+    const regexWordPattern = words
+        .map(word => word === " " ? ".*" : word)
+        .join(')|(')
+
+    try {
+        const client = await clientPromise
+        return await recipeCollection(client)
+            .find({
+                $and: [
+                    {
+                        $or: [
+                            {name: {$regex: new RegExp(`(${regexWordPattern})`, 'i')}},
+                            {tags: {$in: words}}
+                        ]
+
+                    },
+                    {
+                        ownerId: {$eq: user.id}
+                    }
                 ]
             })
             .collation({locale: 'en', strength: 2})

@@ -161,7 +161,6 @@ export default function Home(props: Props): JSX.Element {
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
     )
 
-    // todo figure out how to invalidate the recipeUsersQuery so that it reloads the values
     // const updatePermissionsQuery = useMutation() updateUserPermissionsTo()
     const updatePermissionsQuery = useMutation(
         ['update-recipe-permissions'],
@@ -206,7 +205,8 @@ export default function Home(props: Props): JSX.Element {
     }
 
     /**
-     *
+     * Handles updating the user permissions for the specified recipe with the changes for
+     * each user.
      * @param recipeId The ID to which all the changes refer
      * @param changes A map that associates the principal ID to a list of access rights.
      */
@@ -217,10 +217,10 @@ export default function Home(props: Props): JSX.Element {
                 userId,
                 accessRights: accessRightsFrom(rights)
             }))
-            .map(request => updatePermissionsQuery.mutateAsync(request))
+            .map((request: UpdateRecipesPermissionRequest) => updatePermissionsQuery.mutateAsync(request))
 
         Promise.all(promises)
-            .then(x => queryClient.invalidateQueries(['recipeUsers']))
+            .then(() => queryClient.invalidateQueries(['recipeUsers']))
     }
 
     /**
@@ -241,6 +241,7 @@ export default function Home(props: Props): JSX.Element {
                     "One user has access to this recipe." :
                     `There are ${users.length} users with access to this recipe.`
 
+            const numUsersWithAccess = recipesWithUsers.get(recipeId)?.length || 0
             return (
                 <>
                     <Tooltip
@@ -266,6 +267,7 @@ export default function Home(props: Props): JSX.Element {
                             {users.length > 0 ?
                                 <People sx={{width: 18, height: 18}}/> :
                                 <PeopleOutline sx={{width: 18, height: 18}}/>}
+                            {numUsersWithAccess > 0 && <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>({numUsersWithAccess})</Typography>}
                         </IconButton>
                     </Tooltip>
                 </>
