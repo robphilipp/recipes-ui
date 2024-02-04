@@ -2,7 +2,7 @@ import clientPromise from "./mongodb";
 import {Collection, Filter, Long, MongoClient, ObjectId, WithId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
 import {RecipesUser} from "../components/users/RecipesUser";
-import {RoleLiteral, RoleType} from "../components/users/Role";
+import {RoleLiteral, roleLiteralFrom, RoleType} from "../components/users/Role";
 import {
     permissionFor,
     permissions,

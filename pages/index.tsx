@@ -31,13 +31,20 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
-import {AccessRight, AccessRights, accessRightsFrom, WithPermissions} from "../components/recipes/RecipePermissions";
+import {
+    AccessRight,
+    AccessRights,
+    accessRightsFrom,
+    RecipePermission,
+    WithPermissions
+} from "../components/recipes/RecipePermissions";
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
 import {RoleType} from "../components/users/Role";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
 import {UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
+import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -119,6 +126,7 @@ export default function Home(props: Props): JSX.Element {
         {menuAnchor: null, currentRecipeId: null, tooltipRecipeId: null}
     )
     const [showUsers, setShowUsers] = useState<boolean>(false)
+    const [showAddUser, setShowAddUser] = useState<boolean>(false)
 
     const queryClient = useQueryClient()
 
@@ -476,7 +484,9 @@ export default function Home(props: Props): JSX.Element {
                         <ListItemText onClick={() => {
                             setShowUsers(true)
                             updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-click"})
-                        }}>View/Update users</ListItemText>
+                        }}>
+                            View/Update users
+                        </ListItemText>
                         <Typography variant="body2" color="text.secondary">
                             ({recipesWithUsers.get(recipeUsers.currentRecipeId ?? "")?.length})
                         </Typography>
@@ -484,7 +494,12 @@ export default function Home(props: Props): JSX.Element {
                     <></>}
                 <MenuItem>
                     <ListItemIcon><GroupAdd fontSize="small"/></ListItemIcon>
-                    <ListItemText>Add users</ListItemText>
+                    <ListItemText onClick={() => {
+                        setShowAddUser(true)
+                        updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-click"})
+                    }}>
+                        Give user access
+                    </ListItemText>
                 </MenuItem>
             </Menu>
             <RecipeUsersView
@@ -498,6 +513,20 @@ export default function Home(props: Props): JSX.Element {
                 onSave={(changed: Map<string, Array<AccessRight>>) => {
                     setShowUsers(false)
                     handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
+                    updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
+                }}
+            />
+            <RecipeAddUsersView
+                // recipeName={"recipes"}
+                requester={session.data!.user}
+                open={showAddUser}
+                onClose={() => {
+                    setShowAddUser(false)
+                    updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
+                }}
+                onSave={(permissions: RecipePermission) => {
+                    setShowAddUser(false)
+                    // handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
             />

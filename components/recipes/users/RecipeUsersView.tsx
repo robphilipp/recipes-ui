@@ -32,21 +32,39 @@ type AccessChanges = {
     delete: Action
 }
 
-function calculateChange(oldRights: Array<AccessRight>, newRights: Array<AccessRight>, right: AccessRight): Action {
-    if (oldRights.indexOf(right) === -1 && newRights.indexOf(right) > -1) {
+/**
+ * Calculates whether the {@link accessRight} was added, removed, or neither. The {@link originalRights} holds the
+ * user's rights before any changes were made. The {@link updatedRights} holds the current (unsaved) rights
+ * as updated in the UI.
+ * @param originalRights The user's rights before any changes were made
+ * @param updatedRights The current (unsaved) rights as updated in the UI
+ * @param accessRight The access right for which to determine whether it was added or removed
+ * @return The action (added, removed, or none)
+ */
+function calculateChange(originalRights: Array<AccessRight>, updatedRights: Array<AccessRight>, accessRight: AccessRight): Action {
+    if (originalRights.indexOf(accessRight) === -1 && updatedRights.indexOf(accessRight) > -1) {
         return "added"
     }
-    if (oldRights.indexOf(right) > -1 && newRights.indexOf(right) === -1) {
+    if (originalRights.indexOf(accessRight) > -1 && updatedRights.indexOf(accessRight) === -1) {
         return "removed"
     }
     return "none"
 }
-function calculateChanges(oldRights: Array<AccessRight>, newRights: Array<AccessRight>): AccessChanges {
+
+/**
+ * Calculates the actions (added, removed, none) for each of the {@link originalRights} to get to the
+ * {@link updatedRights}.
+ * @param originalRights The user's original access rights
+ * @param updatedRights The user's update access rights
+ * @return The action applied to each access right to move from the {@link originalRights} to the
+ * {@link updatedRights}.
+ */
+function calculateChanges(originalRights: Array<AccessRight>, updatedRights: Array<AccessRight>): AccessChanges {
     return {
-        create: calculateChange(oldRights, newRights, AccessRight.CREATE),
-        read: calculateChange(oldRights, newRights, AccessRight.READ),
-        update: calculateChange(oldRights, newRights, AccessRight.UPDATE),
-        delete: calculateChange(oldRights, newRights, AccessRight.DELETE)
+        create: calculateChange(originalRights, updatedRights, AccessRight.CREATE),
+        read: calculateChange(originalRights, updatedRights, AccessRight.READ),
+        update: calculateChange(originalRights, updatedRights, AccessRight.UPDATE),
+        delete: calculateChange(originalRights, updatedRights, AccessRight.DELETE)
     }
 }
 

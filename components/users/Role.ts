@@ -16,6 +16,17 @@ export type RoleLiteral = {
     description: string
 }
 
+export function roleLiteralFrom(role: RoleType): RoleLiteral {
+    switch (role) {
+        case RoleType.ADMIN:
+            return ({name: role.valueOf(), description: "RecipeBook admin"})
+        case RoleType.ACCOUNT_ADMIN:
+            return ({name: role.valueOf(), description: "Account admin"})
+        case RoleType.USER:
+            return ({name: role.valueOf(), description: "Regular user"})
+    }
+}
+
 const roles = new Map<RoleType, number>([
     [RoleType.ADMIN, 3],
     [RoleType.ACCOUNT_ADMIN, 2],
