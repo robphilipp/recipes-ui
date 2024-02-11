@@ -838,16 +838,3 @@ export type UserWithPermissions = {
     accessRights: AccessRights
     role: RoleLiteral
 }
-
-/**
- * Updates the users access rights and returns a new {@link UserWithPermissions} object
- * @param user The user to update
- * @param accessRights The new access rights
- * @return a new {@link UserWithPermissions} object with updated access rights
- */
-export function updateAccessRights(user: UserWithPermissions, accessRights: Array<AccessRight>): UserWithPermissions {
-    return {
-        ...user,
-        accessRights: accessRightsFrom(accessRights)
-    }
-}

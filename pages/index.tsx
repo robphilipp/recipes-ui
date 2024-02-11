@@ -31,13 +31,7 @@ import ModeEditIcon from "@mui/icons-material/ModeEdit";
 import Link from 'next/link'
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import RecipeRating from "../components/recipes/RecipeRating";
-import {
-    AccessRight,
-    AccessRights,
-    accessRightsFrom,
-    RecipePermission,
-    WithPermissions
-} from "../components/recipes/RecipePermissions";
+import {AccessRight, AccessRights, accessRightsFrom, WithPermissions} from "../components/recipes/RecipePermissions";
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";

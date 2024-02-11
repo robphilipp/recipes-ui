@@ -1,7 +1,7 @@
 import {RecipesUser} from "../../users/RecipesUser";
-import {updateAccessRights, UserWithPermissions} from "../../../lib/recipes";
+import {UserWithPermissions} from "../../../lib/recipes";
 import React, {JSX, useState} from "react";
-import {AccessRight, AccessRights, accessRightsWith} from "../RecipePermissions";
+import {AccessRight, AccessRights, accessRightsFrom, accessRightsWith} from "../RecipePermissions";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import {Button, Divider, FormControl, FormGroup, styled, TextField} from "@mui/material";
@@ -101,4 +101,17 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
             </DialogActions>
         </Dialog>
     )
+}
+
+/**
+ * Updates the users access rights and returns a new {@link UserWithPermissions} object
+ * @param user The user to update
+ * @param accessRights The new access rights
+ * @return a new {@link UserWithPermissions} object with updated access rights
+ */
+function updateAccessRights(user: UserWithPermissions, accessRights: Array<AccessRight>): UserWithPermissions {
+    return {
+        ...user,
+        accessRights: accessRightsFrom(accessRights)
+    }
 }
