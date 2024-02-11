@@ -524,7 +524,7 @@ export default function Home(props: Props): JSX.Element {
                     setShowAddUser(false)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
-                onSave={(permissions: RecipePermission) => {
+                onSave={(principalId: number, accessRights: AccessRights) => {
                     setShowAddUser(false)
                     // handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})

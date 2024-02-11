@@ -1,30 +1,14 @@
-import {emptyUser, RecipesUser} from "../../users/RecipesUser";
-import {UserWithPermissions} from "../../../lib/recipes";
+import {RecipesUser} from "../../users/RecipesUser";
+import {updateAccessRights, UserWithPermissions} from "../../../lib/recipes";
 import React, {JSX, useState} from "react";
-import {AccessRight, accessRightsWith, RecipePermission} from "../RecipePermissions";
+import {AccessRight, AccessRights, accessRightsWith} from "../RecipePermissions";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
-import {
-    Box, Button,
-    Card,
-    CardContent,
-    CardHeader,
-    Divider, FormControl, FormGroup, InputLabel,
-    List,
-    ListItem,
-    ListItemText, MenuItem, Select,
-    Stack, styled, TextField, ToggleButton,
-    Typography
-} from "@mui/material";
+import {Button, Divider, FormControl, FormGroup, styled, TextField} from "@mui/material";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import {roleAtLeast, roleLiteralFrom, RoleType} from "../../users/Role";
-import CancelIcon from "@mui/icons-material/Cancel";
-import SaveIcon from "@mui/icons-material/Save";
-import axios from "axios";
+import {roleLiteralFrom, RoleType} from "../../users/Role";
 import {emailFormatConstraint} from "../../users/manage/constraints";
-import {EMAIL_EXISTENCE} from "../../users/manage/AddUserForm";
-import useThrottling from "../../../lib/useThrottling";
 import {AccessRightsEditor} from "./AccessRightsEditor";
 
 const UserFormControl = styled(FormControl)(() => ({
@@ -36,7 +20,7 @@ function userWithPermissions(email: string): UserWithPermissions {
         principalId: "",
         name: "",
         email,
-        accessRights: accessRightsWith(false, true, false, false),
+        accessRights: accessRightsWith(false, false, false, false),
         role: roleLiteralFrom(RoleType.USER)
     })
 }
@@ -46,7 +30,7 @@ type Props = {
     requester: RecipesUser
     open: boolean
     onClose: () => void
-    onSave: (permissions: RecipePermission) => void
+    onSave: (principalId: number, accessRights: AccessRights) => void
 }
 
 export function RecipeAddUsersView(props: Props): JSX.Element {
@@ -58,31 +42,24 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
         onSave
     } = props
 
-    const emailThrottle = useThrottling<string>(100, "", "email")
-
     const [emailError, setEmailError] = useState("")
     const [email, setEmail] = useState<string>("")
     const [user, setUser] = useState<UserWithPermissions>(userWithPermissions(email))
 
     function handleSave(): void {
-
+        // onSave()
     }
 
     /**
-     * Throttled handler that checks the validity of the email and reports when
-     * the email already exists in the system, and updates the user (locally) with the
-     * new email.
+     * Handler that checks the validity of the email
      * @param email The email to update
-     * @return An empty {@link Promise}
      */
-    async function handleUpdateEmail(email: string): Promise<void> {
-        emailThrottle(email, async email => {
-            const response = await axios.get(`/api/users?${EMAIL_EXISTENCE}=${email}`)
-            // const error = stringLengthConstraint("email address", email) +
-            const error = emailFormatConstraint(email) +
-                (response.data.exists ? "Email already exists" : "")
-            setEmailError(error)
-        })
+    function handleUpdateEmail(email: string): void {
+        setEmailError(emailFormatConstraint(email))
+    }
+
+    function handleAccessChange(accessRights: Array<AccessRight>): void {
+        setUser(prevUser => updateAccessRights(prevUser, accessRights))
     }
 
     return (
@@ -91,22 +68,21 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
             <Divider/>
             <DialogContent>
                 <FormGroup style={{maxWidth: 300}}>
-                    <UserFormControl>
+                    <UserFormControl style={{paddingBottom: 20}}>
                         <TextField
                             label="Email"
                             error={emailError.length > 0}
                             helperText={emailError.length === 0 ?
-                                "Please enter a unique email address for the new user" :
+                                "Email address of user to add" :
                                 emailError}
                             maxRows={40}
                             onChange={event => handleUpdateEmail(event.target.value)}
                         />
                     </UserFormControl>
-                    {/*{
-                        todo create a permission component, taken from the RecipeUsersView, and then update the
-                             RecipeUsersView to use that component
-                     }*/}
-                    <AccessRightsEditor user={user} onChange={() => {}}/>
+                    <AccessRightsEditor
+                        user={user}
+                        onChange={(_, a, accessRights) => handleAccessChange(accessRights)}
+                    />
                 </FormGroup>
             </DialogContent>
             <DialogActions>

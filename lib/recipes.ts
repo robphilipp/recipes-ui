@@ -2,7 +2,7 @@ import clientPromise from "./mongodb";
 import {Collection, Filter, Long, MongoClient, ObjectId, WithId} from "mongodb";
 import {asRecipe, asRecipeSummary, Recipe, RecipeSummary} from "../components/recipes/Recipe";
 import {RecipesUser} from "../components/users/RecipesUser";
-import {RoleLiteral, roleLiteralFrom, RoleType} from "../components/users/Role";
+import {RoleLiteral, RoleType} from "../components/users/Role";
 import {
     permissionFor,
     permissions,
@@ -11,7 +11,9 @@ import {
     userPrincipalType
 } from "./permissions";
 import {
+    AccessRight,
     AccessRights,
+    accessRightsFrom,
     accessRightsWith,
     fullAccessRights,
     WithPermissions,
@@ -835,4 +837,17 @@ export type UserWithPermissions = {
     email: string
     accessRights: AccessRights
     role: RoleLiteral
+}
+
+/**
+ * Updates the users access rights and returns a new {@link UserWithPermissions} object
+ * @param user The user to update
+ * @param accessRights The new access rights
+ * @return a new {@link UserWithPermissions} object with updated access rights
+ */
+export function updateAccessRights(user: UserWithPermissions, accessRights: Array<AccessRight>): UserWithPermissions {
+    return {
+        ...user,
+        accessRights: accessRightsFrom(accessRights)
+    }
 }

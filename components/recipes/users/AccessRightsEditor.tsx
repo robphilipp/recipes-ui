@@ -1,16 +1,25 @@
 import {Box, Stack, styled, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
-import {AccessRight, accessRightArrayFor, accessRightsEqual, accessRightsWith} from "../RecipePermissions";
+import {AccessRight, accessRightArrayFor, accessRightsEqual} from "../RecipePermissions";
 import React, {useRef, useState} from "react";
 import {UserWithPermissions} from "../../../lib/recipes";
-import {roleLiteralFrom, RoleType} from "../../users/Role";
 
 type Action = "added" | "removed" | "none"
-type AccessChanges = {
+export type AccessChanges = {
     create: Action
     read: Action
     update: Action
     delete: Action
 }
+
+const NO_ACCESS_CHANGES: AccessChanges = {create: "none", read: "none", update: "none", delete: "none"}
+
+export const hasNoAccessChanges = (accessChanges: AccessChanges): boolean =>
+    accessChanges.create === "none" &&
+    accessChanges.read === "none" &&
+    accessChanges.update === "none" &&
+    accessChanges.delete === "none"
+
+export const hasAccessChanges = (accessChanges: AccessChanges): boolean => !hasNoAccessChanges(accessChanges)
 
 /**
  * Calculates whether the {@link accessRight} was added, removed, or neither. The {@link originalRights} holds the
@@ -50,7 +59,7 @@ function calculateChanges(originalRights: Array<AccessRight>, updatedRights: Arr
 
 type Props = {
     user: UserWithPermissions
-    onChange: (changes: AccessChanges, accessRights: Array<AccessRight>) => void
+    onChange: (user: UserWithPermissions, changes: AccessChanges, accessRights: Array<AccessRight>) => void
 }
 
 export function AccessRightsEditor(props: Props): JSX.Element {
@@ -60,24 +69,24 @@ export function AccessRightsEditor(props: Props): JSX.Element {
     const original = useRef<Array<AccessRight>>(accessRightArrayFor(user.accessRights))
     const changes = useRef<AccessChanges>()
     const [access, setAccess] = useState<Array<AccessRight>>(() => accessRightArrayFor(user.accessRights))
-    const [accessChanges, setAccessChanges] = useState(false)
 
     const calculateAccessChanges = (current: Array<AccessRight>): Array<AccessRight>  =>
-        original.current !== undefined && !accessRightsEqual(original.current, current) ? current : original.current
+        original.current !== undefined && !accessRightsEqual(original.current, current) ? current : []
 
-    function handlePermissionChange(event: React.MouseEvent<HTMLElement>, newAccess: Array<AccessRight>, user: UserWithPermissions): void {
+    function handlePermissionChange(newAccess: Array<AccessRight>, user: UserWithPermissions): void {
         changes.current = calculateChanges(original.current!, newAccess)
 
         // set the new access
         setAccess(newAccess)
+
         // calculate if there are any actual changes
-        setAccessChanges(calculateAccessChanges(newAccess).length > 0)
+        const changedAccess = calculateAccessChanges(newAccess).length > 0
 
         // report the changes and new permissions
-        onChange(changes.current, newAccess)
+        onChange(user, changedAccess ? changes.current : NO_ACCESS_CHANGES, newAccess)
     }
 
-    function colorFor(user: UserWithPermissions, permission: "create" | "read" | "update" | "delete"): "green" | "error" | "primary" {
+    function colorFor(permission: "create" | "read" | "update" | "delete"): "green" | "error" | "primary" {
         const change = changes.current
         if (change?.[permission] === "added") return "green"
         if (change?.[permission] === "removed") return "error"
@@ -104,7 +113,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                 <StyledToggleButtonGroup
                     key={`${user.principalId}-toggle-buttons`}
                     value={access}
-                    onChange={(event, newAccess) => handlePermissionChange(event, newAccess, user)}
+                    onChange={(_, newAccess) => handlePermissionChange(newAccess, user)}
                     size="small"
                     sx={{marginLeft: '-5px'}}
                 >
@@ -114,7 +123,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         sx={{textTransform: 'none'}}
                     >
                         <Typography
-                            color={colorFor(user, "read")}
+                            color={colorFor("read")}
                             sx={{fontSize: '1em'}}
                         >
                             Read
@@ -126,7 +135,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         sx={{textTransform: 'none'}}
                     >
                         <Typography
-                            color={colorFor(user, "update")}
+                            color={colorFor("update")}
                             sx={{fontSize: '1em'}}
                         >
                             Update
@@ -138,7 +147,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         sx={{textTransform: 'none'}}
                     >
                         <Typography
-                            color={colorFor(user, "delete")}
+                            color={colorFor("delete")}
                             sx={{fontSize: '1em'}}
                         >
                             Delete
