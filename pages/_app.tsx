@@ -9,6 +9,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {SessionProvider} from "next-auth/react";
 import MainRecipeBookPage, {UnsecuredContent} from "../components/MainRecipeBookPage";
 import {useRouter} from "next/router";
+import ErrorMessagingProvider from "../lib/useErrorMessaging";
 
 const queryClient = new QueryClient()
 
@@ -40,7 +41,9 @@ export default function App(props: AppProps): JSX.Element {
                 <QueryClientProvider client={queryClient}>
                     <SearchProvider>
                         <StatusProvider>
-                            <MainRecipeBookPage {...props}/>
+                            <ErrorMessagingProvider>
+                                <MainRecipeBookPage {...props}/>
+                            </ErrorMessagingProvider>
                         </StatusProvider>
                     </SearchProvider>
                 </QueryClientProvider>

@@ -10,6 +10,7 @@ import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvi
 import {RoleType} from "./users/Role";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
+import {useErrorMessaging} from "../lib/useErrorMessaging";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium

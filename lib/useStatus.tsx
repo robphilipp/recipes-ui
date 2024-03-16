@@ -51,7 +51,7 @@ function noop() {
 const StatusContext = createContext<UseStatusValues>(initialStatusValues)
 
 interface Props {
-    children: JSX.Element | Array<JSX.Element>;
+    children: JSX.Element | Array<JSX.Element>
 }
 
 /**
@@ -71,12 +71,11 @@ export default function StatusProvider(props: Props): JSX.Element {
         if (recipeId === undefined) {
             return false
         }
-        return (ingredientsStatus.get(recipeId)?.size || 0) > 0 ||
-            (stepsStatus.get(recipeId)?.size || 0) > 0
+        return (ingredientsStatus.get(recipeId)?.size ?? 0) > 0 || (stepsStatus.get(recipeId)?.size ?? 0) > 0
     }
 
     /**
-     * Reports whether the specified ingredient, in the specifed recipe, has been selected
+     * Reports whether the specified ingredient, in the specified recipe, has been selected
      * @param recipeId The ID of the recipe
      * @param ingredient The ingredient
      * @return `true` if the recipe's ingredient has been selected; `false` otherwise

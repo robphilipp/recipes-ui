@@ -35,11 +35,11 @@ import {AccessRight, AccessRights, accessRightsFrom, WithPermissions} from "../c
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
-import {roleFrom, RoleType} from "../components/users/Role";
+import {RoleType} from "../components/users/Role";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
 import {AddRecipesPermissionRequest, UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
 import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
-import {emptyUser, RecipesUser} from "../components/users/RecipesUser";
+import {useErrorMessaging} from "../lib/useErrorMessaging";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -114,6 +114,8 @@ export default function Home(props: Props): JSX.Element {
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
+    const errorMessaging = useErrorMessaging()
+
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
 
     const [recipeUsers, updateRecipeUsers] = useReducer(
@@ -181,7 +183,10 @@ export default function Home(props: Props): JSX.Element {
         (request: AddRecipesPermissionRequest) => axios.put(
             '/api/permissions/recipe',
             request
-        ).catch(reason => console.error("email not found", reason))
+        ).catch(reason => {
+            console.error("email not found", reason)
+            errorMessaging.push(`Unable to give user permissions to recipe: reason: ${reason}`)
+        })
     )
 
     if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading ||
@@ -385,7 +390,7 @@ export default function Home(props: Props): JSX.Element {
                     paragraph
                     sx={{fontSize: '0.7em', marginTop: '0.25em'}}
                 >
-                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes
+                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes ({errorMessaging.messages})
                 </Typography>
 
                 {recipes.map(recipe => {

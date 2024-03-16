@@ -1,7 +1,7 @@
 import {RecipesUser} from "../../users/RecipesUser";
 import {UserWithPermissions} from "../../../lib/recipes";
 import React, {JSX, useState} from "react";
-import {AccessRight, AccessRights, accessRightsFrom, accessRightsWith, noAccessRights} from "../RecipePermissions";
+import {AccessRight, AccessRights, accessRightsFrom, noAccessRights} from "../RecipePermissions";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import {Button, Divider, FormControl, FormGroup, styled, TextField} from "@mui/material";
@@ -15,17 +15,12 @@ const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
 }))
 
-// export type EmailWithAccessRights = {
-//     email: string
-//     accessRights: AccessRights
-// }
-
 function userWithPermissions(email: string, accessRights: AccessRights): UserWithPermissions {
     return ({
         principalId: "",
         name: "",
         email,
-        accessRights,//: accessRightsWith(false, false, false, false),
+        accessRights,
         role: roleLiteralFrom(RoleType.USER)
     })
 }
@@ -50,7 +45,6 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
     const [emailError, setEmailError] = useState<string>("")
     const [email, setEmail] = useState<string>("")
     const [accessRights, setAccessRights] = useState<AccessRights>(() => noAccessRights())
-    // const [user, setUser] = useState<UserWithPermissions>(userWithPermissions(email, noAccessRights()))
 
     function handleSave(): void {
         onSave(email, accessRights)
@@ -67,8 +61,6 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
 
     function handleAccessChange(accessRights: Array<AccessRight>): void {
         setAccessRights(accessRightsFrom(accessRights))
-        // setUser(prevUser => userWithPermissions(email, accessRightsFrom(accessRights)))
-        // setUser(prevUser => updateAccessRights(prevUser, accessRights))
     }
 
     return (
@@ -110,17 +102,4 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
             </DialogActions>
         </Dialog>
     )
-}
-
-/**
- * Updates the users access rights and returns a new {@link UserWithPermissions} object
- * @param user The user to update
- * @param accessRights The new access rights
- * @return a new {@link UserWithPermissions} object with updated access rights
- */
-function updateAccessRights(user: UserWithPermissions, accessRights: Array<AccessRight>): UserWithPermissions {
-    return {
-        ...user,
-        accessRights: accessRightsFrom(accessRights)
-    }
 }
