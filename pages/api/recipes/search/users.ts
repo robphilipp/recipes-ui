@@ -35,18 +35,27 @@ export default async function handler(
     }
 
     switch (request.method) {
+        // retrieves the users (with permissions) for the specified recipe
         case RequestMethod.GET: {
             const recipeIds: Array<string> = Array.isArray(request.query.id) ?
                 request.query.id as Array<string> :
                 [request.query.id as string]
-            return fetchUsersPermissionsForRecipes(session.user, recipeIds, request.query.admin === "true")
-                .then(recipePerms => response.status(200).json(recipePerms))
+            const includeAdmins = request.query.admin === "true"
+            const recipeUsers = await fetchUsersPermissionsForRecipes(session.user, recipeIds, includeAdmins)
+            response.status(200).json(recipeUsers)
+            return
+            // return fetchUsersPermissionsForRecipes(session.user, recipeIds, request.query.admin === "true")
+            //     .then(recipePerms => response.status(200).json(recipePerms))
         }
 
+        // retrieves the users (with permissions) for the specified request body
         case RequestMethod.POST: {
             const {recipeIds, includeAdmins} = request.body as UsersRequest
-            return fetchUsersPermissionsForRecipes(session.user, recipeIds, includeAdmins)
-                .then(recipePerms => response.status(200).json(recipePerms))
+            const recipeUsers = await fetchUsersPermissionsForRecipes(session.user, recipeIds, includeAdmins)
+            response.status(200).json(recipeUsers)
+            return
+            // return fetchUsersPermissionsForRecipes(session.user, recipeIds, includeAdmins)
+            //     .then(recipePerms => response.status(200).json(recipePerms))
         }
 
         // case RequestMethod.POST:

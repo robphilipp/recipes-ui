@@ -1,7 +1,7 @@
 import {RecipesUser} from "../../users/RecipesUser";
 import {UserWithPermissions} from "../../../lib/recipes";
 import React, {JSX, useState} from "react";
-import {AccessRight, AccessRights, accessRightsFrom, accessRightsWith} from "../RecipePermissions";
+import {AccessRight, AccessRights, accessRightsFrom, accessRightsWith, noAccessRights} from "../RecipePermissions";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import {Button, Divider, FormControl, FormGroup, styled, TextField} from "@mui/material";
@@ -15,12 +15,17 @@ const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
 }))
 
-function userWithPermissions(email: string): UserWithPermissions {
+// export type EmailWithAccessRights = {
+//     email: string
+//     accessRights: AccessRights
+// }
+
+function userWithPermissions(email: string, accessRights: AccessRights): UserWithPermissions {
     return ({
         principalId: "",
         name: "",
         email,
-        accessRights: accessRightsWith(false, false, false, false),
+        accessRights,//: accessRightsWith(false, false, false, false),
         role: roleLiteralFrom(RoleType.USER)
     })
 }
@@ -30,7 +35,7 @@ type Props = {
     requester: RecipesUser
     open: boolean
     onClose: () => void
-    onSave: (principalId: number, accessRights: AccessRights) => void
+    onSave: (email: string, accessRights: AccessRights) => void
 }
 
 export function RecipeAddUsersView(props: Props): JSX.Element {
@@ -42,12 +47,13 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
         onSave
     } = props
 
-    const [emailError, setEmailError] = useState("")
+    const [emailError, setEmailError] = useState<string>("")
     const [email, setEmail] = useState<string>("")
-    const [user, setUser] = useState<UserWithPermissions>(userWithPermissions(email))
+    const [accessRights, setAccessRights] = useState<AccessRights>(() => noAccessRights())
+    // const [user, setUser] = useState<UserWithPermissions>(userWithPermissions(email, noAccessRights()))
 
     function handleSave(): void {
-        // onSave()
+        onSave(email, accessRights)
     }
 
     /**
@@ -56,10 +62,13 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
      */
     function handleUpdateEmail(email: string): void {
         setEmailError(emailFormatConstraint(email))
+        setEmail(email)
     }
 
     function handleAccessChange(accessRights: Array<AccessRight>): void {
-        setUser(prevUser => updateAccessRights(prevUser, accessRights))
+        setAccessRights(accessRightsFrom(accessRights))
+        // setUser(prevUser => userWithPermissions(email, accessRightsFrom(accessRights)))
+        // setUser(prevUser => updateAccessRights(prevUser, accessRights))
     }
 
     return (
@@ -80,7 +89,7 @@ export function RecipeAddUsersView(props: Props): JSX.Element {
                         />
                     </UserFormControl>
                     <AccessRightsEditor
-                        user={user}
+                        user={userWithPermissions(email, accessRights)}
                         onChange={(_, a, accessRights) => handleAccessChange(accessRights)}
                     />
                 </FormGroup>

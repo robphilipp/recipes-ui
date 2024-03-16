@@ -1,13 +1,20 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {getToken} from "next-auth/jwt";
 import {RequestMethod} from "../../../lib/RequestMethod";
-import {updateUserPermissionsTo} from "../../../lib/permissions";
-import {AccessRights, RecipePermission} from "../../../components/recipes/RecipePermissions";
+import {addPermissionTo, updateUserPermissionsTo} from "../../../lib/permissions";
+import {AccessRights, PrincipalType, RecipePermission} from "../../../components/recipes/RecipePermissions";
+import {userIdFor} from "../../../lib/users";
 
 
 export type UpdateRecipesPermissionRequest = {
     recipeId: string
     userId: string
+    accessRights: AccessRights
+}
+
+export type AddRecipesPermissionRequest = {
+    recipeId: string
+    email: string
     accessRights: AccessRights
 }
 
@@ -30,11 +37,33 @@ export default async function handler(
     }
 
     switch (request.method) {
-        // update permissions
-        case RequestMethod.POST:
+        // update permissions for a user that already has access to the recipe
+        // case RequestMethod.POST: {
+        case RequestMethod.PATCH: {
             const {recipeId, userId, accessRights} = request.body as UpdateRecipesPermissionRequest
-            return updateUserPermissionsTo(recipeId, userId, accessRights)
-                .then(perms => response.status(200).json(perms))
+            const permissions = await updateUserPermissionsTo(recipeId, userId, accessRights)
+            response.status(200).json(permissions)
+            return
+        }
+
+        // add permissions to a user that doesn't already have access
+        case RequestMethod.PUT: {
+            const {recipeId, email, accessRights} = request.body as AddRecipesPermissionRequest
+            const userId = await userIdFor(email)
+            if (userId === undefined || userId === null || userId === '') {
+                return Promise.reject(`No user found for specified email; email: ${email}; recipe_id" ${recipeId}`)
+            }
+            const permission: RecipePermission = {
+                recipeId,
+                principalId: userId,
+                principal: PrincipalType.USER,
+                accessRights
+            }
+            const updatedPermissions = await addPermissionTo(permission)
+            response.status(200).json(updatedPermissions)
+            return
+        }
+
 
         default:
             return Promise.reject(`Unsupported HTTP method for permissions: method: ${request.method}; url: ${request.url}`)

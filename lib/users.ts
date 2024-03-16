@@ -235,6 +235,25 @@ function splitIdsFromEmails(idEmails: Array<EmailId>): [ids: Array<string>, emai
     )
 }
 
+export async function userIdFor(email: string): Promise<string> {
+    try {
+        const client: MongoClient = await clientPromise
+
+        // grab the user associated with each email address
+        const user = await usersCollection(client).findOne({email: email})
+        if (user === undefined || user === null) {
+            const message = `Unable to find user; email: ${email}`
+            console.error(message)
+            return Promise.reject(message)
+        }
+        return user._id.toString()
+    } catch (e) {
+        const message = `Unable to find user (with exception); email: ${email}`
+        console.error(message, e)
+        return Promise.reject(message)
+    }
+}
+
 /**
  * Attempts to find the user IDs for the specified array of emails. Returns a result
  * object that holds a list of (email, ID) tuples for all the users associated with the

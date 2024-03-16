@@ -35,10 +35,11 @@ import {AccessRight, AccessRights, accessRightsFrom, WithPermissions} from "../c
 import {RecipesWithUsers} from "./api/recipes/search/users";
 import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
-import {RoleType} from "../components/users/Role";
+import {roleFrom, RoleType} from "../components/users/Role";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
-import {UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
+import {AddRecipesPermissionRequest, UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
 import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
+import {emptyUser, RecipesUser} from "../components/users/RecipesUser";
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -163,25 +164,43 @@ export default function Home(props: Props): JSX.Element {
         (recipeId: string) => axios.delete(`/api/recipes/${recipeId}`)
     )
 
-    // const updatePermissionsQuery = useMutation() updateUserPermissionsTo()
+    // updates the permissions for an existing user on that recipe
     const updatePermissionsQuery = useMutation(
         ['update-recipe-permissions'],
-        (request: UpdateRecipesPermissionRequest) => axios.post(
+        (request: UpdateRecipesPermissionRequest) => axios.patch(
             '/api/permissions/recipe',
             request
         )
     )
 
-    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading || recipeUsersQuery.isLoading || updatePermissionsQuery.isLoading) {
+    // todo display and error message
+    // adds permissions for the user on the specified recipe (user shouldn't already
+    // have permissions on this recipe)
+    const addUserPermissionsQuery = useMutation(
+        ['add-recipe-user'],
+        (request: AddRecipesPermissionRequest) => axios.put(
+            '/api/permissions/recipe',
+            request
+        ).catch(reason => console.error("email not found", reason))
+    )
+
+    if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading ||
+        recipeUsersQuery.isLoading || updatePermissionsQuery.isLoading || addUserPermissionsQuery.isLoading) {
         return <span>Loading...</span>
     }
-    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError || recipeUsersQuery.isError || updatePermissionsQuery.isError) {
+    if (countQuery.isError || recipesQuery.isError || deleteQuery.isError ||
+        recipeUsersQuery.isError || updatePermissionsQuery.isError || addUserPermissionsQuery.isError) {
         return <span>
             {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
             {deleteQuery.isError ? <span>Delete Recipe Error: {(deleteQuery.error as Error).message}</span> : <span/>}
             {recipeUsersQuery.isError ?
                 <span>Recipe Users-Permissions Error: {(recipeUsersQuery.error as Error).message}</span> : <span/>}
+            {updatePermissionsQuery.isError ?
+                <span>Update recipes-user permission error: {(updatePermissionsQuery.error as Error).message}</span> :
+                <span/>}
+            {addUserPermissionsQuery.isError ?
+                <span>Add recipes-user error: {(addUserPermissionsQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
@@ -222,6 +241,16 @@ export default function Home(props: Props): JSX.Element {
             .map((request: UpdateRecipesPermissionRequest) => updatePermissionsQuery.mutateAsync(request))
 
         Promise.all(promises)
+            .then(() => queryClient.invalidateQueries(['recipeUsers']))
+    }
+
+    function handleAddUserToRecipe(recipeId: string, email: string, accessRights: AccessRights): void {
+        const request: AddRecipesPermissionRequest = {
+            email,
+            recipeId,
+            accessRights: accessRights
+        }
+        addUserPermissionsQuery.mutateAsync(request)
             .then(() => queryClient.invalidateQueries(['recipeUsers']))
     }
 
@@ -269,7 +298,8 @@ export default function Home(props: Props): JSX.Element {
                             {users.length > 0 ?
                                 <People sx={{width: 18, height: 18}}/> :
                                 <PeopleOutline sx={{width: 18, height: 18}}/>}
-                            {numUsersWithAccess > 0 && <Typography sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>({numUsersWithAccess})</Typography>}
+                            {numUsersWithAccess > 0 && <Typography
+                                sx={{fontSize: '0.7em', marginTop: '-0.2em'}}>({numUsersWithAccess})</Typography>}
                         </IconButton>
                     </Tooltip>
                 </>
@@ -518,9 +548,9 @@ export default function Home(props: Props): JSX.Element {
                     setShowAddUser(false)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
-                onSave={(principalId: number, accessRights: AccessRights) => {
+                onSave={(email: string, accessRights: AccessRights) => {
                     setShowAddUser(false)
-                    // handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
+                    handleAddUserToRecipe(recipeUsers.currentRecipeId!, email, accessRights)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
             />
