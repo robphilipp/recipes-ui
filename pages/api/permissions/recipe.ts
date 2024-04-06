@@ -12,6 +12,11 @@ export type UpdateRecipesPermissionRequest = {
     accessRights: AccessRights
 }
 
+export type RemoveUserRecipePermissionsRequest = {
+    recipeId: string
+    userId: string
+}
+
 export type AddRecipesPermissionRequest = {
     recipeId: string
     email: string
@@ -63,7 +68,6 @@ export default async function handler(
             response.status(200).json(updatedPermissions)
             return
         }
-
 
         default:
             return Promise.reject(`Unsupported HTTP method for permissions: method: ${request.method}; url: ${request.url}`)

@@ -37,7 +37,11 @@ import {UserWithPermissions} from "../lib/recipes";
 import {useSession} from "next-auth/react";
 import {RoleType} from "../components/users/Role";
 import RecipeUsersView from "../components/recipes/users/RecipeUsersView";
-import {AddRecipesPermissionRequest, UpdateRecipesPermissionRequest} from "./api/permissions/recipe";
+import {
+    AddRecipesPermissionRequest,
+    RemoveUserRecipePermissionsRequest,
+    UpdateRecipesPermissionRequest
+} from "./api/permissions/recipe";
 import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
 import {useErrorMessaging} from "../lib/useErrorMessaging";
 
@@ -175,6 +179,13 @@ export default function Home(props: Props): JSX.Element {
         )
     )
 
+    const removeUserPermissionsQuery = useMutation(
+        ['remove-recipe-permissions'],
+        ({recipeId, userId}: RemoveUserRecipePermissionsRequest) => axios.delete(
+            `/api/permissions/recipes/${recipeId}/${userId}`
+        )
+    )
+
     // todo display and error message
     // adds permissions for the user on the specified recipe (user shouldn't already
     // have permissions on this recipe)
@@ -190,11 +201,15 @@ export default function Home(props: Props): JSX.Element {
     )
 
     if (countQuery.isLoading || recipesQuery.isLoading || deleteQuery.isLoading ||
-        recipeUsersQuery.isLoading || updatePermissionsQuery.isLoading || addUserPermissionsQuery.isLoading) {
+        recipeUsersQuery.isLoading || updatePermissionsQuery.isLoading || addUserPermissionsQuery.isLoading ||
+        removeUserPermissionsQuery.isLoading
+    ) {
         return <span>Loading...</span>
     }
     if (countQuery.isError || recipesQuery.isError || deleteQuery.isError ||
-        recipeUsersQuery.isError || updatePermissionsQuery.isError || addUserPermissionsQuery.isError) {
+        recipeUsersQuery.isError || updatePermissionsQuery.isError || addUserPermissionsQuery.isError ||
+        removeUserPermissionsQuery.isError
+    ) {
         return <span>
             {countQuery.isError ? <span>Count Error: {(countQuery.error as Error).message}</span> : <span/>}
             {recipesQuery.isError ? <span>Recipes Error: {(recipesQuery.error as Error).message}</span> : <span/>}
@@ -206,6 +221,8 @@ export default function Home(props: Props): JSX.Element {
                 <span/>}
             {addUserPermissionsQuery.isError ?
                 <span>Add recipes-user error: {(addUserPermissionsQuery.error as Error).message}</span> : <span/>}
+            {removeUserPermissionsQuery.isError ?
+                <span>Remove user permissions from recipe error: {(removeUserPermissionsQuery.error as Error).message}</span> : <span/>}
         </span>
     }
 
@@ -247,6 +264,22 @@ export default function Home(props: Props): JSX.Element {
 
         Promise.all(promises)
             .then(() => queryClient.invalidateQueries(['recipeUsers']))
+    }
+
+    /**
+     * Handles removing user from having access to a recipe
+     * @param recipeId The ID of the recipe for which to remove the users
+     * @param removed An array holding the principal IDs of users to remove
+     */
+    function handleRemoveUserPermissions(recipeId: string, removed: Array<string>): void {
+        const promises = Array.from(removed)
+            .map(userId => removeUserPermissionsQuery.mutate({recipeId, userId}))
+
+        Promise.all(promises)
+            .then(async () => {
+                await queryClient.invalidateQueries(['recipes', accumulated])
+                await queryClient.invalidateQueries(['recipeUsers'])
+            })
     }
 
     function handleAddUserToRecipe(recipeId: string, email: string, accessRights: AccessRights): void {
@@ -539,14 +572,14 @@ export default function Home(props: Props): JSX.Element {
                     setShowUsers(false)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
-                onSave={(changed: Map<string, Array<AccessRight>>) => {
+                onSave={(changed: Map<string, Array<AccessRight>>, removed: Array<string>) => {
                     setShowUsers(false)
                     handleUpdatePermissions(recipeUsers.currentRecipeId!, changed)
+                    handleRemoveUserPermissions(recipeUsers.currentRecipeId!, removed)
                     updateRecipeUsers({recipeId: null, eventSource: null, event: "menu-close"})
                 }}
             />
             <RecipeAddUsersView
-                // recipeName={"recipes"}
                 requester={session.data!.user}
                 open={showAddUser}
                 onClose={() => {

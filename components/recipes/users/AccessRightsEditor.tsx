@@ -58,13 +58,14 @@ function calculateChanges(originalRights: Array<AccessRight>, updatedRights: Arr
 }
 
 type Props = {
+    disabled?: boolean
     user: UserWithPermissions
     onChange: (user: UserWithPermissions, changes: AccessChanges, accessRights: Array<AccessRight>) => void
 }
 
 export function AccessRightsEditor(props: Props): JSX.Element {
 
-    const {user, onChange} = props
+    const {disabled = false, user, onChange} = props
 
     const original = useRef<Array<AccessRight>>(accessRightArrayFor(user.accessRights))
     const changes = useRef<AccessChanges>()
@@ -121,6 +122,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         value={AccessRight.READ}
                         aria-label="read"
                         sx={{textTransform: 'none'}}
+                        disabled={disabled}
                     >
                         <Typography
                             color={colorFor("read")}
@@ -133,6 +135,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         value={AccessRight.UPDATE}
                         aria-label="update"
                         sx={{textTransform: 'none'}}
+                        disabled={disabled}
                     >
                         <Typography
                             color={colorFor("update")}
@@ -145,6 +148,7 @@ export function AccessRightsEditor(props: Props): JSX.Element {
                         value={AccessRight.DELETE}
                         aria-label="delete"
                         sx={{textTransform: 'none'}}
+                        disabled={disabled}
                     >
                         <Typography
                             color={colorFor("delete")}
