@@ -7,41 +7,24 @@ import {createContext, JSX, useContext, useState} from "react";
 interface UseErrorMessageValues {
     readonly messages: Array<string>
 
-    push(message: string): UseErrorMessageValues
+    push: (message: string) => void
 
-    pop(): UseErrorMessageValues
+    pop: () => string | undefined
 
-    set(messages: Array<string>): UseErrorMessageValues
+    set: (messages: Array<string>) => void
 
-    remove(index: number): UseErrorMessageValues
+    remove: (index: number) => void
 
-    clear(): UseErrorMessageValues
+    clear: () => void
 }
 
 const initialErrorMessages: UseErrorMessageValues = {
     messages: [],
-    push: function (message: string): UseErrorMessageValues {
-        this.messages.push(message)
-        return this
-    },
-    pop: function (): UseErrorMessageValues {
-        this.messages.pop()
-        return this
-    },
-    set: function (messages: Array<string>): UseErrorMessageValues {
-        this.messages = messages
-        return this
-    },
-    remove: function (index: number): UseErrorMessageValues {
-        if (index < this.messages.length) {
-            this.messages.splice(index, 1)
-        }
-        return this
-    },
-    clear: function (): UseErrorMessageValues {
-        this.messages = []
-        return this
-    }
+    push: message => {},
+    pop: () => undefined,
+    set: messages => {},
+    remove: _ => "",
+    clear: () => {}
 }
 
 type Props = {
@@ -52,7 +35,32 @@ const ErrorMessagingContext = createContext<UseErrorMessageValues>(initialErrorM
 
 export default function ErrorMessagingProvider(props: Props): JSX.Element {
     const [messages, setMessages] = useState<Array<string>>([])
-    return <ErrorMessagingContext.Provider value={{...initialErrorMessages, messages: messages}}>
+
+    function push(message: string): void {
+        setMessages(prev => [...prev, message])
+    }
+
+    function pop(): string | undefined {
+        const message = messages.pop()
+        setMessages(messages.slice())
+        return message
+    }
+
+    function set(messages: Array<string>): void {
+        setMessages(messages)
+    }
+
+    function remove(index: number): void {
+        if (index < messages.length) {
+            messages.splice(index, 1)
+            setMessages(messages.slice())
+        }
+    }
+
+    function clear(): void {
+        setMessages([])
+    }
+    return <ErrorMessagingContext.Provider value={{push, pop, set, remove, clear, messages}}>
         {props.children}
     </ErrorMessagingContext.Provider>
 }

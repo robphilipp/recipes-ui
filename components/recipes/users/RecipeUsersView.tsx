@@ -22,7 +22,7 @@ import DialogActions from "@mui/material/DialogActions";
 import {RecipesUser} from "../../users/RecipesUser";
 import {RoleType} from "../../users/Role";
 import {AccessChanges, AccessRightsEditor, hasAccessChanges} from "./AccessRightsEditor";
-import {DeleteOutlineRounded, DeleteRounded, Restore} from "@mui/icons-material";
+import {DeleteRounded, Restore} from "@mui/icons-material";
 
 type Props = {
     requester: RecipesUser
