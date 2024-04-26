@@ -11,9 +11,7 @@ import {
     userPrincipalType
 } from "./permissions";
 import {
-    AccessRight,
     AccessRights,
-    accessRightsFrom,
     accessRightsWith,
     fullAccessRights,
     WithPermissions,
@@ -729,9 +727,6 @@ export async function usersPermissionsForRecipes(
     includeAdmins: boolean = false
 ): Promise<Map<string, Array<UserWithPermissions>>> {
     // for non-admin requesters, filter out any recipes they don't own. admins can see all recipes
-    // const accessibleRecipes = (await isUserAdmin(requester.id)) ?
-    //     recipeIds :
-    //     await filterRecipesOwnedBy(requester.id, recipeIds)
     const isAdmin = await isUserAdmin(requester.id)
     const accessibleRecipes = isAdmin ?
         recipeIds :

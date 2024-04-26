@@ -425,9 +425,7 @@ export default function Home(props: Props): JSX.Element {
                     paragraph
                     sx={{fontSize: '0.7em', marginTop: '0.25em'}}
                 >
-                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes {errorMessaging.notifications.length > 0 ?
-                        `${errorMessaging.notifications} ${pluralize('error', Math.max(1, errorMessaging.notifications.length))}` :
-                    ''}
+                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes
                 </Typography>
 
                 {recipes.map(recipe => {
