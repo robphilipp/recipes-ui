@@ -1,4 +1,4 @@
-import {Box, CssBaseline, Toolbar, Typography} from "@mui/material";
+import {Box, CssBaseline, IconButton, Toolbar, Tooltip, Typography} from "@mui/material";
 import {Header} from "./Header";
 import React, {JSX} from "react";
 import {AppProps} from "next/app";
@@ -10,7 +10,9 @@ import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvi
 import {RoleType} from "./users/Role";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
-import {useErrorMessaging} from "../lib/useErrorMessaging";
+import {Notification, useNotifications} from "../lib/useNotifications";
+import {ErrorOutline} from "@mui/icons-material";
+import pluralize from "pluralize";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -78,6 +80,32 @@ export function UnsecuredContent(props: ContentProps): JSX.Element {
     )
 }
 
+function Notifications(): JSX.Element {
+    const {notifications, numErrors, numWarnings, numInfo} = useNotifications()
+
+    if (notifications.length > 0) {
+        const errors = numErrors()
+        const warnings = numWarnings()
+        const infos = numInfo()
+
+
+
+        const messages: Array<string> = []
+        if (errors > 0) messages.push(`${errors} ${pluralize("error", errors)}`)
+        if (warnings > 0) messages.push(`${warnings} ${pluralize("warnings", warnings)}`)
+        if (infos > 0) messages.push(`${infos} ${pluralize("info", infos)}`)
+
+        return (
+            <Tooltip title={messages.join(";")}>
+                <IconButton aria-label="Notifications" sx={{color: 'red'}}>
+                    <ErrorOutline/>
+                </IconButton>
+            </Tooltip>
+        )
+    }
+    return <div/>
+}
+
 export function SecuredContent(props: ContentProps): JSX.Element {
     const {children} = props
 
@@ -93,6 +121,7 @@ export function SecuredContent(props: ContentProps): JSX.Element {
                 titleImageAlt="City Year"
             >
                 <RecipeSearch/>
+                <Notifications/>
                 <UserProfileMenu status={status} role={role}/>
             </Header>
             <SideNavigation

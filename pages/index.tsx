@@ -43,7 +43,9 @@ import {
     UpdateRecipesPermissionRequest
 } from "./api/permissions/recipe";
 import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
-import {useErrorMessaging} from "../lib/useErrorMessaging";
+import {newErrorNotification, useNotifications} from "../lib/useNotifications";
+import pluralize from 'pluralize'
+
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
 //
@@ -118,7 +120,7 @@ export default function Home(props: Props): JSX.Element {
     const {accumulated, deleteAccumulated} = useSearch()
     const {inProgress} = useStatus()
 
-    const errorMessaging = useErrorMessaging()
+    const errorMessaging = useNotifications()
 
     const [confirmDelete, setConfirmDelete] = useState<Array<string>>([])
 
@@ -196,7 +198,7 @@ export default function Home(props: Props): JSX.Element {
             request
         ).catch(reason => {
             console.error("email not found", reason)
-            errorMessaging.push(`Unable to give user permissions to recipe: reason: ${reason}`)
+            errorMessaging.push(newErrorNotification(`Unable to give user permissions to recipe: reason: ${reason}`))
         })
     )
 
@@ -423,7 +425,9 @@ export default function Home(props: Props): JSX.Element {
                     paragraph
                     sx={{fontSize: '0.7em', marginTop: '0.25em'}}
                 >
-                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes ({errorMessaging.messages})
+                    Showing {recipes.length} of {countQuery?.data?.data || 0} recipes {errorMessaging.notifications.length > 0 ?
+                        `${errorMessaging.notifications} ${pluralize('error', Math.max(1, errorMessaging.notifications.length))}` :
+                    ''}
                 </Typography>
 
                 {recipes.map(recipe => {

@@ -3,6 +3,7 @@ import React, {JSX} from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import {useSearch} from "../../lib/useSearch";
 import {useRouter} from "next/router";
+import {newInfoNotification, useNotifications} from "../../lib/useNotifications";
 
 
 /**
@@ -15,10 +16,12 @@ export default function RecipeSearch(): JSX.Element {
         current,
         updateCurrent,
         clearCurrent,
-        addAccumulated
+        addAccumulated,
+        accumulated
     } = useSearch()
 
     const router = useRouter()
+    const notifications = useNotifications()
 
     async function handleKeyPress(event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): Promise<void> {
         switch (event.key) {
@@ -26,6 +29,7 @@ export default function RecipeSearch(): JSX.Element {
                 if (current !== undefined) {
                     addAccumulated(current)
                     clearCurrent()
+                    notifications.push(newInfoNotification(`Found ${accumulated.length}`))
                 }
                 await router.push("/")
                 break

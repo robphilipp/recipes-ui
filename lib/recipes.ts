@@ -729,7 +729,11 @@ export async function usersPermissionsForRecipes(
     includeAdmins: boolean = false
 ): Promise<Map<string, Array<UserWithPermissions>>> {
     // for non-admin requesters, filter out any recipes they don't own. admins can see all recipes
-    const accessibleRecipes = (await isUserAdmin(requester.id)) ?
+    // const accessibleRecipes = (await isUserAdmin(requester.id)) ?
+    //     recipeIds :
+    //     await filterRecipesOwnedBy(requester.id, recipeIds)
+    const isAdmin = await isUserAdmin(requester.id)
+    const accessibleRecipes = isAdmin ?
         recipeIds :
         await filterRecipesOwnedBy(requester.id, recipeIds)
 
@@ -788,10 +792,28 @@ export async function usersPermissionsForRecipes(
                 doc.users.map((user: RecipeUserPermissions) => asRecipeWithUserPermissions(user))
             ] as [string, Array<UserWithPermissions>])
             .toArray()
+
+        // when no users are found, and the requester is not an admin, then we have an issue
         if (userPerms === undefined || userPerms === null || userPerms.length < 1) {
+            // no users were found that have permissions to the recipes, but if the requesting
+            // user is an admin, then we still want to show the recipes
+            if (isAdmin) {
+                const user = {
+                    principalId: "admin",
+                    name: requester.name ?? "",
+                    email: requester.email ?? "",
+                    accessRights: fullAccessRights(),
+                    role: requester.role
+                } as UserWithPermissions
+                return new Map(recipeIds.map((recipeId) => ([recipeId, includeAdmins ? [user] : []])))
+            }
+            // if requester is not an admin, then we must fail
             return Promise.reject(`Unable to find users with permissions for specified recipes; recipe_ids: [${recipeIds.join(", ")}]`)
         }
 
+        // if we are to include admins in the list of users that have access to each
+        // recipe, then we need to add each admin user to the list of users for each
+        // recipe
         if (includeAdmins) {
             const admins = await adminUsers()
             userPerms.forEach(([_, users]) => {

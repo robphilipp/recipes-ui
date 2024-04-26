@@ -9,7 +9,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {SessionProvider} from "next-auth/react";
 import MainRecipeBookPage, {UnsecuredContent} from "../components/MainRecipeBookPage";
 import {useRouter} from "next/router";
-import ErrorMessagingProvider from "../lib/useErrorMessaging";
+import ErrorMessagingProvider from "../lib/useNotifications";
 
 const queryClient = new QueryClient()
 
