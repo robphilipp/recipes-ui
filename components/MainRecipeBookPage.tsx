@@ -13,6 +13,7 @@ import {useRouter} from "next/router";
 import {Notification, useNotifications} from "../lib/useNotifications";
 import {ErrorOutline} from "@mui/icons-material";
 import pluralize from "pluralize";
+import Notifications from "./notifications/Notifications";
 
 const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
 const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
@@ -78,32 +79,6 @@ export function UnsecuredContent(props: ContentProps): JSX.Element {
             </Box>
         </Box>
     )
-}
-
-function Notifications(): JSX.Element {
-    const {notifications, numErrors, numWarnings, numInfo} = useNotifications()
-
-    if (notifications.length > 0) {
-        const errors = numErrors()
-        const warnings = numWarnings()
-        const infos = numInfo()
-
-
-
-        const messages: Array<string> = []
-        if (errors > 0) messages.push(`${errors} ${pluralize("error", errors)}`)
-        if (warnings > 0) messages.push(`${warnings} ${pluralize("warnings", warnings)}`)
-        if (infos > 0) messages.push(`${infos} ${pluralize("info", infos)}`)
-
-        return (
-            <Tooltip title={messages.join(";")}>
-                <IconButton aria-label="Notifications" sx={{color: 'red'}}>
-                    <ErrorOutline/>
-                </IconButton>
-            </Tooltip>
-        )
-    }
-    return <div/>
 }
 
 export function SecuredContent(props: ContentProps): JSX.Element {
