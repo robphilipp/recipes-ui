@@ -1,0 +1,65 @@
+# sets up a docker container for the application, a mongo replica set consisting
+# of one node, and migrates the mongo recipe schema to the current version.
+services:
+
+  app:
+    image: node:alpine
+    # install all the dependencies and start the dev server
+    command: sh -c "npm install && npm run dev"
+    build: .
+    ports:
+      - 127.0.0.1:8081:3000
+    working_dir: /usr/app
+    volumes:
+      - ./:/usr/app
+#    environment:
+
+  # set up the mongo cluster
+  mongo1:
+    image: mongo:6
+    hostname: mongo1
+    container_name: mongo1
+    ports:
+      - 27027:27017
+    volumes:
+      - mongo-1-data:/data/db
+    restart: unless-stopped
+    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo1"]
+
+  mongo2:
+    image: mongo:6
+    hostname: mongo2
+    container_name: mongo2
+    ports:
+      - 27028:27017
+    volumes:
+      - mongo-2-data:/data/db
+    restart: unless-stopped
+    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
+
+  mongo3:
+    image: mongo:6
+    hostname: mongo3
+    container_name: mongo3
+    ports:
+      - 27029:27017
+    volumes:
+      - mongo-3-data:/data/db
+    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
+
+  mongosetup:
+    image: mongo:6
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    volumes:
+      - .:/scripts
+    restart: "no"
+    entrypoint: [ "bash", "/scripts/mongo_setup.sh"]
+
+volumes:
+  #   todo-mysql-data:
+  mongo-1-data:
+  mongo-2-data:
+  mongo-3-data:
