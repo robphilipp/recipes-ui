@@ -12,8 +12,8 @@ const TitleImage = styled('img')({
 })
 
 type Props = {
-    smallRightOffset?: string
-    mediumRightOffset?: string
+    smallRightOffset?: number
+    mediumRightOffset?: number
     titleImageSrc: string
     titleImageAlt?: string
     titleImageLink?: string

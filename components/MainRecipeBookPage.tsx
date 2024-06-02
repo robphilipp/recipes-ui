@@ -1,4 +1,4 @@
-import {Box, CssBaseline, IconButton, Toolbar, Tooltip, Typography} from "@mui/material";
+import {Box, CssBaseline, Toolbar, Typography} from "@mui/material";
 import {Header} from "./Header";
 import React, {JSX} from "react";
 import {AppProps} from "next/app";
@@ -10,14 +10,12 @@ import RecipeSessionProvider, {useRecipeSession} from "../lib/RecipeSessionProvi
 import {RoleType} from "./users/Role";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
-import {Notification, useNotifications} from "../lib/useNotifications";
-import {ErrorOutline} from "@mui/icons-material";
-import pluralize from "pluralize";
 import Notifications from "./notifications/Notifications";
 
-const SMALL_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthSmall
-const MEDIUM_SIDEBAR_NAV_WIDTH = process.env.sidebarNavWidthMedium
-const UNSECURED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
+const SMALL_SIDEBAR_NAV_WIDTH = parseInt(process.env.sidebarNavWidthSmall as string)
+const MEDIUM_SIDEBAR_NAV_WIDTH = parseInt(process.env.sidebarNavWidthMedium as string)
+const UNSECURED_CONTENT = (process.env.unauthenticated ?? "").split(",").map(path => path.trim())
+// const UNSECURED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
 export const isUnsecuredContent = (path: string) => UNSECURED_CONTENT.find(openPage => openPage === path)
 
 export default function MainRecipeBookPage(props: AppProps): JSX.Element {
@@ -61,8 +59,8 @@ export function UnsecuredContent(props: ContentProps): JSX.Element {
         <Box sx={{display: 'flex'}}>
             <CssBaseline/>
             <Header
-                smallRightOffset='0px'
-                mediumRightOffset='0px'
+                smallRightOffset={0}
+                mediumRightOffset={0}
                 titleImageSrc="/images/goodoletimes.png"
                 titleImageAlt="City Year"
             />
@@ -109,8 +107,8 @@ export function SecuredContent(props: ContentProps): JSX.Element {
                     flexGrow: 1,
                     p: 3,
                     width: {
-                        sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH}px)`,
-                        md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH}px)`,
+                        sm: `calc(100% - ${SMALL_SIDEBAR_NAV_WIDTH})`,
+                        md: `calc(100% - ${MEDIUM_SIDEBAR_NAV_WIDTH})`,
                     }
                 }}
             >

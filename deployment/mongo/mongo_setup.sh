@@ -1,4 +1,5 @@
 #!/bin/bash
+sleep 10
 mongosh --host mongo1:27017 <<EOF
   rs.initiate({
     "_id": "recipesReplicaSet",
@@ -22,3 +23,9 @@ mongosh --host mongo1:27017 <<EOF
     ]
   });
 EOF
+
+# todo this needs to go on to the app server
+# migrate mongo recipe schema to the latest version
+#cd /usr/app/dbmigrations; migrate-mongo up
+#cd /deployment/dbmigrations; migrate-mongo up
+

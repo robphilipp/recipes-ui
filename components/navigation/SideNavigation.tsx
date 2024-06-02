@@ -25,8 +25,8 @@ import {useSession} from "next-auth/react";
 import {RoleType} from "../users/Role";
 
 type Props = {
-    smallWidth?: string
-    mediumWidth?: string
+    smallWidth?: number
+    mediumWidth?: number
 }
 export default function SideNavigation(props: Props): JSX.Element {
 

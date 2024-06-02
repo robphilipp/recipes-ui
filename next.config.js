@@ -7,7 +7,7 @@ module.exports = {
 
         scheme: 'http',
         host: 'localhost',
-        port: 3000,
+        port: "3000",
         recipesApi: '/rest/v1/recipes',
         // recipesApi: 'http://localhost:9090/rest/v1/recipes',
 
@@ -43,15 +43,16 @@ module.exports = {
 
 
         // routes that are not authenticated
-        unauthenticated: [
-            "/passwords/token/[id]",
-            "/passwords/email/[id]",
-            "/login",
-            // "/auth/callback/recipes-provider-mongo-credentials",
-        ],
+        unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
+        // unauthenticated: [
+        //     "/passwords/token/[id]",
+        //     "/passwords/email/[id]",
+        //     "/login",
+        //     // "/auth/callback/recipes-provider-mongo-credentials",
+        // ],
 
         // layout information
-        sidebarNavWidthSmall: 180,
-        sidebarNavWidthMedium: 250,
+        sidebarNavWidthSmall: "180",
+        sidebarNavWidthMedium: "250",
     },
 }

@@ -7,7 +7,7 @@ module.exports = {
 
         scheme: 'http',
         host: 'localhost',
-        port: 3000,
+        port: "8081",
         recipesApi: '/rest/v1/recipes',
 
         MONGODB_URI: 'mongodb://mongo1:27017',
@@ -48,7 +48,7 @@ module.exports = {
         ],
 
         // layout information
-        sidebarNavWidthSmall: 180,
-        sidebarNavWidthMedium: 250,
+        sidebarNavWidthSmall: "180",
+        sidebarNavWidthMedium: "250",
     },
 }
