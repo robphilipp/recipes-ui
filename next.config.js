@@ -1,58 +1,170 @@
-module.exports = {
-    env: {
-        version: '0.4.2-snapshot',
+const { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_SERVER } = require('next/constants')
 
-        siteName: 'City Recipes',
-        bookTitle: "City Recipes",
+module.exports = (phase, { defaultConfig }) => {
+    if (phase === PHASE_DEVELOPMENT_SERVER) {
+        return {
+            env: {
+                version: '0.4.2-snapshot',
 
-        scheme: 'http',
-        host: 'localhost',
-        port: "3000",
-        recipesApi: '/rest/v1/recipes',
-        // recipesApi: 'http://localhost:9090/rest/v1/recipes',
+                siteName: 'City Recipes',
+                bookTitle: "City Recipes",
 
-        MONGODB_URI: 'mongodb://localhost:27017',
-        mongoDatabase: 'recipeBook',
+                scheme: 'http',
+                host: 'localhost',
+                port: "3000",
+                recipesApi: '/rest/v1/recipes',
 
-        // mongo collection that the actual recipes
-        recipeCollection: 'recipes',
+                MONGODB_URI: 'mongodb://localhost:27017',
+                mongoDatabase: 'recipeBook',
 
-        // mongo collection that holds the recipe book users
-        usersCollection: 'users',
-        // mongo collection that holds the recipe book roles
-        // (admin, account admin, user)
-        rolesCollection: 'roles',
-        // mongo collection that holds the assignments of roles
-        // to users
-        usersRolesCollection: 'users_roles',
+                // mongo collection that the actual recipes
+                recipeCollection: 'recipes',
 
-        // mongo collection holding the password set/reset tokens
-        // and associated users
-        passwordResetTokenCollection: 'password_reset_tokens',
+                // mongo collection that holds the recipe book users
+                usersCollection: 'users',
+                // mongo collection that holds the recipe book roles
+                // (admin, account admin, user)
+                rolesCollection: 'roles',
+                // mongo collection that holds the assignments of roles
+                // to users
+                usersRolesCollection: 'users_roles',
 
-        // mongo collection holding recipe permissions (access rights
-        // users and groups have on a recipe)
-        permissionsCollection: 'permissions',
+                // mongo collection holding the password set/reset tokens
+                // and associated users
+                passwordResetTokenCollection: 'password_reset_tokens',
 
-        // mongo view that holds the users and their role information
-        // together for easier access
-        usersView: 'users_full',
-        // mongo view that holds the roles and their associated
-        // users (by ID) for reverse lookups
-        rolesView: 'roles_full',
+                // mongo collection holding recipe permissions (access rights
+                // users and groups have on a recipe)
+                permissionsCollection: 'permissions',
+
+                // mongo view that holds the users and their role information
+                // together for easier access
+                usersView: 'users_full',
+                // mongo view that holds the roles and their associated
+                // users (by ID) for reverse lookups
+                rolesView: 'roles_full',
 
 
-        // routes that are not authenticated
-        unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
-        // unauthenticated: [
-        //     "/passwords/token/[id]",
-        //     "/passwords/email/[id]",
-        //     "/login",
-        //     // "/auth/callback/recipes-provider-mongo-credentials",
-        // ],
+                // routes that are not authenticated
+                unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
 
-        // layout information
-        sidebarNavWidthSmall: "180",
-        sidebarNavWidthMedium: "250",
-    },
+                // layout information
+                sidebarNavWidthSmall: "180",
+                sidebarNavWidthMedium: "250",
+            }
+        }
+
+    }
+
+    return {
+        env: {
+            version: '1.0.0',
+
+            siteName: 'City Recipes',
+            bookTitle: "City Recipes",
+
+            scheme: 'http',
+            host: 'localhost',
+            port: "3000",
+            recipesApi: '/rest/v1/recipes',
+
+            // MONGODB_URI: 'mongodb://mongo1:27017',
+            MONGODB_URI: 'mongodb://localhost:27017',
+            mongoDatabase: 'recipeBook',
+
+            // mongo collection that the actual recipes
+            recipeCollection: 'recipes',
+
+            // mongo collection that holds the recipe book users
+            usersCollection: 'users',
+            // mongo collection that holds the recipe book roles
+            // (admin, account admin, user)
+            rolesCollection: 'roles',
+            // mongo collection that holds the assignments of roles
+            // to users
+            usersRolesCollection: 'users_roles',
+
+            // mongo collection holding the password set/reset tokens
+            // and associated users
+            passwordResetTokenCollection: 'password_reset_tokens',
+
+            // mongo collection holding recipe permissions (access rights
+            // users and groups have on a recipe)
+            permissionsCollection: 'permissions',
+
+            // mongo view that holds the users and their role information
+            // together for easier access
+            usersView: 'users_full',
+            // mongo view that holds the roles and their associated
+            // users (by ID) for reverse lookups
+            rolesView: 'roles_full',
+
+            // routes that are not authenticated
+            unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
+
+            // layout information
+            sidebarNavWidthSmall: "180",
+            sidebarNavWidthMedium: "250",
+        }
+    }
 }
+//
+// module.exports =
+// {
+//     env: {
+//         version: '0.4.2-snapshot',
+//
+//         siteName: 'City Recipes',
+//         bookTitle: "City Recipes",
+//
+//         scheme: 'http',
+//         host: 'localhost',
+//         port: "3000",
+//         recipesApi: '/rest/v1/recipes',
+//         // recipesApi: 'http://localhost:9090/rest/v1/recipes',
+//
+//         MONGODB_URI: 'mongodb://localhost:27017',
+//         mongoDatabase: 'recipeBook',
+//
+//         // mongo collection that the actual recipes
+//         recipeCollection: 'recipes',
+//
+//         // mongo collection that holds the recipe book users
+//         usersCollection: 'users',
+//         // mongo collection that holds the recipe book roles
+//         // (admin, account admin, user)
+//         rolesCollection: 'roles',
+//         // mongo collection that holds the assignments of roles
+//         // to users
+//         usersRolesCollection: 'users_roles',
+//
+//         // mongo collection holding the password set/reset tokens
+//         // and associated users
+//         passwordResetTokenCollection: 'password_reset_tokens',
+//
+//         // mongo collection holding recipe permissions (access rights
+//         // users and groups have on a recipe)
+//         permissionsCollection: 'permissions',
+//
+//         // mongo view that holds the users and their role information
+//         // together for easier access
+//         usersView: 'users_full',
+//         // mongo view that holds the roles and their associated
+//         // users (by ID) for reverse lookups
+//         rolesView: 'roles_full',
+//
+//
+//         // routes that are not authenticated
+//         unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
+//         // unauthenticated: [
+//         //     "/passwords/token/[id]",
+//         //     "/passwords/email/[id]",
+//         //     "/login",
+//         //     // "/auth/callback/recipes-provider-mongo-credentials",
+//         // ],
+//
+//         // layout information
+//         sidebarNavWidthSmall: "180",
+//         sidebarNavWidthMedium: "250",
+//     },
+// }

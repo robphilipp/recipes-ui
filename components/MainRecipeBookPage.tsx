@@ -14,7 +14,7 @@ import Notifications from "./notifications/Notifications";
 
 const SMALL_SIDEBAR_NAV_WIDTH = parseInt(process.env.sidebarNavWidthSmall as string)
 const MEDIUM_SIDEBAR_NAV_WIDTH = parseInt(process.env.sidebarNavWidthMedium as string)
-const UNSECURED_CONTENT = (process.env.unauthenticated ?? "").split(",").map(path => path.trim())
+const UNSECURED_CONTENT = ((process.env.unauthenticated ?? "") as string).split(",").map(path => path.trim())
 // const UNSECURED_CONTENT = (process.env.unauthenticated ?? []) as Array<string>
 export const isUnsecuredContent = (path: string) => UNSECURED_CONTENT.find(openPage => openPage === path)
 

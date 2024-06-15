@@ -8,10 +8,11 @@ services:
       - mongosetup
     environment:
       NEXTAUTH_SECRET: caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef
-      NEXTAUTH_URL: 'localhost:3000'
+      NEXTAUTH_URL: 'http://localhost:8081'
 
     # install all the dependencies and start the dev server
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm rebuild bcrypt && npm run build && npm install -g migrate-mongo && cd deployment/mongo; migrate-mongo up; cd /usr/app && npm run start"
+    #  && npm install -g migrate-mongo && cd deployment/mongo; migrate-mongo up; cd /usr/app
     build: .
     ports:
       - 127.0.0.1:8081:3000

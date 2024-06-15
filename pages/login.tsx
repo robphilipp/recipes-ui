@@ -16,7 +16,7 @@ const maxWidth = 400
 /**
  * Form for adding a new user
  * @param props The component properties
- * @return A {@link JSX.Element}
+ * @return A {@link Element}
  * @constructor
  */
 export default function Login({csrfToken, error}: InferGetServerSidePropsType<typeof getServerSideProps>) {

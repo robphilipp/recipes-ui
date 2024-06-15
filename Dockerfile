@@ -8,7 +8,7 @@ FROM node:alpine
 LABEL authors="rob"
 
 ENV NEXTAUTH_SECRET=caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef
-ENV NEXTAUTH_URL=localhost:8081
+ENV NEXTAUTH_URL=http://localhost:8081
 
 # Set working directory
 WORKDIR /usr/app
