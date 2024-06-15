@@ -4,7 +4,7 @@ module.exports = (phase, { defaultConfig }) => {
     if (phase === PHASE_DEVELOPMENT_SERVER) {
         return {
             env: {
-                version: '0.4.2-snapshot',
+                version: '0.4.2-snapshots',
 
                 siteName: 'City Recipes',
                 bookTitle: "City Recipes",
@@ -65,11 +65,11 @@ module.exports = (phase, { defaultConfig }) => {
 
             scheme: 'http',
             host: 'localhost',
-            port: "3000",
+            port: "3001",
             recipesApi: '/rest/v1/recipes',
 
-            // MONGODB_URI: 'mongodb://mongo1:27017',
-            MONGODB_URI: 'mongodb://localhost:27017',
+            MONGODB_URI: 'mongodb://mongo1:27017',
+            // MONGODB_URI: 'mongodb://localhost:27017',
             mongoDatabase: 'recipeBook',
 
             // mongo collection that the actual recipes

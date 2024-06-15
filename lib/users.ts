@@ -8,6 +8,9 @@ import {DateTime} from "luxon";
 import {addPasswordResetTokenFor, hashPassword, randomPassword} from "./passwords";
 import {Document} from "bson"
 import {Role, RoleLiteral, RoleType} from "../components/users/Role";
+import {Logger} from "tslog";
+
+const logger = new Logger({name: 'users'});
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -161,13 +164,13 @@ export async function userById(id: string): Promise<RecipesUser> {
             .findOne({_id: new ObjectId(id)})
         if (user === null) {
             const message: string = `Unable to retrieve user by ID; user_id: ${id}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
         return user
     } catch (e) {
         const message: string = `Unable to retrieve user by ID; user_id: ${id}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }

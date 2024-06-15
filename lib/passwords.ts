@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt"
+import {hash} from "bcryptjs"
 import {DateTime} from "luxon";
 import {Collection, Long, MongoClient, ObjectId} from "mongodb";
 import clientPromise from "./mongodb";
@@ -55,7 +55,8 @@ function convertToPasswordResetToken(mongoToken: MongoPasswordResetToken): Passw
 }
 
 export async function hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, SALT_ROUNDS)
+    return await hash(password, SALT_ROUNDS)
+    // return await bcrypt.hash(password, SALT_ROUNDS)
 }
 
 export function randomPassword(length: number = 12): string {

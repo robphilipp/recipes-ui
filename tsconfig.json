@@ -20,7 +20,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "strictNullChecks": true,
-    "typeRoots": ["./types"]
+    "typeRoots": ["./types"],
+    "pretty": true
   },
   "include": [
     "next-env.d.ts",

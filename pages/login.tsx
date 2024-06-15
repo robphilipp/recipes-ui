@@ -6,12 +6,16 @@ import {GetServerSidePropsContext, InferGetServerSidePropsType} from "next";
 import {LockOpen} from "@mui/icons-material";
 import {getServerSession} from "next-auth";
 import {authOptions} from "./api/auth/[...nextauth]";
+import {Logger} from "tslog";
+
+const logger = new Logger({name: "LoginPage"});
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
 }))
 
 const maxWidth = 400
+
 
 /**
  * Form for adding a new user
@@ -68,14 +72,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     // if the user is already logged in, redirect.
     if (session) {
+        logger.debug(`User already logged in; email: ${session.user.email}`)
         return { redirect: false };
         // return { redirect: { destination: "/" } };
     }
 
     const {error} = context.query
+    if (error) {
+        logger.error(`Login error; error: ${error}`);
+    } else {
+        logger.debug(`User not logged in, retrieving CSRF token`);
+    }
+
+    let csrfToken: string | undefined;
+    try {
+        csrfToken = await getCsrfToken(context)
+        logger.debug(`Successfully retrieved CSRF token`);
+    } catch (e) {
+        logger.error(`Unable to retrieve csrf token from CSRF token: ${e}`);
+    }
+
     return {
         props: {
-            csrfToken: await getCsrfToken(context),
+            csrfToken,
             error: error ?? null
         },
     }

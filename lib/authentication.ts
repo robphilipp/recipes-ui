@@ -1,9 +1,12 @@
-import {compare} from "bcrypt"
+import {compare} from "bcryptjs"
 import {Collection, MongoClient} from "mongodb";
 import {emptyUser, RecipesUser} from "../components/users/RecipesUser";
 import clientPromise, {updateMongoClient} from "./mongodb";
 import {Credentials} from "../pages/api/auth/[...nextauth]";
 import {roleFor} from "./roles";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "user-authenticate"})
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -28,37 +31,56 @@ function usersCollection(client: MongoClient): Collection<RecipesUser> {
  * returns a rejection
  */
 export async function authenticate(credentials: Credentials): Promise<RecipesUser> {
+    logger.debug(`Attempting to authenticate user; email: ${credentials.email}`)
     try {
         const client = await clientPromise
+        logger.info(`Retrieved mongo client, attempting to retrieve user; email: ${credentials.email}`)
         const user = await usersCollection(client).findOne({email: credentials.email})
         if (user === null) {
-            return Promise.reject(`Unable to authenticate user; email: ${credentials.email}`)
+            const message = `Unable to authenticate user; email: ${credentials.email}`
+            console.log(message)
+            logger.info(message)
+            // return Promise.reject(message)
+            return emptyUser()
         }
         // if the user has been deleted, then they can't log in
         if (user.deletedOn === null || user.deletedOn as number > 0) {
-            return Promise.reject(`Unable to authenticate user; email: ${credentials.email}; timestamp: ${Date.now()}`)
+            const message = `Unable to authenticate user; email: ${credentials.email}; timestamp: ${Date.now()}`
+            console.log(message)
+            logger.info(message)
+            // return Promise.reject(message)
+            return emptyUser()
         }
         // todo error message if the user's email hasn't been verified, which means that the user
         //      hasn't yet set up their password
         try {
+            logger.debug(`Evaluating credentials; email: ${credentials.email}`)
             const authenticated = await compare(credentials.password, user.password)
             if (authenticated) {
                 const role = await roleFor(user._id.toString())
                 console.log(credentials, {...user, role})
+                logger.info(`User authenticated; email: ${credentials.email}`);
                 return {...user, id: user._id.toString(), role}
             }
+            logger.debug(`Invalid credentials for user; email: ${credentials.email}`);
             return emptyUser()
         } catch (e) {
+            const message = `Unable to validate credentials for ${credentials.email}; error: ${e.message}`
+            logger.error(message)
             console.error(`Unable to validate credentials for ${credentials.email}`, e)
-            return Promise.reject(`Unable to validate credentials for ${credentials.email}; error: ${e.message}`)
+            // return Promise.reject(message)
+            return emptyUser()
         }
     } catch (e) {
+        const message = `Unable to retrieve information for user with email: ${credentials.email}; error: ${e.message}`;
         console.error(`Unable to authenticate user; email: ${credentials.email}`, e)
+        logger.error(message)
 
         // attempt to reconnect
         updateMongoClient()
 
-        return Promise.reject(`Unable to retrieve information for user with email: ${credentials.email}; error: ${e.message}`)
+        // return Promise.reject(message)
+        return emptyUser()
     }
 }
 

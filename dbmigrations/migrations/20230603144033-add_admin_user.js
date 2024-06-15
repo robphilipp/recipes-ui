@@ -14,7 +14,7 @@ Then run the following from node
 */
 
 const {baseUsersSchema} = require("./20230529195813-add_users_collection")
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const {Long} = require("bson")
 const saltRounds = 10
 
@@ -25,7 +25,7 @@ module.exports = {
         const usersCollection = await db.collection("users")
 
         const now = Long.fromNumber(Date.now())
-        const hashedPassword = await bcrypt.hash("admin", saltRounds)
+        const hashedPassword = await bcrypt.hash("Admin314", saltRounds)
 
         // create the default admin user
         const admin = {

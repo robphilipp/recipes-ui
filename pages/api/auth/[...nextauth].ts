@@ -1,8 +1,11 @@
 import NextAuth, {AuthOptions, Session} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials"
 import {authenticate} from "../../../lib/authentication";
-import {nonEmptyUser, RecipesUser} from "../../../components/users/RecipesUser";
+import {emptyUser, isEmptyUser, nonEmptyUser, RecipesUser} from "../../../components/users/RecipesUser";
 import {JWT} from "next-auth/jwt";
+import {Logger} from "tslog";
+
+const logger = new Logger({name: "auth-config"})
 
 export type Credentials = {
     email: string
@@ -29,7 +32,13 @@ export const credentialsProvider = CredentialsProvider({
 
         // if authentication failed, then we have an empty user, in which case we
         // return null. on successful authentication, we return the user information
-        return nonEmptyUser(user) ? user : null
+        if (isEmptyUser(user)) {
+            logger.error(`Failed to authenticate user; email: ${credentials ? credentials.email : "<undefined>"}`)
+            return null
+        }
+        logger.info(`Successfully authenticated user; email: ${user.email}; id: ${user.id}`)
+        return user
+        // return nonEmptyUser(user) ? user : null
     }
 })
 
