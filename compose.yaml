@@ -6,20 +6,30 @@ services:
     image: node:alpine
     depends_on:
       - mongosetup
+
+    container_name: recipes-server
+
+    # variable for next auth (need to move the secret into a secret)
     environment:
       NEXTAUTH_SECRET: caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef
       NEXTAUTH_URL_INTERNAL: 'http://localhost:3000'
       NEXTAUTH_URL: 'http://localhost:8081'
 
     # install all the dependencies and start the dev server
-    command: sh -c "npm install && npm rebuild bcrypt && npm run build && npm install -g migrate-mongo && cd deployment/mongo; migrate-mongo up; cd /usr/app && npm run start"
-    #  && npm install -g migrate-mongo && cd deployment/mongo; migrate-mongo up; cd /usr/app
+    command: sh -c "\
+      npm install -g migrate-mongo && \
+      cd deployment/mongo; migrate-mongo up; cd /usr/app && \
+      npm install && \
+      npm run build && \
+      npm run start"
+
     build: .
     ports:
       - 127.0.0.1:8081:3000
     working_dir: /usr/app
     volumes:
       - ./:/usr/app
+
 
   # set up the mongo cluster
   mongo1:

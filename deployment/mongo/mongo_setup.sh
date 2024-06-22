@@ -24,8 +24,14 @@ mongosh --host mongo1:27017 <<EOF
   });
 EOF
 
-# todo this needs to go on to the app server
-# migrate mongo recipe schema to the latest version
-#cd /usr/app/dbmigrations; migrate-mongo up
-#cd /deployment/dbmigrations; migrate-mongo up
+# pre-migration put the database and the changelog into its current state
+#
+# this should allow the migration to continue from the imported changelog
+cd /deployment/deployment/mongo/backups; \
+mongoimport --db='recipeBook' --collection='recipes' --host='recipesReplicaSet/mongo1,mongo2,mongo3' --file='recipes-export.json' --bypassDocumentValidation; \
+mongoimport --db='recipeBook' --collection='changelog' --host='recipesReplicaSet/mongo1,mongo2,mongo3' --file='changelog-export.json' --maintainInsertionOrder; \
+cd /
+
+# todo this needs to wait until
+
 

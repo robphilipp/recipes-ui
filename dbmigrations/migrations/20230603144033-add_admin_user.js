@@ -25,7 +25,7 @@ module.exports = {
         const usersCollection = await db.collection("users")
 
         const now = Long.fromNumber(Date.now())
-        const hashedPassword = await bcrypt.hash("Admin314", saltRounds)
+        const hashedPassword = await bcrypt.hash("admin", saltRounds)
 
         // create the default admin user
         const admin = {
