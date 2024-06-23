@@ -39,3 +39,4 @@ private_notes/
 /.react-email
 
 dbmigrations/tmp/
+deployment/mongo/backups/*.json
