@@ -56,7 +56,7 @@ function addIngredientsSection(recipe) {
         ratings: recipe.ratings,
         ingredients: recipe.ingredients.map(ingredient => ({
             ...ingredient,
-            amount: {...ingredient.amount, value: Double(ingredient.amount.value)},
+            amount: {...ingredient.amount, value: new Double(ingredient.amount.value)},
             section: ingredient.section || null
         })),
         steps: recipe.steps,

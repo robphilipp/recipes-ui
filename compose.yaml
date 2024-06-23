@@ -3,11 +3,21 @@
 services:
 
   app:
-    image: node:alpine
+#    image: node:alpine
     depends_on:
-      - mongosetup
+      mongosetup:
+        condition: service_completed_successfully
 
     container_name: recipes-server
+
+    # build the image from the Dockerfile in this same directory
+    build: .
+
+    ports:
+      - 127.0.0.1:8081:3000
+    working_dir: /usr/app
+    volumes:
+      - ./:/usr/app
 
     # variable for next auth (need to move the secret into a secret)
     environment:
@@ -17,19 +27,8 @@ services:
 
     # install all the dependencies and start the dev server
     command: sh -c "\
-      npm install -g migrate-mongo && \
-      cd deployment/mongo; migrate-mongo up; cd /usr/app && \
-      npm install && \
-      npm run build && \
+      deployment/mongo/migrate_mongo.sh && \
       npm run start"
-
-    build: .
-    ports:
-      - 127.0.0.1:8081:3000
-    working_dir: /usr/app
-    volumes:
-      - ./:/usr/app
-
 
   # set up the mongo cluster
   mongo1:

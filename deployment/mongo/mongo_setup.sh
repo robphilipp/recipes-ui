@@ -24,6 +24,13 @@ mongosh --host mongo1:27017 <<EOF
   });
 EOF
 
+# ========================================================================
+# Update the code below for post-db-creation updates.
+#
+# For example, to import recipe data from an existing
+# deployment, run "mongoimport" on those collections.
+#
+
 # pre-migration put the database and the changelog into its current state
 #
 # this should allow the migration to continue from the imported changelog
@@ -32,6 +39,10 @@ mongoimport --db='recipeBook' --collection='recipes' --host='recipesReplicaSet/m
 mongoimport --db='recipeBook' --collection='changelog' --host='recipesReplicaSet/mongo1,mongo2,mongo3' --file='changelog-export.json' --maintainInsertionOrder; \
 cd /
 
-# todo this needs to wait until
+echo "checking changelog"
+mongosh --host 'recipesReplicaSet/mongo1,mongo2,mongo3' <<EOF
+use recipeBook;
+db.changelog.find();
+EOF
 
 

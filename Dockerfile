@@ -21,8 +21,8 @@ COPY ./package*.json ./
 # Install dependencies
 RUN npm install --production
 
-# bcrypt -- for password encryption for auth and emails
-RUN npm install bcrypt -g
+## bcrypt -- for password encryption for auth and emails
+#RUN npm install bcrypt -g
 
 # migrate-mongo -- to bring the recipes schema to the latest version
 RUN npm install migrate-mongo -g
@@ -32,11 +32,11 @@ RUN npm install pm2@latest -g
 
 # Copy all files
 COPY ./ ./
-# environment settings for docker compose deployments
-COPY ./deployment/compose/next.config.js /usr/app
+## environment settings for docker compose deployments
+#COPY ./deployment/compose/next.config.js /usr/app
 
-# copy the migrations file
-COPY ./deployment/mongo/migrate-mongo-config.js ./dbmigrations/
+## copy the migrations file
+#COPY ./deployment/mongo/migrate-mongo-config.js ./dbmigrations/
 
 # Build app
 RUN npm run build
@@ -57,4 +57,5 @@ USER node
 # run the app under pm2 management
 #pm2 start npm --name "recipes" -- start -- -p 8080
 #CMD [ "pm2", "start", "npm", "--name recipes", "--", "start", "--", "-p 8080"]
-CMD [ "pm2", "start", "npm", "--name recipes", "--", "start", "--", "-p 3000"]
+#CMD [ "pm2", "start", "npm", "--name recipes", "--", "start", "--", "-p 3000"]
+CMD ["npm", "start"]
