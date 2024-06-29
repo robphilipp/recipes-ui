@@ -1,8 +1,3 @@
-#FROM ubuntu:latest
-#LABEL authors="rob"
-#
-#ENTRYPOINT ["top", "-b"]
-
 # Base on offical Node.js Alpine image
 FROM node:alpine
 LABEL authors="rob"
@@ -32,18 +27,9 @@ RUN npm install pm2@latest -g
 
 # Copy all files
 COPY ./ ./
-## environment settings for docker compose deployments
-#COPY ./deployment/compose/next.config.js /usr/app
-
-## copy the migrations file
-#COPY ./deployment/mongo/migrate-mongo-config.js ./dbmigrations/
 
 # Build app
 RUN npm run build
-
-# # migrate mongo to the latest version
-#WORKDIR /usr/app/dbmigrations
-#RUN migrate-mongo up
 
 # Expose the listening port
 EXPOSE 8081
@@ -53,9 +39,4 @@ EXPOSE 8081
 USER node
 
 # Run npm start script when container starts
-#CMD [ "npm", "start" ]
-# run the app under pm2 management
-#pm2 start npm --name "recipes" -- start -- -p 8080
-#CMD [ "pm2", "start", "npm", "--name recipes", "--", "start", "--", "-p 8080"]
-#CMD [ "pm2", "start", "npm", "--name recipes", "--", "start", "--", "-p 3000"]
 CMD ["npm", "start"]
