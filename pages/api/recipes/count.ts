@@ -2,6 +2,9 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {recipeSummariesCount} from "../../../lib/recipes";
 import {getServerSession} from "next-auth";
 import {authOptions} from "../auth/[...nextauth]";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "recipes-count"})
 
 export default async function handler(
     request: NextApiRequest,
@@ -14,5 +17,7 @@ export default async function handler(
 
     return recipeSummariesCount(session.user, [''])
         .then(count => response.status(200).json(count))
-        .catch(reason => console.log("Failed to get recipe count; reason: ", reason))
+        .catch(reason => {
+            logger.error(`Failed to get recipe count; reason: ${reason}`)
+        })
 }

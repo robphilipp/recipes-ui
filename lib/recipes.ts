@@ -18,6 +18,9 @@ import {
     withReadAccess
 } from "../components/recipes/RecipePermissions";
 import {adminUsers, isUserAdmin} from "./users";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "lib-recipes"})
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -165,7 +168,7 @@ export async function recipeById(user: RecipesUser, id: string): Promise<Recipe>
         return doc[0]
     } catch (e) {
         const message = `Unable to find recipe with ID: recipe_id: ${id}; user_id: ${user.id}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -324,7 +327,7 @@ async function searchRecipesForUser(user: RecipesUser, words: Array<string>): Pr
             .toArray()
         return ownedRecipes.concat(accessToRecipes)
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        logger.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
     }
 }
@@ -357,7 +360,7 @@ async function searchRecipesForAdmin(user: RecipesUser, words: Array<string>): P
             .map(doc => roleEnhanced(asRecipeSummary(doc as WithId<WithAccessRights<Recipe>>), user))
             .toArray()
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        logger.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
     }
 }
@@ -397,7 +400,7 @@ async function searchRecipesOwnedBy(user: RecipesUser, words: Array<string>): Pr
             .map(doc => roleEnhanced(asRecipeSummary(doc as WithId<WithAccessRights<Recipe>>), user))
             .toArray()
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        logger.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
     }
 }
@@ -465,7 +468,7 @@ export async function recipeSummariesCount(user: RecipesUser, words?: Array<stri
                 ]
             })
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        logger.error("Unable to update recipe", e)
         return Promise.reject("Unable to update recipe")
     }
 }
@@ -524,7 +527,7 @@ export async function addRecipe(user: RecipesUser, recipe: Recipe): Promise<Reci
         return Promise.reject(`Unable to add recipe; recipe_id: ${recipe.id}; recipe_name: ${recipe.name}`)
     } catch (e) {
         const message = `Unable to add recipe; recipe_id: ${recipe.id}; recipe_name: ${recipe.name}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -556,7 +559,7 @@ export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<R
     const permissions = await permissionsForUser(user, recipe.id, recipe.ownerId)
     if (!permissions.update) {
         const message = `Unable to update recipe; user_id: ${user.id}; recipe_name: ${recipe.name}`
-        console.log(message)
+        logger.info(message)
         return {...recipe}
     }
 
@@ -566,7 +569,7 @@ export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<R
             .replaceOne({_id: new ObjectId(recipe.id)}, removeRecipeId(recipe))
         if (result.acknowledged) {
             if (result.matchedCount !== 1) {
-                console.log("Unable to save recipe;", result)
+                logger.info("Unable to save recipe;", result)
                 return Promise.reject(`No recipe found for ID; _id: ${recipe.id}; name: ${recipe.name}`)
             }
             if (result.upsertedCount !== 1 && result.modifiedCount !== 1) {
@@ -575,7 +578,7 @@ export async function updateRecipe(user: RecipesUser, recipe: Recipe): Promise<R
             return await recipeById(user, recipe.id)
         }
     } catch (e) {
-        console.error("Unable to update recipe", e)
+        logger.error("Unable to update recipe", e)
     }
     return Promise.reject(`Request to update recipe was not acknowledged; _id: ${recipe.id}; name: ${recipe.name}`)
 }
@@ -617,7 +620,7 @@ export async function deleteRecipe(user: RecipesUser, recipeId: string): Promise
         }
         return Promise.resolve(recipe)
     } catch (e) {
-        console.error("Unable to delete recipe", e)
+        logger.error("Unable to delete recipe", e)
         return Promise.reject("Unable to update recipe")
     }
 }
@@ -657,7 +660,7 @@ export async function updateRatings(user: RecipesUser, recipeId: string, newRati
             return await recipeById(user, recipeId)
         }
     } catch (e) {
-        console.error("Unable to update recipe ratings", e)
+        logger.error("Unable to update recipe ratings", e)
     }
     return Promise.reject(`Request to update recipe ratings was not acknowledged; _id: ${recipeId}`)
 }
@@ -670,7 +673,7 @@ export async function isRecipeOwner(recipeId: string, userId: string): Promise<b
         return doc !== null && doc !== undefined
     } catch (e) {
         const message = `Unable to find recipe with user; recipe_id: ${recipeId}; user_id: ${userId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -691,7 +694,7 @@ export async function recipeOwnerStatus(recipeIds: Array<string>, userId: string
         return new Map(recipeOwnership)
     } catch (e) {
         const message = `Unable to find users ownership of recipes; user_id: ${userId}; recipe_ids: [${recipeIds.join(", ")}]`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -825,7 +828,7 @@ export async function usersPermissionsForRecipes(
         return new Map(userPerms)
     } catch (e) {
         const message = `Unable to find users with permissions for specified recipe; recipe_ids: [${recipeIds.join(", ")}]`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }

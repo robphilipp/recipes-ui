@@ -3,6 +3,9 @@ import {useDropzone} from "react-dropzone";
 import Tesseract, {createWorker} from "tesseract.js";
 import {Box, Icon, lighten, LinearProgress, LinearProgressProps, Stack, Typography, useTheme} from "@mui/material";
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "ocr"})
 
 export default function ImportRecipeOcr(): JSX.Element {
 
@@ -18,7 +21,7 @@ export default function ImportRecipeOcr(): JSX.Element {
         () => {
             const worker = createWorker({
                 logger: message => {
-                    console.log(message)
+                    logger.log(message)
                     if (message.status === 'recognizing text') {
                         setStatus(undefined)
                         setOcrProgress(message.progress)
@@ -41,13 +44,13 @@ export default function ImportRecipeOcr(): JSX.Element {
     )
 
     const onDrop = useCallback(acceptedFiles => {
-        console.log("dropped files", acceptedFiles);
+        logger.info("dropped files", acceptedFiles);
         setFileDropped(true)
         setStatus(`Loading ${acceptedFiles[0].name}...`);
         (async () => {
             if (workerRef.current !== undefined) {
                 const {data: {text}} = await workerRef.current.recognize(acceptedFiles[0])
-                console.log(text)
+                logger.info(text)
                 setRecipe(parseText(text))
                 setStatus(undefined)
                 setOcrProgress(undefined)

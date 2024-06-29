@@ -3,6 +3,9 @@ import {RequestMethod} from "../../../../lib/RequestMethod";
 import {PasswordResetToken, UrlEnrichedPasswordResetToken} from "../../../../components/passwords/PasswordResetToken";
 import {addPasswordResetTokenFor, tokensFor} from "../../../../lib/passwords";
 import {failureResult, Result, successResult} from "result-fn";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "user-id"})
 
 const DEFAULT_BASE_URL = 'http://localhost:8080'
 
@@ -33,7 +36,7 @@ export default async function handler(
         // retrieve password reset tokens for user
         case RequestMethod.GET:
             const url = baseUrlFrom(request)
-                .onFailure(error => console.log(`Unable to construct base URL, using "${DEFAULT_BASE_URL}" instead; error: ${error}`))
+                .onFailure(error => logger.info(`Unable to construct base URL, using "${DEFAULT_BASE_URL}" instead; error: ${error}`))
                 .getOrDefault(DEFAULT_BASE_URL)
             return tokensFor(request.query.userId as string)
                 .then(tokens => response.status(200)

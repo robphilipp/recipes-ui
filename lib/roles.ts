@@ -1,6 +1,9 @@
 import clientPromise from "./mongodb"
 import {ClientSession, Collection, MongoClient, ObjectId} from "mongodb"
 import {Role, roleFrom, rolesFrom} from "../components/users/Role"
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "lib-roles"})
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -43,7 +46,7 @@ export async function roles(): Promise<Array<Role>> {
             conversions.successes :
             Promise.reject(`Invalid roles found in database; [${conversions.failures.join(", ")}]`)
     } catch (e) {
-        console.error("Unable to retrieve roles", e)
+        logger.error("Unable to retrieve roles", e)
         return Promise.reject("Unable to retrieve roles")
     }
 }
@@ -56,7 +59,7 @@ export async function roleIdFor(role: Role): Promise<string> {
             dbRole._id.toString() :
             Promise.reject(`Unable to retrieve role ID; role: ${role.name}`)
     } catch (e) {
-        console.error(`Unable to retrieve role ID; role: ${role.name}`, e)
+        logger.error(`Unable to retrieve role ID; role: ${role.name}`, e)
         return Promise.reject(`Unable to retrieve role ID; role: ${role.name}`)
     }
 }
@@ -76,7 +79,7 @@ export async function addUsersRolesMappingFor(userId: string, role: Role, sessio
             .insertOne({userId: new ObjectId(userId), roleId: new ObjectId(roleId)}, {session})
         return result.insertedId.toString()
     } catch (e) {
-        console.error(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`, e)
+        logger.error(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`, e)
         return Promise.reject(`Unable to add user-to-role mapping; user_id: ${userId}; role: ${role.name}`)
     }
 }
@@ -92,7 +95,7 @@ export async function deleteUsersRoleMappingsFor(userIds: Array<string>, session
         return -1
     } catch (e) {
         const message = `Unable to delete user-to-role mapping for user; user_ids: [${userIds.join(", ")}]`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -108,7 +111,7 @@ export async function removeUsersRoleMappingFor(userId: string, session?: Client
 
     } catch (e) {
         const message = `Unable to delete user-to-role mapping for user; user_id: ${userId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -141,7 +144,7 @@ export async function roleFor(userId: string): Promise<Role> {
             result.getOrThrow() :
             Promise.reject(`Invalid role found for user; userId: ${userId}; role: ${role}`)
     } catch(e) {
-        console.error(`Unable to retrieve role for user;  userId: ${userId}`, e)
+        logger.error(`Unable to retrieve role for user;  userId: ${userId}`, e)
         return Promise.reject(`Unable to retrieve role for user;  userId: ${userId}`)
     }
 }

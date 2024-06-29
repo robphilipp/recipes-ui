@@ -46,7 +46,7 @@ export async function usersCount(filter?: Document): Promise<number> {
         const client: MongoClient = await clientPromise
         return await usersCollection(client).countDocuments(filter)
     } catch (e) {
-        console.error("Unable to retrieve user count", e)
+        logger.error("Unable to retrieve user count", e)
         return Promise.reject("Unable to retrieve user count")
     }
 }
@@ -136,7 +136,7 @@ export async function users(filter: Filter<RecipesUser> = {}): Promise<Array<Rec
             .map(user => ({...user, id: user._id.toString()}))
             .toArray()
     } catch (e) {
-        console.error("Unable to retrieve users", e)
+        logger.error("Unable to retrieve users", e)
         return Promise.reject("Unable to retrieve users")
     }
 }
@@ -145,7 +145,7 @@ export async function isAdmin(requester: RecipesUser, userId: string): Promise<b
     if ((await userRoleById(requester.id)).name !== RoleType.ADMIN) {
         return (await userRoleById(userId)).name !== RoleType.ADMIN
     }
-    console.log(`Non-admin user attempted to determine if a user was an admin; requesting_user: ${requester.id}; user_id: ${userId}`)
+    logger.info(`Non-admin user attempted to determine if a user was an admin; requesting_user: ${requester.id}; user_id: ${userId}`)
     return Promise.reject(`Unable to determine whether user is an admin; user_id: ${userId}`)
 }
 
@@ -186,7 +186,7 @@ export async function usernameExists(name: string): Promise<boolean> {
         return numUsers > 0
     } catch (e) {
         const message = `Unable to determine whether username already exists; name: ${name}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -197,7 +197,7 @@ export async function emailExists(email: string): Promise<boolean> {
         return numUsers > 0
     } catch (e) {
         const message = `Unable to determine whether email already exists; name: ${email}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -246,13 +246,13 @@ export async function userIdFor(email: string): Promise<string> {
         const user = await usersCollection(client).findOne({email: email})
         if (user === undefined || user === null) {
             const message = `Unable to find user; email: ${email}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
         return user._id.toString()
     } catch (e) {
         const message = `Unable to find user (with exception); email: ${email}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -295,7 +295,7 @@ export async function userIdsFor(emails: Array<string>): Promise<EmailToIdsResul
         )
     } catch (e) {
         const message = `Unable to find user IDs for emails; emails: [${emails?.join(", ")}]`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -357,13 +357,13 @@ export async function addUser(user: RecipesUser): Promise<AddedUserInfo> {
             // await session.commitTransaction()
             return {user: newUser, resetToken}
         } catch (e) {
-            console.error(`Unable to add user (transaction): email: ${user.email}`, e)
+            logger.error(`Unable to add user (transaction): email: ${user.email}`, e)
             return Promise.reject(`Unable to add user; email: ${user.email}`)
         } finally {
             await session.endSession()
         }
     } catch (e) {
-        console.error(`Unable to add user (db): email: ${user.email}`, e)
+        logger.error(`Unable to add user (db): email: ${user.email}`, e)
         return Promise.reject(`Unable to add user; email: ${user.email}`)
     }
 }
@@ -403,14 +403,14 @@ export async function updateUser(user: RecipesUser): Promise<RecipesUser> {
             return {...user, modifiedOn}
         } catch (e) {
             const message = `Unable to update user (transaction): user_id: ${user.id}`
-            console.error(message, e)
+            logger.error(message, e)
             return Promise.reject(message)
         } finally {
             await session.endSession()
         }
     } catch (e) {
         const message = `Unable to update user (db): user_id: ${user.id}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -430,7 +430,7 @@ export async function deleteUsersByEmail(emails: Array<string>): Promise<number>
             // emails had associated IDs (which they all should)
             const {foundEmailIds, notFoundEmails} = await userIdsFor(emails)
             if (notFoundEmails.length > 0) {
-                console.warn(`Failed to find IDs for ${notFoundEmails.length} emails, will continue; emails: [${notFoundEmails.join((", "))}]`)
+                logger.warn(`Failed to find IDs for ${notFoundEmails.length} emails, will continue; emails: [${notFoundEmails.join((", "))}]`)
             }
             // no need to continue if none of the emails were in the database
             if (foundEmailIds.length === 0) {
@@ -462,7 +462,7 @@ export async function deleteUsersByEmail(emails: Array<string>): Promise<number>
         // await session.commitTransaction()
         return numDeleted
     } catch (e) {
-        console.error(`Unable to delete specified users; emails: [${emails?.join(", ")}]`, e)
+        logger.error(`Unable to delete specified users; emails: [${emails?.join(", ")}]`, e)
         return Promise.reject(`Unable to delete specified users; emails: [${emails?.join(", ")}]`)
     }
 }
@@ -477,7 +477,7 @@ export async function userByToken(token: string): Promise<RecipesUser> {
             await passwordResetTokenCollection(client).findOne({resetToken: token})
         if (tokenData === undefined || tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
             const message = `Invalid token (user from token); token: ${token}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
 
@@ -486,14 +486,14 @@ export async function userByToken(token: string): Promise<RecipesUser> {
             await usersCollection(client).findOne({_id: new ObjectId(tokenData.userId)})
         if (user === undefined || user === null) {
             const message = `Invalid user for token; token: ${token}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
 
         return {...user, password: "yeah, right!"}
     } catch (e) {
         const message = `Unable to retrieve user by token; invalid token: ${token}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -523,7 +523,7 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
             // a somewhat cryptic error message
             if (tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
                 const message = `Invalid token (set password from token); token: ${resetToken}`
-                console.log(message)
+                logger.log(message)
                 return Promise.reject(message)
             }
 
@@ -533,7 +533,7 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
 
             if (user === null) {
                 const message = `Invalid user for token; token: ${resetToken}; user_id: ${tokenData.userId}`
-                console.log(message)
+                logger.log(message)
                 return Promise.reject(message)
             }
 
@@ -556,14 +556,14 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
             }) as RecipesUser
         } catch (e) {
             const message = `Failed to update password; token: ${resetToken}`
-            console.error(message, e)
+            logger.error(message, e)
             return Promise.reject(message)
         } finally {
             await session.endSession()
         }
     } catch (e) {
         const message = `Unable to set password; invalid token: ${resetToken}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }

@@ -4,6 +4,9 @@ import {RecipeSummary} from "../../../components/recipes/Recipe";
 import {RequestMethod} from "../../../lib/RequestMethod";
 import {getServerSession} from "next-auth";
 import {authOptions} from "../auth/[...nextauth]";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "summaries"})
 
 /**
  * Retrieves the recipes that match the search terms represented in the query-parameter
@@ -29,7 +32,7 @@ export default async function handler(
                 .then(summaries => response.status(200).json(summaries))
                 .catch(reason => {
                     const message = `Failed to find recipes summaries; reason: ${reason}`
-                    console.log(message)
+                    logger.info(message)
                     return Promise.reject(message)
                 })
         default:

@@ -38,17 +38,13 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
         const user = await usersCollection(client).findOne({email: credentials.email})
         if (user === null) {
             const message = `Unable to authenticate user; email: ${credentials.email}`
-            console.log(message)
             logger.info(message)
-            // return Promise.reject(message)
             return emptyUser()
         }
         // if the user has been deleted, then they can't log in
         if (user.deletedOn === null || user.deletedOn as number > 0) {
             const message = `Unable to authenticate user; email: ${credentials.email}; timestamp: ${Date.now()}`
-            console.log(message)
             logger.info(message)
-            // return Promise.reject(message)
             return emptyUser()
         }
         // todo error message if the user's email hasn't been verified, which means that the user
@@ -58,8 +54,7 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
             const authenticated = await compare(credentials.password, user.password)
             if (authenticated) {
                 const role = await roleFor(user._id.toString())
-                console.log(credentials, {...user, role})
-                logger.info(`User authenticated; email: ${credentials.email}`);
+                logger.info(`User authenticated; email: ${credentials.email}; name: ${user.name}; role: ${role.name}`);
                 return {...user, id: user._id.toString(), role}
             }
             logger.debug(`Invalid credentials for user; email: ${credentials.email}`);
@@ -67,13 +62,10 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
         } catch (e) {
             const message = `Unable to validate credentials for ${credentials.email}; error: ${e.message}`
             logger.error(message)
-            console.error(`Unable to validate credentials for ${credentials.email}`, e)
-            // return Promise.reject(message)
             return emptyUser()
         }
     } catch (e) {
         const message = `Unable to retrieve information for user with email: ${credentials.email}; error: ${e.message}`;
-        console.error(`Unable to authenticate user; email: ${credentials.email}`, e)
         logger.error(message)
 
         // attempt to reconnect

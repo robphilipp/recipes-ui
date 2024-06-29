@@ -16,7 +16,9 @@ import {
 } from "../../../components/passwords/passwordRequirements";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {NewPassword} from "../../api/passwords/[id]";
+import {Logger} from "tslog"
 
+const logger = new Logger({name: "token-id"})
 
 /**
  * Page to allow the user to enter a new password based on a hash digest
@@ -36,7 +38,7 @@ export default function PasswordByToken(): JSX.Element {
         () => axios
             .get(`/api/passwords/${token}`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject(emptyUser())
             })

@@ -12,6 +12,9 @@ import {
 } from "../../lib/users";
 import {getToken} from "next-auth/jwt";
 import {Role, roleAtLeast, RoleType} from "../../components/users/Role";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "api-users"})
 
 // todo: ultimately want these methods to work for admin and account admin, and
 //       for account admin filter to only users in groups owned by the account
@@ -77,7 +80,7 @@ export default async function handler(
         // this patches the user-list resource by performing the action on the list
         case RequestMethod.PATCH:
             const {action, emails} = request.body as UsersPatchAction
-            console.log(`Delete users with patch; action: ${action}`)
+            logger.info(`Delete users with patch; action: ${action}`)
             if (emails.length === 0) {
                 return response.status(200).json({deletedCount: 0})
             }
@@ -85,7 +88,7 @@ export default async function handler(
                 .then(count => response.status(200).json({deletedCount: count}))
 
         default:
-            console.log(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
+            logger.info(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
             return Promise.reject(`Unsupported HTTP method; method: ${request.method}; url: ${request.url}`)
     }
 }

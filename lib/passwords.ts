@@ -3,6 +3,9 @@ import {DateTime} from "luxon";
 import {Collection, Long, MongoClient, ObjectId} from "mongodb";
 import clientPromise from "./mongodb";
 import {PasswordResetToken} from "../components/passwords/PasswordResetToken";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "passwords"})
 
 const SALT_ROUNDS: number = 10
 
@@ -89,7 +92,7 @@ export async function tokensFor(userId: string): Promise<Array<PasswordResetToke
             .toArray()
         return mongoTokens.map(convertToPasswordResetToken)
     } catch (e) {
-        console.error(`Unable to retrieve password reset tokens for user; user_id: ${userId}`, e)
+        logger.error(`Unable to retrieve password reset tokens for user; user_id: ${userId}`, e)
         return Promise.reject(`Unable to retrieve password reset tokens for user; user_id: ${userId}`)
     }
 }
@@ -108,7 +111,7 @@ export async function retrieveExpiredTokens(): Promise<Array<PasswordResetToken>
             .toArray()
         return mongoTokens.map(convertToPasswordResetToken)
     } catch (e) {
-        console.error("Unable to find expired password reset tokens", e)
+        logger.error("Unable to find expired password reset tokens", e)
         return Promise.reject("Unable to find expired password reset tokens")
     }
 }
@@ -156,7 +159,7 @@ export async function purgeExpiredTokens(): Promise<PasswordResetTokenPurgeResul
         }
         return Promise.reject("Unable to purge expired tokens (not acknowledged)")
     } catch (e) {
-        console.error("Unable to purge expired tokens", e)
+        logger.error("Unable to purge expired tokens", e)
         return Promise.reject("Unable to purge expired tokens (error)")
     }
 }
@@ -186,7 +189,7 @@ export async function addPasswordResetTokenFor(
         }
         return convertToPasswordResetToken(resetToken)
     } catch (e) {
-        console.error(`Unable to add password reset token for user: user_id: ${userId}`, e)
+        logger.error(`Unable to add password reset token for user: user_id: ${userId}`, e)
         return Promise.reject(`Unable to add password reset token for user: user_id: ${userId}`)
     }
 }

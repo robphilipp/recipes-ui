@@ -22,6 +22,9 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import useThrottling from "../../../lib/useThrottling";
 import {emailFormatConstraint, stringLengthConstraint} from "./constraints";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "add-user-form"})
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
@@ -77,7 +80,7 @@ export default function AddUserForm(props: Props): JSX.Element {
         ['roles-all'],
         () => axios.get<Array<Role>>(`/api/roles`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject([])
             })

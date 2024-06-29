@@ -8,6 +8,9 @@ import {
     principalTypeFrom,
     RecipePermission
 } from "../components/recipes/RecipePermissions";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "lib-permissions"})
 
 if (process.env.mongoDatabase === undefined) {
     throw Error("mongoDatabase not specified in process.env")
@@ -105,7 +108,7 @@ export async function permissions(filter: Filter<MongoRecipePermission> = {}): P
             .map(permission => recipePermissionFrom(permission))
             .toArray()
     } catch (e) {
-        console.log("Unable to retrieve permissions", e)
+        logger.error("Unable to retrieve permissions", e)
         return Promise.reject("Unable to retrieve recipe permissions")
     }
 }
@@ -134,7 +137,7 @@ export async function permissionFor(principalId: string, principalType: Principa
     } catch (e) {
         const message = `Unable to find recipe permissions; principal_id: ${principalId}; ` +
             `principal_type: ${principalType}; recipe_id: ${recipeId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -155,7 +158,7 @@ export async function permissionById(permissionId: string): Promise<RecipePermis
         return recipePermissionFrom(perms)
     } catch (e) {
         const message = `Unable to find permissions for permission ID; id: ${permissionId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -183,7 +186,7 @@ export async function addPermissionTo(recipePermissions: RecipePermission): Prom
     } catch (e) {
         const message = `Unable to add permissions (exception); principal_id: ${principalId}; ` +
             `principal_type: ${principalType}; recipe_id: ${recipeId}; access_rights: ${accessRights.value}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -215,7 +218,7 @@ export async function updateAccessRightsOn(permissions: RecipePermission, access
         }
         return await permissionById(updated._id.toString())
     } catch(e) {
-        console.error(message(), e)
+        logger.error(message(), e)
         return Promise.reject(message())
     }
 }
@@ -232,7 +235,7 @@ export async function updatePermissionsFor(permissionId: string, newAccessRights
         return await updateAccessRightsOn(permissions, newAccessRights)
     } catch(e) {
         const message = `Unable to update permissions; permission_id: ${permissionId}; access_rights: ${newAccessRights}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -260,7 +263,7 @@ export async function updatePermissionsTo(
     } catch(e) {
         const message = `Unable to update permissions; principalId: ${principalId}; ` +
             `principal_type: ${principalType}; recipe_id: ${recipeId}; access_rights: ${newAccessRights}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }
@@ -290,7 +293,7 @@ export async function deletePermissionsById(permissionsId: string): Promise<void
         }
     } catch (e) {
         const message = `Unable to delete permissions; permission_id: ${permissionsId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
 
     }
@@ -310,7 +313,7 @@ export async function deletePermissionsFrom(
     } catch(e) {
         const message = `Unable to delete permissions; principal_id: ${principalId}; ` +
             `principal_type: ${principalType}; recipe_id: ${recipeId}`
-        console.error(message, e)
+        logger.error(message, e)
         return Promise.reject(message)
     }
 }

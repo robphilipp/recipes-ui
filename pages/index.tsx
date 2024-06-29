@@ -44,7 +44,9 @@ import {
 } from "./api/permissions/recipe";
 import {RecipeAddUsersView} from "../components/recipes/users/RecipeAddUsersView";
 import {newErrorNotification, useNotifications} from "../lib/useNotifications";
-import pluralize from 'pluralize'
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "index"})
 
 
 // import {ParseType, toIngredients, toRecipe} from "@saucie/recipe-parser"
@@ -197,7 +199,7 @@ export default function Home(props: Props): JSX.Element {
             '/api/permissions/recipe',
             request
         ).catch(reason => {
-            console.error("email not found", reason)
+            logger.error("email not found", reason)
             errorMessaging.push(newErrorNotification(`Unable to give user permissions to recipe: reason: ${reason}`))
         })
     )

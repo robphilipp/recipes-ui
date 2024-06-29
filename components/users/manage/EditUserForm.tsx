@@ -24,6 +24,9 @@ import useThrottling from "../../../lib/useThrottling";
 import {emailFormatConstraint, stringLengthConstraint} from "./constraints";
 import {isEmptyUser, RecipesUser} from "../RecipesUser";
 import {Mail} from "@mui/icons-material";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "edit-user-form"})
 
 const UserFormControl = styled(FormControl)(() => ({
     marginTop: 10,
@@ -98,7 +101,7 @@ export default function EditUserForm(props: Props): JSX.Element {
         ['roles-all'],
         () => axios.get<Array<Role>>(`/api/roles`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject([])
             })

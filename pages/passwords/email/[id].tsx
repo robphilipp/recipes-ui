@@ -9,6 +9,9 @@ import {UrlEnrichedPasswordResetToken} from "../../../components/passwords/Passw
 import {useSession} from "next-auth/react";
 import Button from '@mui/material/Button'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "email-id"})
 
 /**
  * Page from which to send email (Sendgrid wouldn't give me a free account as promised
@@ -25,7 +28,7 @@ export default function EmailViewer(): JSX.Element {
         ['users-by-id'],
         () => axios.get<RecipesUser>(`/api/users?user_id=${userId}`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject(emptyUser())
             })
@@ -36,7 +39,7 @@ export default function EmailViewer(): JSX.Element {
         () => axios
             .get<Array<UrlEnrichedPasswordResetToken>>(`/api/passwords/tokens/${userId}`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject("")
             })
@@ -59,7 +62,7 @@ export default function EmailViewer(): JSX.Element {
                     setEmailBody(serializeDom)
                 })
                 .catch(reason => {
-                    console.error(reason)
+                    logger.error(reason)
                     setCopied(false)
                     setEmailBody(undefined)
                 })

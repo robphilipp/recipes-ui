@@ -4,6 +4,9 @@ import {emptyRecipe, Recipe} from "../../../../components/recipes/Recipe";
 import {RequestMethod} from "../../../../lib/RequestMethod";
 import {getServerSession} from "next-auth";
 import {authOptions} from "../../auth/[...nextauth]";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "ratings-id"})
 
 type UpdateRating = {
     newRating: number
@@ -34,7 +37,7 @@ export default async function handler(
             const {newRating, ratings} = (request.body as UpdateRating)
             return updateRatings(session.user, recipeId, newRating, ratings)
                 .then(recipe => response.status(200).json(recipe))
-                .catch(reason => console.error(reason))
+                .catch(reason => logger.error(reason))
 
         // // returns the deleted recipe
         // case RequestMethod.DELETE:

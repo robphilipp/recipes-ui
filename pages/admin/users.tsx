@@ -16,6 +16,9 @@ import Paper, {PaperProps} from "@mui/material/Paper";
 import Draggable from "react-draggable";
 import {Role, roleFrom} from "../../components/users/Role";
 import EditUserForm, {EditUserFormUser} from "../../components/users/manage/EditUserForm";
+import {Logger} from "tslog"
+
+const logger = new Logger({name: "users"})
 
 function PaperComponent(props: PaperProps) {
     return (
@@ -36,7 +39,7 @@ export default function ManageUsers(): JSX.Element {
         ['users-all'],
         () => axios.get<Array<RecipesUser>>(`/api/users`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject([])
             })
@@ -73,7 +76,7 @@ export default function ManageUsers(): JSX.Element {
         ['roles-all'],
         () => axios.get<Array<Role>>(`/api/roles`)
             .catch(async reason => {
-                console.error(reason)
+                logger.error(reason)
                 await router.push("/api/auth/signin")
                 return Promise.reject([])
             })
@@ -89,7 +92,7 @@ export default function ManageUsers(): JSX.Element {
         const response = await addNewUserQuery.mutateAsync(recipeUser)
         if (response.status !== 200) {
             const message = `Failed to add new user; http_status_code: ${response.status}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
         setAddUserFormVisibility(false)
@@ -100,7 +103,7 @@ export default function ManageUsers(): JSX.Element {
         const response = await updateUserQuery.mutateAsync(user)
         if (response.status !== 200) {
             const message = `Failed to update user; http_status_code: ${response.status}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
         setEditUserFormVisibility(false)
@@ -155,7 +158,7 @@ export default function ManageUsers(): JSX.Element {
         if (response.status != 200) {
             const message = `Failed to generate password reset token; http_status_code: ${response.status}; ` +
                 `user_id: ${userId}; email" ${userEmail}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
         await queryClient.invalidateQueries(['users-all'])
@@ -213,10 +216,10 @@ export default function ManageUsers(): JSX.Element {
         const response = await deleteUsersQuery.mutateAsync(users)
         if (response.status !== 200) {
             const message = `Failed to delete users; http_status_code: ${response.status}`
-            console.error(message)
+            logger.error(message)
             return Promise.reject(message)
         }
-        console.log(`Deleted users: [${users.map(user => user.email)}]`)
+        logger.info(`Deleted users: [${users.map(user => user.email)}]`)
         return await queryClient.invalidateQueries(['users-all'])
     }
 
