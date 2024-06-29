@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7-labs
+
 # Base on offical Node.js Alpine image
 FROM node:alpine
 LABEL authors="rob"
@@ -26,7 +28,17 @@ RUN npm install migrate-mongo -g
 RUN npm install pm2@latest -g
 
 # Copy all files
-COPY ./ ./
+COPY --exclude=.env.local \
+     --exclude=node_modules \
+     --exclude=.next \
+     --exclude=.react-email \
+     --exclude=.git \
+     --exclude=.gitignore \
+     --exclude=.idea \
+     --exclude=docs/private_notes \
+     --exclude=compose.yaml \
+     --exclude=Dockerfile \
+     ./ ./
 
 # Build app
 RUN npm run build

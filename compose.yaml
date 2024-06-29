@@ -17,7 +17,7 @@ services:
       - 127.0.0.1:8081:3000
     working_dir: /usr/app
     volumes:
-      - ./:/usr/app
+      - recipes-app-date:/usr/app
 
     # variable for next auth (need to move the secret into a secret)
     environment:
@@ -39,18 +39,21 @@ services:
       - 27027:27017
     volumes:
       - mongo-1-recipes-data:/data/db
-    restart: unless-stopped
+    restart: always
     entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo1"]
 
   mongo2:
     image: mongo:6
     hostname: mongo2
     container_name: mongo2
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
     ports:
       - 27028:27017
     volumes:
       - mongo-2-recipes-data:/data/db
-    restart: unless-stopped
+    restart: always
     entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
 
   mongo3:
@@ -61,7 +64,7 @@ services:
       - 27029:27017
     volumes:
       - mongo-3-recipes-data:/data/db
-    restart: unless-stopped
+    restart: always
     entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
 
   mongosetup:
@@ -77,6 +80,7 @@ services:
     entrypoint: ["bash", "/deployment/deployment/mongo/mongo_setup.sh"]
 
 volumes:
+  recipes-app-date:
   mongo-1-recipes-data:
   mongo-2-recipes-data:
   mongo-3-recipes-data:

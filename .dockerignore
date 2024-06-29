@@ -1,3 +1,6 @@
 node_modules/
 .react-email/node_modules/
-not.env.local
+.env.local
+.next
+.git/
+.gitignore
