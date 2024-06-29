@@ -523,7 +523,7 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
             // a somewhat cryptic error message
             if (tokenData === null || tokenData.expiration < DateTime.utc().toMillis()) {
                 const message = `Invalid token (set password from token); token: ${resetToken}`
-                logger.log(message)
+                logger.info(message)
                 return Promise.reject(message)
             }
 
@@ -533,7 +533,7 @@ export async function setPasswordFromToken(passwordData: NewPassword): Promise<R
 
             if (user === null) {
                 const message = `Invalid user for token; token: ${resetToken}; user_id: ${tokenData.userId}`
-                logger.log(message)
+                logger.info(message)
                 return Promise.reject(message)
             }
 

@@ -37,7 +37,9 @@ export default async function handler(
             const {newRating, ratings} = (request.body as UpdateRating)
             return updateRatings(session.user, recipeId, newRating, ratings)
                 .then(recipe => response.status(200).json(recipe))
-                .catch(reason => logger.error(reason))
+                .catch(reason => {
+                    logger.error(reason)
+                })
 
         // // returns the deleted recipe
         // case RequestMethod.DELETE:

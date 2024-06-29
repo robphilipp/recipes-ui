@@ -21,7 +21,7 @@ export default function ImportRecipeOcr(): JSX.Element {
         () => {
             const worker = createWorker({
                 logger: message => {
-                    logger.log(message)
+                    logger.info(message)
                     if (message.status === 'recognizing text') {
                         setStatus(undefined)
                         setOcrProgress(message.progress)
