@@ -126,7 +126,7 @@ services:
 #    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
 
   mongosetup:
-    image: mongo:6
+    image: mongo:latest
     depends_on:
       mongo1:
         condition: service_healthy
