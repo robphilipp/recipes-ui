@@ -1,5 +1,33 @@
+#
 # sets up a docker container for the application, a mongo replica set consisting
 # of one node, and migrates the mongo recipe schema to the current version.
+#
+# To set up a mongo cluster with three nodes instead of just one you must
+# uncomment and comment code in this file, and in the two other files.
+#
+# In this file:
+#  1. Uncomment the sections for "mongo2" and "mongo3".
+#  2. In the "mongosetup" section, uncomment the "depends_on" items
+#     "mongo2" and "mongo3".
+#  3. In the "volumes" section, uncomment the entries for "mongo-2-recipes-data"
+#     "mongo-3-recipes-data".
+#
+# In the "deployment/mongo/mongo_setup.sh" file:
+#  1. Comment out the "mongosh" command with the replica set holding only one node.
+#  2. Uncomment the "mongosh" command with the replica set holding the three nodes.
+#  3. Comment out the "cd" section with the two "mongo import" commands where the
+#     host that refers only to "mongo1".
+#  4. Uncomment the "cd" section with the two "mongo import" commands where the
+#     host that refers two to "mongo1,mongo2,mongo3".
+#  5. Comment out the "mongosh" command at the end of the file whose host refers
+#     only to "mongo1".
+#  6. Uncomment out the "mongosh" command at the end of the file whose host refers
+#     to "mongo1,mongo2,mongo3".
+#
+# In the "deployment/mongo/migrate-mongo-config.js" file:
+#  1. Comment out the "mongodb.url" that refers only to "mongo1"
+#  2. Uncomment the "mongodb.url" that refers to "mongo1,mongo2,mongo3"
+#
 services:
 
   app:
@@ -21,7 +49,6 @@ services:
     working_dir: /usr/app
     volumes:
       - recipes-app-data:/usr/app
-
 
     # variables for next auth (need to move the secret into a secret)
     # (holds the next-auth secret and should be unique for your deployment)
@@ -49,47 +76,70 @@ services:
     volumes:
       - mongo-1-recipes-data:/data/db
     restart: always
+    healthcheck:
+      test: [ "CMD", "mongod", "--version" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+      start_period: 0s
+      start_interval: 5s
     entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo1"]
 
-  mongo2:
-    image: mongo:6
-    hostname: mongo2
-    container_name: mongo2
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - 27028:27017
-    volumes:
-      - mongo-2-recipes-data:/data/db
-    restart: always
-    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
-
-  mongo3:
-    image: mongo:6
-    hostname: mongo3
-    container_name: mongo3
-    ports:
-      - 27029:27017
-    volumes:
-      - mongo-3-recipes-data:/data/db
-    restart: always
-    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
+#  mongo2:
+#    image: mongo:6
+#    hostname: mongo2
+#    container_name: mongo2
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: example
+#    ports:
+#      - 27028:27017
+#    volumes:
+#      - mongo-2-recipes-data:/data/db
+#    restart: always
+#    healthcheck:
+#      test: [ "CMD", "mongod", "--version" ]
+#      interval: 5s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 0s
+#      start_interval: 5s
+#    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
+#
+#  mongo3:
+#    image: mongo:6
+#    hostname: mongo3
+#    container_name: mongo3
+#    ports:
+#      - 27029:27017
+#    volumes:
+#      - mongo-3-recipes-data:/data/db
+#    restart: always
+#    healthcheck:
+#      test: [ "CMD", "mongod", "--version" ]
+#      interval: 5s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 0s
+#      start_interval: 5s
+#    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
 
   mongosetup:
     image: mongo:6
     depends_on:
-      - mongo1
-      - mongo2
-      - mongo3
+      mongo1:
+        condition: service_healthy
+#      mongo2:
+#        condition: service_healthy
+#      mongo3:
+#        condition: service_healthy
     volumes:
       - ./:/deployment
     restart: "no"
-#    command: "find / -name 'mongo_setup.sh'"
     entrypoint: ["bash", "/deployment/deployment/mongo/mongo_setup.sh"]
 
 volumes:
   recipes-app-data:
   mongo-1-recipes-data:
-  mongo-2-recipes-data:
-  mongo-3-recipes-data:
+#  mongo-2-recipes-data:
+#  mongo-3-recipes-data:
