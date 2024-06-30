@@ -68,7 +68,7 @@ services:
 
   # set up the mongo cluster
   mongo1:
-    image: mongo:6
+    image: mongo:latest
     hostname: mongo1
     container_name: mongo1
     ports:
@@ -83,10 +83,11 @@ services:
       retries: 3
       start_period: 0s
       start_interval: 5s
+    # by default mongodb uses the WiredTiger storage engine
     entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo1"]
 
 #  mongo2:
-#    image: mongo:6
+#    image: mongo:latest
 #    hostname: mongo2
 #    container_name: mongo2
 #    environment:
@@ -107,7 +108,7 @@ services:
 #    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
 #
 #  mongo3:
-#    image: mongo:6
+#    image: mongo:latest
 #    hostname: mongo3
 #    container_name: mongo3
 #    ports:
