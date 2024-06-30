@@ -3,12 +3,15 @@
 services:
 
   app:
-#    image: node:alpine
+
+    container_name: recipes-server
+
+    # want to wait until the "mongosetup" finishes successfully
+    # before starting this. largely this is so that we can do
+    # a migrate-mongo to bring the database to the current version
     depends_on:
       mongosetup:
         condition: service_completed_successfully
-
-    container_name: recipes-server
 
     # build the image from the Dockerfile in this same directory
     build: .
@@ -17,11 +20,17 @@ services:
       - 127.0.0.1:8081:3000
     working_dir: /usr/app
     volumes:
-      - recipes-app-date:/usr/app
+      - recipes-app-data:/usr/app
 
-    # variable for next auth (need to move the secret into a secret)
+
+    # variables for next auth (need to move the secret into a secret)
+    # (holds the next-auth secret and should be unique for your deployment)
+    env_file:
+      - deployment/.env.compose
+
+    # general next-auth variables that will likely remain the same
+    # across deployments
     environment:
-      NEXTAUTH_SECRET: caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef
       NEXTAUTH_URL_INTERNAL: 'http://localhost:3000'
       NEXTAUTH_URL: 'http://localhost:8081'
 
@@ -80,7 +89,7 @@ services:
     entrypoint: ["bash", "/deployment/deployment/mongo/mongo_setup.sh"]
 
 volumes:
-  recipes-app-date:
+  recipes-app-data:
   mongo-1-recipes-data:
   mongo-2-recipes-data:
   mongo-3-recipes-data:
