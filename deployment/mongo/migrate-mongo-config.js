@@ -1,9 +1,19 @@
 // In this file you can configure migrate-mongo
 
+// To set up a mongo cluster with three nodes instead of just one you must
+// uncomment and comment code in this file, and in the two other files.
+//
+// **See the compose.yaml file for full instructions for changes to other files.**
+//
+// In this file:
+//  1. Comment out the "mongodb.url" that refers only to "mongo1"
+//  2. Uncomment the "mongodb.url" that refers to "mongo1,mongo2,mongo3"
+//
+
 const config = {
   mongodb: {
-    url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
-    // url: "mongodb://mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet",
+    // url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
+    url: "mongodb://mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet",
     databaseName: "recipeBook",
 
     options: {

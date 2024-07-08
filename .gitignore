@@ -38,5 +38,7 @@ private_notes/
 
 /.react-email
 
+# deployment stuff related to docker and compose
 dbmigrations/tmp/
 deployment/mongo/backups/*.json
+deployment/mongo/generated/
