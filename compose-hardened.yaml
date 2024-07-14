@@ -7,7 +7,7 @@
 #
 # In this file:
 #  1. Uncomment the sections for "mongo2" and "mongo3".
-#  2. In the "mongosetup" section, uncomment the "depends_on" items
+#  2. In the "mongo_setup" section, uncomment the "depends_on" items
 #     "mongo2" and "mongo3".
 #  3. In the "volumes" section, uncomment the entries for "mongo-2-recipes-data"
 #     "mongo-3-recipes-data".
@@ -34,12 +34,19 @@ services:
 
     container_name: recipes-server
 
-    # want to wait until the "mongosetup" finishes successfully
+    # want to wait until the "mongo_setup" finishes successfully
     # before starting this. largely this is so that we can do
     # a migrate-mongo to bring the database to the current version
+#    depends_on:
+#      mongo_setup:
+#        condition: service_completed_successfully
     depends_on:
-      mongosetup:
-        condition: service_completed_successfully
+      mongo1:
+        condition: service_healthy
+      mongo2:
+        condition: service_healthy
+      mongo3:
+        condition: service_healthy
 
     # build the image from the Dockerfile in this same directory
     build: .
@@ -66,6 +73,15 @@ services:
       deployment/mongo/migrate_mongo.sh && \
       npm run start"
 
+  # generates a key file that is used by the mongo cluster for internal cluster
+  # authentication. each node of the mongo cluster needs this key file
+  mongo_security_setup:
+    image: mongo:latest
+    volumes:
+      - ./:/deployment
+    restart: "no"
+    entrypoint: [ "bash", "/deployment/deployment/mongo/mongo_security_setup.sh" ]
+
   # set up the mongo cluster
   mongo1:
     image: mongo:latest
@@ -73,9 +89,24 @@ services:
     container_name: mongo1
     ports:
       - 27027:27017
+
+    # ensure that the key-file has been generated successfully so that
+    # it can be used in the entrypoint
+    depends_on:
+      mongo_security_setup:
+        condition: service_completed_successfully
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
     volumes:
       - mongo-1-recipes-data:/data/db
+      - ./deployment/mongo/generated/:/data/authentication
+      - ./deployment/mongo:/data/setup
+
     restart: always
+
     healthcheck:
       test: [ "CMD", "mongod", "--version" ]
       interval: 5s
@@ -83,21 +114,39 @@ services:
       retries: 3
       start_period: 0s
       start_interval: 5s
+
     # by default mongodb uses the WiredTiger storage engine
-    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo1"]
+    entrypoint: [
+      "mongod",
+      "--replSet", "recipesReplicaSet",
+      "--bind_ip", "localhost,mongo1",
+      "--keyFile", "/data/authentication/internal-replica-key-file.key"
+    ]
 
   mongo2:
     image: mongo:latest
     hostname: mongo2
     container_name: mongo2
+    ports:
+      - 27028:27017
+
+    # ensure that the key-file has been generated successfully so that
+    # it can be used in the entrypoint
+    depends_on:
+      mongo_security_setup:
+        condition: service_completed_successfully
+
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - 27028:27017
+
     volumes:
       - mongo-2-recipes-data:/data/db
+      - ./deployment/mongo/generated/:/data/authentication
+      - ./deployment/mongo:/data/setup
+
     restart: always
+
     healthcheck:
       test: [ "CMD", "mongod", "--version" ]
       interval: 5s
@@ -105,7 +154,13 @@ services:
       retries: 3
       start_period: 0s
       start_interval: 5s
-    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo2"]
+
+    entrypoint: [
+      "mongod",
+      "--replSet", "recipesReplicaSet",
+      "--bind_ip", "localhost,mongo2",
+      "--keyFile", "/data/authentication/internal-replica-key-file.key"
+    ]
 
   mongo3:
     image: mongo:latest
@@ -113,9 +168,24 @@ services:
     container_name: mongo3
     ports:
       - 27029:27017
+
+    # ensure that the key-file has been generated successfully so that
+    # it can be used in the entrypoint
+    depends_on:
+      mongo_security_setup:
+        condition: service_completed_successfully
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
     volumes:
       - mongo-3-recipes-data:/data/db
+      - ./deployment/mongo/generated/:/data/authentication
+      - ./deployment/mongo:/data/setup
+
     restart: always
+
     healthcheck:
       test: [ "CMD", "mongod", "--version" ]
       interval: 5s
@@ -123,21 +193,29 @@ services:
       retries: 3
       start_period: 0s
       start_interval: 5s
-    entrypoint: ["mongod", "--replSet", "recipesReplicaSet", "--bind_ip", "localhost,mongo3"]
 
-  mongosetup:
-    image: mongo:latest
-    depends_on:
-      mongo1:
-        condition: service_healthy
-      mongo2:
-        condition: service_healthy
-      mongo3:
-        condition: service_healthy
-    volumes:
-      - ./:/deployment
-    restart: "no"
-    entrypoint: ["bash", "/deployment/deployment/mongo/mongo_setup.sh"]
+    entrypoint: [
+      "mongod",
+      "--replSet", "recipesReplicaSet",
+      "--bind_ip", "localhost,mongo3",
+      "--keyFile", "/data/authentication/internal-replica-key-file.key"
+    ]
+
+# todo remove this, the set up scripts need to do this because now the order is
+# todo different for authenticated cluster (may be able to add back into compose)
+#  mongo_setup:
+#    image: mongo:latest
+#    depends_on:
+#      mongo1:
+#        condition: service_healthy
+#      mongo2:
+#        condition: service_healthy
+#      mongo3:
+#        condition: service_healthy
+#    volumes:
+#      - ./:/deployment
+#    restart: "no"
+#    entrypoint: ["bash", "/deployment/deployment/mongo/mongo_setup.sh"]
 
 volumes:
   recipes-app-data:
