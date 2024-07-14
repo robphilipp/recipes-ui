@@ -53,11 +53,13 @@ while [ $(docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh --h
   printf "."
   sleep 1
 done
-printf "done\n"
+printf "done\n\n"
 
 # add an admin user and a cluster-admin user to the mongo cluster
-# for authenticating queries
-printf "(deploy_recipes_mongo_with_auth) adding database admin user..."
+# for authenticating queries. the admin users (looker) has root access
+# to enable importing and migrating data
+# todo is there a more restricted access that allows importing, reading, writing, backups, etc
+printf "(deploy_recipes_mongo_with_auth) adding database admin user...\n"
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh --host localhost:27017 <<EOF
 var db_admin = "looker"
 var password = "he-w3nt-2-tHehou5eto-lo0k"
@@ -68,13 +70,13 @@ admin.createUser(
   {
     "user" : db_admin,
     "pwd" : password,
-    "roles": [ { "role": "userAdminAnyDatabase", "db": "admin" } ]
+    "roles": [ { "role": "root", "db": "admin" } ]
   }
 )
 EOF
-printf "done\n"
+printf "done\n\n"
 
-printf "(deploy_recipes_mongo_with_auth) adding cluster admin user..."
+printf "(deploy_recipes_mongo_with_auth) adding cluster admin user...\n"
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh \
   --host mongo1:27017 \
   --username="$db_admin_name" \
@@ -95,39 +97,42 @@ admin.createUser(
   }
 )
 EOF
-printf "done\n"
+printf "done\n\n"
 
 # todo change "mongo1,mongo2,mongo3" to a string that depends on the number of replica
 printf "(deploy_recipes_mongo_with_auth) importing existing recipes (recipes-export.json)..."
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongoimport \
   --username="$db_admin_name" \
   --password="$admin_password" \
+  --authenticationDatabase="admin" \
   --db='recipeBook' \
   --collection='recipes' \
   --host="$recipes_replica_set_name/mongo1,mongo2,mongo3" \
   --file='/data/setup/backups/recipes-export.json' \
   --bypassDocumentValidation
-printf "done\n"
+printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) importing changelog for migrate-mongo (changelog-export.json)..."
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongoimport \
   --username="$db_admin_name" \
   --password="$admin_password" \
+  --authenticationDatabase="admin" \
   --db='recipeBook' \
   --collection='changelog' \
   --host="$recipes_replica_set_name/mongo1,mongo2,mongo3" \
   --file='/data/setup/backups/changelog-export.json' \
   --maintainInsertionOrder
-printf "done\n"
+printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) checking changelog..."
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh \
   --host "$recipes_replica_set_name/mongo1,mongo2,mongo3" \
   --username="$db_admin_name" \
-  --password="$admin_password" <<EOF
+  --password="$admin_password" \
+  --authenticationDatabase="admin" <<EOF
 use recipeBook;
 db.changelog.find();
 EOF
-printf "done\n"
+printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) completed!\n"

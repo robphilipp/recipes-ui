@@ -2,8 +2,8 @@
 
 const config = {
   mongodb: {
-    url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
-    // url: "mongodb://mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet",
+    // url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
+    url: "mongodb://mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin",
     databaseName: "recipeBook",
 
     options: {
