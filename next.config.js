@@ -68,7 +68,8 @@ module.exports = (phase, { defaultConfig }) => {
             port: "3001",
             recipesApi: '/rest/v1/recipes',
 
-            MONGODB_URI: 'mongodb://mongo1:27017',
+            MONGODB_URI: 'mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin',
+            // MONGODB_URI: 'mongodb://mongo1:27017',
             // MONGODB_URI: 'mongodb://localhost:27017',
             mongoDatabase: 'recipeBook',
 

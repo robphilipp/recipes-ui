@@ -3,7 +3,7 @@
 const config = {
   mongodb: {
     // url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
-    url: "mongodb://mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin",
+    url: "mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin",
     databaseName: "recipeBook",
 
     options: {

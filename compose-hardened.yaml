@@ -69,9 +69,9 @@ services:
       NEXTAUTH_URL: 'http://localhost:8081'
 
     # install all the dependencies and start the dev server
-    command: sh -c "\
-      deployment/mongo/migrate_mongo.sh && \
-      npm run start"
+#    command: sh -c "\
+#      deployment/mongo/migrate_mongo.sh && \
+#      npm run start"
 
   # generates a key file that is used by the mongo cluster for internal cluster
   # authentication. each node of the mongo cluster needs this key file

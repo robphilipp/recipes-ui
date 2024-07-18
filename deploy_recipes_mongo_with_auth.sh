@@ -99,6 +99,9 @@ admin.createUser(
 EOF
 printf "done\n\n"
 
+# pre-migration: put the database and the changelog into its current state
+#
+
 # todo change "mongo1,mongo2,mongo3" to a string that depends on the number of replica
 printf "(deploy_recipes_mongo_with_auth) importing existing recipes (recipes-export.json)..."
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongoimport \
@@ -133,6 +136,16 @@ docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh \
 use recipeBook;
 db.changelog.find();
 EOF
+printf "done\n\n"
+
+# migrates the mongo database cluster to the latest version found
+# in dbmigrations/migrations
+printf "(deploy_recipes_mongo_with_auth) migrating mongo cluster to current state..."
+docker compose --file "$compose_file" exec --no-TTY app /usr/app/deployment/mongo/migrate_mongo.sh
+printf "done\n\n"
+
+printf "(deploy_recipes_mongo_with_auth) starting the web app..."
+docker compose --file "$compose_file" exec --no-TTY app /bin/sh -c "cd /usr/app; npm run start"
 printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) completed!\n"
