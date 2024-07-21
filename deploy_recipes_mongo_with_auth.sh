@@ -248,10 +248,14 @@ printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) completed!\n"
 
+#
+# some cleanup shit...
+#
+
 function cleanup() {
   printf "(deploy_recipes_mongo_with_auth) moving the .env file out of the way..."
   mv -f .env deployment/.env.for.docker.compose.old
-  printf "moved to .env.for.docker.compose.old"
+  printf "moved to .env.for.docker.compose.old\n"
 
   printf "(deploy_recipes_mongo_with_auth) restoring the original next.config.js file..."
   mv -f next.config.js.orig next.config.js
