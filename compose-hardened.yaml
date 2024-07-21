@@ -89,7 +89,8 @@ services:
     volumes:
       - ./:/deployment
     restart: "no"
-    entrypoint: [ "bash", "/deployment/deployment/mongo/mongo_security_setup.sh" ]
+#    entrypoint: [ "bash", "/deployment/deployment/mongo/mongo_security_setup.sh" ]
+    command: sh -c "mkdir -p /deployment/deployment/mongo/generated && /deployment/deployment/mongo/mongo_security_setup.sh"
 
   # set up the mongo cluster
   mongo1:
