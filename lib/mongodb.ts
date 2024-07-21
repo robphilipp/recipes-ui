@@ -1,11 +1,17 @@
 import {MongoClient, MongoClientOptions} from 'mongodb'
+import {Logger} from "tslog";
+
+const logger = new Logger({name: "mongo-client"})
 
 const uri = process.env.MONGODB_URI
+const replicaSet = process.env.MONGODB_REPLICA_SET
 const options: MongoClientOptions = {
-    replicaSet: 'recipesReplicaSet',
+    replicaSet,
     // useUnifiedTopology: true,
     // useNewUrlParser: true,
 }
+
+logger.debug(`mongo-uri: ${uri}; mongo-replica-set: ${replicaSet}; node-env: ${process.env.NODE_ENV}; options: ${JSON.stringify(options, null, 2)}`)
 
 let client: MongoClient
 let clientPromise: Promise<MongoClient>
@@ -25,7 +31,9 @@ function connectMongoClient(): Promise<MongoClient> {
         // In development mode, use a global variable so that the value
         // is preserved across module reloads caused by HMR (Hot Module Replacement).
         if (!global._mongoClientPromise) {
+            logger.debug(`mongo-client-promise has not yet been created, creating a new mongo client`)
             client = new MongoClient(uri, options)
+            logger.info(`created a new mongo client; uri: ${uri}; mongo-replica-set: ${replicaSet}; options: ${JSON.stringify(options, null, 2)}`)
             global._mongoClientPromise = client.connect()
         }
         return global._mongoClientPromise

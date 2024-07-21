@@ -30,6 +30,12 @@
 #
 services:
 
+  # environment variables used by docker compose are in the .env
+  # environment file that is written by an external process.
+  #
+  # (generally for deploying recipeBook, you are using the
+  # "deploy_recipes_mongo_with_auth.sh" and this generates the
+  # .env file.)
   app:
 
     container_name: recipes-server
@@ -62,16 +68,19 @@ services:
     env_file:
       - deployment/.env.compose
 
-    # general next-auth variables that will likely remain the same
-    # across deployments
-    environment:
-      NEXTAUTH_URL_INTERNAL: 'http://localhost:3000'
-      NEXTAUTH_URL: 'http://localhost:8081'
+#    # general next-auth variables that will likely remain the same
+#    # across deployments
+#    environment:
+#      NEXTAUTH_URL_INTERNAL: 'http://localhost:3000'
+#      NEXTAUTH_URL: 'http://localhost:8081'
+#      NEXTAUTH_SECRET: 'caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef'
+#      MONGO_ADMIN_USERNAME: 'looker',
+#      MONGO_ADMIN_PASSWORD: 'he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k',
+#      MONGO_NODES: 'mongo1,mongo2,mongo3',
+
 
     # install all the dependencies and start the dev server
-#    command: sh -c "\
-#      deployment/mongo/migrate_mongo.sh && \
-#      npm run start"
+    command: sh -c "npm run start"
 
   # generates a key file that is used by the mongo cluster for internal cluster
   # authentication. each node of the mongo cluster needs this key file

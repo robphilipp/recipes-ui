@@ -4,19 +4,49 @@
 # two step process to deploy. the first step is to do a base deploy
 # using docker compose (compose configuration is ../../compose.yaml).
 # the second step is to finish the mongo cluster authentication.
+#
 
-compose_file=compose-hardened.yaml
-db_admin_name=looker
+compose_file='compose-hardened.yaml'
+db_admin_name='looker'
 admin_password="he-w3nt-2-tHehou5eto-lo0k"
-cluster_admin_name=clusterer
+cluster_admin_name='clusterer'
 cluster_admin_password="he-w3nt-2-tHehou5eto-lo0k"
 
-recipes_replica_set_name=recipesReplicaSet
+recipes_replica_set_name='recipesReplicaSet'
+mongo_nodes='mongo1,mongo2,mongo3'
+
+#
+# set up the environment for compose (ugh)
+#
+# create an environment file for docker compose to use, and then copy it to
+# the deployment directory so that it can be used by the next auth
+cat > .env <<EOF
+NEXTAUTH_URL_INTERNAL: "http://localhost:3000"
+NEXTAUTH_URL: "http://localhost:8081"
+NEXTAUTH_SECRET: "caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6ef"
+MONGO_ADMIN_USERNAME: "$db_admin_name"
+MONGO_ADMIN_PASSWORD: "$admin_password"
+MONGO_NODES: "$mongo_nodes"
+EOF
+
+# variables for next auth (need to move the secret into a secret)
+# (holds the next-auth secret and should be unique for your deployment)
+cp .env deployment/.env.compose
+
+#
+# run docker compose to get the cluster up in its base configuration
+#
 
 # do the base deployment of the mongo cluster and the recipes app
 printf "(deploy_recipes_mongo_with_auth) starting base deployment; compose_config: $compose_file..."
 docker compose --file "$compose_file" up --detach
 printf "done\n"
+
+#
+# set up the mongo replica set, adding node-to-node authentication,
+# importing the backed up collections,  update the schema to the latest version,
+# and adding basic data.
+#
 
 # todo change the rs.initiate config to depend on the number of replica
 # initial the mongo cluster's replica set
@@ -138,14 +168,13 @@ db.changelog.find();
 EOF
 printf "done\n\n"
 
-# migrates the mongo database cluster to the latest version found
-# in dbmigrations/migrations
+# migrates the mongo database cluster to the latest version found in dbmigrations/migrations
 printf "(deploy_recipes_mongo_with_auth) migrating mongo cluster to current state..."
 docker compose --file "$compose_file" exec --no-TTY app /usr/app/deployment/mongo/migrate_mongo.sh
 printf "done\n\n"
 
-printf "(deploy_recipes_mongo_with_auth) starting the web app..."
-docker compose --file "$compose_file" exec --no-TTY app /bin/sh -c "cd /usr/app; npm run start"
-printf "done\n\n"
+printf "(deploy_recipes_mongo_with_auth) moving the .env file out of the way..."
+mv .env deployment/.env.for.docker.compose.old
+printf "moved to .env.for.docker.compose.old"
 
 printf "(deploy_recipes_mongo_with_auth) completed!\n"

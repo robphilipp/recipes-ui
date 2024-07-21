@@ -29,6 +29,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+deployment/.env.compose
+deployment/.env.for.docker.compose.old
 
 client_secret_*.json
 

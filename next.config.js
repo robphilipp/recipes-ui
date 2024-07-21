@@ -1,7 +1,15 @@
+// @ts-check
+
 const { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_SERVER } = require('next/constants')
 
 module.exports = (phase, { defaultConfig }) => {
+
+    console.log("defaultConfig", defaultConfig)
+
     if (phase === PHASE_DEVELOPMENT_SERVER) {
+        /**
+         * @type {import('next').NextConfig}
+         */
         return {
             env: {
                 version: '0.4.2-snapshots',
@@ -15,6 +23,7 @@ module.exports = (phase, { defaultConfig }) => {
                 recipesApi: '/rest/v1/recipes',
 
                 MONGODB_URI: 'mongodb://localhost:27017',
+                MONGODB_REPLICA_SET: 'rs0',
                 mongoDatabase: 'recipeBook',
 
                 // mongo collection that the actual recipes
@@ -55,7 +64,7 @@ module.exports = (phase, { defaultConfig }) => {
         }
 
     }
-
+    const replicaSet = 'recipesReplicaSet'
     return {
         env: {
             version: '1.0.0',
@@ -68,9 +77,10 @@ module.exports = (phase, { defaultConfig }) => {
             port: "3001",
             recipesApi: '/rest/v1/recipes',
 
-            MONGODB_URI: 'mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin',
-            // MONGODB_URI: 'mongodb://mongo1:27017',
-            // MONGODB_URI: 'mongodb://localhost:27017',
+            MONGODB_REPLICA_SET: replicaSet,
+            // TODO username/password need to come from some secret location and be consistent throughout
+            // MONGODB_URI: `mongodb://${defaultConfig.env.MONGO_ADMIN_USERNAME}:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin`,
+            MONGODB_URI: `mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=${replicaSet}&authSource=admin`,
             mongoDatabase: 'recipeBook',
 
             // mongo collection that the actual recipes

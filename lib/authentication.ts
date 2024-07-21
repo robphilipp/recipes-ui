@@ -18,6 +18,8 @@ if (process.env.usersCollection === undefined) {
 const MONGO_DATABASE: string = process.env.mongoDatabase
 const USERS_COLLECTION: string = process.env.usersCollection
 
+logger.debug(`hosts: [${process.env.MONGODB_URI}]; db: ${MONGO_DATABASE}; collection: ${USERS_COLLECTION}`)
+
 function usersCollection(client: MongoClient): Collection<RecipesUser> {
     return client.db(MONGO_DATABASE).collection(USERS_COLLECTION)
 }
@@ -65,7 +67,7 @@ export async function authenticate(credentials: Credentials): Promise<RecipesUse
             return emptyUser()
         }
     } catch (e) {
-        const message = `Unable to retrieve information for user with email: ${credentials.email}; error: ${e.message}`;
+        const message = `Unable to retrieve information for user; email: ${credentials.email}; error: ${e.message}`;
         logger.error(message)
 
         // attempt to reconnect
