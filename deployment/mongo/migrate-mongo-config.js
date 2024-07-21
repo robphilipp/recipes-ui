@@ -1,17 +1,20 @@
 // In this file you can configure migrate-mongo
 
+const mongoUser = process.env.MONGO_ADMIN_USERNAME
+const mongoPassword = process.env.MONGO_ADMIN_PASSWORD
+// todo once the deploy_recipes_mongo_with_auth.sh URL encodes the password, then use
+//      below, rather than above
+// const mongoPassword = encodeURIComponent(process.env.MONGO_ADMIN_PASSWORD)
+const mongoNodes = process.env.MONGO_NODES
+const replicaSet = process.env.MONGODB_REPLICA_SET
+const databaseName = process.env.MONGODB_DATABASE_NAME
+
 const config = {
   mongodb: {
-    // url: "mongodb://mongo1/?replicaSet=recipesReplicaSet",
-    url: "mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin",
-    databaseName: "recipeBook",
+    url: `mongodb://${mongoUser}:${mongoPassword}@${mongoNodes}/?replicaSet=${replicaSet}&authSource=admin`,
+    databaseName: databaseName,
 
-    options: {
-      // useNewUrlParser: true, // removes a deprecation warning when connecting
-      // useUnifiedTopology: true, // removes a deprecating warning when connecting
-      //   connectTimeoutMS: 3600000, // increase connection timeout to 1 hour
-      //   socketTimeoutMS: 3600000, // increase socket timeout to 1 hour
-    }
+    options: {}
   },
 
   // The migrations dir, can be a relative or absolute path. Only edit this

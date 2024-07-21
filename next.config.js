@@ -4,8 +4,6 @@ const { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_SERVER } = require('next/cons
 
 module.exports = (phase, { defaultConfig }) => {
 
-    console.log("defaultConfig", defaultConfig)
-
     if (phase === PHASE_DEVELOPMENT_SERVER) {
         /**
          * @type {import('next').NextConfig}
@@ -64,7 +62,10 @@ module.exports = (phase, { defaultConfig }) => {
         }
 
     }
-    const replicaSet = 'recipesReplicaSet'
+    const mongoUser = process.env.MONGO_ADMIN_USERNAME
+    const mongoPassword = encodeURIComponent(process.env.MONGO_ADMIN_PASSWORD)
+    const mongoNodes = process.env.MONGO_NODES
+    const replicaSet = process.env.MONGODB_REPLICA_SET
     return {
         env: {
             version: '1.0.0',
@@ -80,7 +81,7 @@ module.exports = (phase, { defaultConfig }) => {
             MONGODB_REPLICA_SET: replicaSet,
             // TODO username/password need to come from some secret location and be consistent throughout
             // MONGODB_URI: `mongodb://${defaultConfig.env.MONGO_ADMIN_USERNAME}:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=recipesReplicaSet&authSource=admin`,
-            MONGODB_URI: `mongodb://looker:he%2Dw3nt%2D2%2DtHehou5eto%2Dlo0k@mongo1,mongo2,mongo3/?replicaSet=${replicaSet}&authSource=admin`,
+            MONGODB_URI: `mongodb://${mongoUser}:${mongoPassword}@${mongoNodes}/?replicaSet=${replicaSet}&authSource=admin`,
             mongoDatabase: 'recipeBook',
 
             // mongo collection that the actual recipes

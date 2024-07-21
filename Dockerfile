@@ -25,17 +25,18 @@ RUN npm install migrate-mongo -g
 RUN npm install pm2@latest -g
 
 # Copy all files except those that shouldn't be part of the image
-COPY --exclude=.env.local \
-     --exclude=node_modules \
-     --exclude=.next \
-     --exclude=.react-email \
-     --exclude=.git \
-     --exclude=.gitignore \
-     --exclude=.idea \
-     --exclude=docs/private_notes \
-     --exclude=compose.yaml \
-     --exclude=Dockerfile \
-     ./ ./
+COPY --exclude=.env.local\
+ --exclude=node_modules\
+ --exclude=.next\
+ --exclude=.react-email\
+ --exclude=.git\
+ --exclude=.gitignore\
+ --exclude=.idea\
+ --exclude=docs/private_notes\
+ --exclude=compose.yaml\
+ --exclude=compose-hardened.yaml\
+ --exclude=Dockerfile\
+ ./ ./
 
 # Build app
 RUN npm run build
@@ -48,4 +49,4 @@ EXPOSE 8081
 USER node
 
 # Run npm start script when container starts
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

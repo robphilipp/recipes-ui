@@ -7,14 +7,16 @@
 #
 
 compose_file='compose-hardened.yaml'
+
 db_admin_name='looker'
 admin_password="he-w3nt-2-tHehou5eto-lo0k"
 cluster_admin_name='clusterer'
 cluster_admin_password="he-w3nt-2-tHehou5eto-lo0k"
-
 recipes_replica_set_name='recipesReplicaSet'
 mongo_nodes='mongo1,mongo2,mongo3'
+database_name='recipeBook'
 
+printf "(deploy_recipes_mongo_with_auth) creating the .env file and copying it to deployment/.env.compose ..."
 #
 # set up the environment for compose (ugh)
 #
@@ -27,11 +29,82 @@ NEXTAUTH_SECRET: "caa8eeccc7d0e6e3f02d7f3a0c21bd43ed30b4f7cfe897448bb92ff4890bf6
 MONGO_ADMIN_USERNAME: "$db_admin_name"
 MONGO_ADMIN_PASSWORD: "$admin_password"
 MONGO_NODES: "$mongo_nodes"
+MONGODB_REPLICA_SET: "$recipes_replica_set_name"
+MONGODB_DATABASE_NAME: "$database_name"
 EOF
 
 # variables for next auth (need to move the secret into a secret)
 # (holds the next-auth secret and should be unique for your deployment)
 cp .env deployment/.env.compose
+
+printf "done\n"
+
+#
+# creating the next.config.js file so that it has the values we care about
+#
+
+# move the original nextjs config out of the way
+printf "(deploy_recipes_mongo_with_auth) moving the original next.config.js to next.config.js.orig ..."
+mv next.config.js next.config.js.orig
+printf "done\n"
+
+printf "(deploy_recipes_mongo_with_auth) creating a next.config.js for this deployment (this will be on the recipes-ui-app container) ..."
+cat > next.config.js <<EOF
+module.exports = phase => {
+  return {
+    env: {
+      version: '1.0.0',
+
+      siteName: 'City Recipes',
+      bookTitle: "City Recipes",
+
+      scheme: 'http',
+      host: 'localhost',
+      port: "3001",
+      recipesApi: '/rest/v1/recipes',
+
+      MONGODB_REPLICA_SET: '$recipes_replica_set_name',
+      MONGODB_URI: 'mongodb://$db_admin_name:$admin_password@$mongo_nodes/?replicaSet=$recipes_replica_set_name&authSource=admin',
+      mongoDatabase: '$database_name',
+
+      // mongo collection that the actual recipes
+      recipeCollection: 'recipes',
+
+      // mongo collection that holds the recipe book users
+      usersCollection: 'users',
+      // mongo collection that holds the recipe book roles
+      // (admin, account admin, user)
+      rolesCollection: 'roles',
+      // mongo collection that holds the assignments of roles
+      // to users
+      usersRolesCollection: 'users_roles',
+
+      // mongo collection holding the password set/reset tokens
+      // and associated users
+      passwordResetTokenCollection: 'password_reset_tokens',
+
+      // mongo collection holding recipe permissions (access rights
+      // users and groups have on a recipe)
+      permissionsCollection: 'permissions',
+
+      // mongo view that holds the users and their role information
+      // together for easier access
+      usersView: 'users_full',
+      // mongo view that holds the roles and their associated
+      // users (by ID) for reverse lookups
+      rolesView: 'roles_full',
+
+      // routes that are not authenticated
+      unauthenticated: "/passwords/token/[id], /passwords/email/[id], /login",
+
+      // layout information
+      sidebarNavWidthSmall: "180",
+      sidebarNavWidthMedium: "250",
+    }
+  }
+}
+EOF
+printf "done\n"
 
 #
 # run docker compose to get the cluster up in its base configuration
@@ -92,7 +165,7 @@ printf "done\n\n"
 printf "(deploy_recipes_mongo_with_auth) adding database admin user...\n"
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh --host localhost:27017 <<EOF
 var db_admin = "looker"
-var password = "he-w3nt-2-tHehou5eto-lo0k"
+var password = "$admin_password"
 
 var admin = db.getSiblingDB("admin")
 
@@ -138,9 +211,9 @@ docker compose --file "$compose_file" exec --no-TTY mongo1 mongoimport \
   --username="$db_admin_name" \
   --password="$admin_password" \
   --authenticationDatabase="admin" \
-  --db='recipeBook' \
+  --db="$database_name" \
   --collection='recipes' \
-  --host="$recipes_replica_set_name/mongo1,mongo2,mongo3" \
+  --host="$recipes_replica_set_name/$mongo_nodes" \
   --file='/data/setup/backups/recipes-export.json' \
   --bypassDocumentValidation
 printf "done\n\n"
@@ -150,16 +223,16 @@ docker compose --file "$compose_file" exec --no-TTY mongo1 mongoimport \
   --username="$db_admin_name" \
   --password="$admin_password" \
   --authenticationDatabase="admin" \
-  --db='recipeBook' \
+  --db="$database_name" \
   --collection='changelog' \
-  --host="$recipes_replica_set_name/mongo1,mongo2,mongo3" \
+  --host="$recipes_replica_set_name/$mongo_nodes" \
   --file='/data/setup/backups/changelog-export.json' \
   --maintainInsertionOrder
 printf "done\n\n"
 
 printf "(deploy_recipes_mongo_with_auth) checking changelog..."
 docker compose --file "$compose_file" exec --no-TTY mongo1 mongosh \
-  --host "$recipes_replica_set_name/mongo1,mongo2,mongo3" \
+  --host="$recipes_replica_set_name/$mongo_nodes" \
   --username="$db_admin_name" \
   --password="$admin_password" \
   --authenticationDatabase="admin" <<EOF
@@ -173,8 +246,17 @@ printf "(deploy_recipes_mongo_with_auth) migrating mongo cluster to current stat
 docker compose --file "$compose_file" exec --no-TTY app /usr/app/deployment/mongo/migrate_mongo.sh
 printf "done\n\n"
 
-printf "(deploy_recipes_mongo_with_auth) moving the .env file out of the way..."
-mv .env deployment/.env.for.docker.compose.old
-printf "moved to .env.for.docker.compose.old"
-
 printf "(deploy_recipes_mongo_with_auth) completed!\n"
+
+function cleanup() {
+  printf "(deploy_recipes_mongo_with_auth) moving the .env file out of the way..."
+  mv -f .env deployment/.env.for.docker.compose.old
+  printf "moved to .env.for.docker.compose.old"
+
+  printf "(deploy_recipes_mongo_with_auth) restoring the original next.config.js file..."
+  mv -f next.config.js.orig next.config.js
+  printf "done\n"
+}
+
+trap cleanup EXIT
+trap cleanup SIGINT

@@ -44,3 +44,4 @@ private_notes/
 dbmigrations/tmp/
 deployment/mongo/backups/*.json
 deployment/mongo/generated/
+clean-docker.sh
