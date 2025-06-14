@@ -57,6 +57,7 @@ services:
     # build the image from the Dockerfile in this same directory
     build: .
 
+    # todo IP address on raspberry had to be updated to 192.168.1.58
     ports:
       - 127.0.0.1:8081:3000
     working_dir: /usr/app
@@ -123,7 +124,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 0s
-      start_interval: 5s
+#      start_interval: 5s
 
     # by default mongodb uses the WiredTiger storage engine
     entrypoint: [
@@ -163,7 +164,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 0s
-      start_interval: 5s
+#      start_interval: 5s
 
     entrypoint: [
       "mongod",
@@ -202,7 +203,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 0s
-      start_interval: 5s
+#      start_interval: 5s
 
     entrypoint: [
       "mongod",

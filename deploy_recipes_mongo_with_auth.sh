@@ -22,6 +22,11 @@ printf "(deploy_recipes_mongo_with_auth) creating the .env file and copying it t
 #
 # create an environment file for docker compose to use, and then copy it to
 # the deployment directory so that it can be used by the next auth
+# todo IP address on raspberry had to be updated to 192.168.1.58
+# NOTE: you need to update NEXTAUTH_URL with the IP/hostname and port for the server on
+# which this is deployed and IP/hostname must be accessible from the outside. With nginx,
+# set it to the hostname, because presumably you've mapped the incoming port 80 to the
+# nextjs app port.
 cat > .env <<EOF
 NEXTAUTH_URL_INTERNAL: "http://localhost:3000"
 NEXTAUTH_URL: "http://localhost:8081"
@@ -48,6 +53,7 @@ printf "(deploy_recipes_mongo_with_auth) moving the original next.config.js to n
 mv next.config.js next.config.js.orig
 printf "done\n"
 
+# todo IP address on raspberry had to be updated to from localhost to 192.168.1.58
 printf "(deploy_recipes_mongo_with_auth) creating a next.config.js for this deployment (this will be on the recipes-ui-app container) ..."
 cat > next.config.js <<EOF
 module.exports = phase => {

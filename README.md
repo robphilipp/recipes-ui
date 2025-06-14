@@ -263,3 +263,39 @@ When developing emails, you can view your progress by typing:
 ```shell
 npx react-email dev -p 3030
 ```
+
+## docker compose
+
+Update the IP address for the next-auth URL. When the user logs-in, they are directed to the next-auth for authentication (you'll see a `302 Found` HTTP status code) and then get redirected back to the callback with the results. For example, if the server on which you're deploying the recipes has an IP address of `192.168.1.314`, then in the `recipes-ui/deploy_recipes_mongo_with_auth.sh` shell script, update the `NEXTAUTH_URL` with the URL `http://192.168.1.314` (or an https version if you have the certs setup)
+
+```shell
+.
+.
+.
+printf "(deploy_recipes_mongo_with_auth) creating a next.config.js for this deployment (this will be on the recipes-ui-app container) ..."
+cat > .env <<EOF
+.
+.
+.
+NEXTAUTH_URL: "http://192.168.1.314"
+.
+.
+.
+cat > next.config.js <<EOF
+module.exports = phase => {
+  return {
+    env: {
+      version: '1.0.0',
+        .
+        .
+        .
+      host: '127.0.0.1', // <--- from "localhost, prob doesn't need this change"
+        .
+        .
+        .
+EOF
+printf "done\n"
+.
+.
+.
+```
